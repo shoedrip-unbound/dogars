@@ -1,0 +1,10 @@
+{{#sets}}
+	<h3><a href="/set/{{id}}">{{#name}}{{name}}{{/name}}{{^name}}{{species}}{{/name}}</a></h3>
+	<img src="http://play.pokemonshowdown.com/sprites/xyani{{#s}}-shiny{{/s}}/{{species_}}.gif"><br/>
+	{{#description}}Description: <div class="description">{{{description_html}}}</div><br>{{/description}}
+	Date added: {{date}}<br/>
+	{{#creator}}Creator: {{creator}}<br/>{{/creator}}
+	{{#hash}}Tripcode: {{hash}}<br/>{{/hash}}
+	Format: {{format}}<br/>
+	<textarea class="set">{{set_form}}</textarea>
+{{/sets}}

@@ -1,0 +1,139 @@
+@import url('https://fonts.googleapis.com/css?family=Itim');
+
+.current {
+    position: absolute;
+    left: 10px;
+    top: 15px;
+    margin: 0px;
+    box-shadow: 0 0 17px -5px;
+    padding: 2px 0 10px 0;
+    border-radius: 2px;
+    max-width: 17vw;
+}
+
+.current p {
+    display: block;
+    text-align: center;
+    margin: 0 9px 0 9px;
+}
+
+.current hr {
+    border: 0;
+    border-bottom: 1px solid;
+    margin: 3px 0 0 0;
+}
+
+.current a {
+    display: block;
+    text-align: center;
+}
+
+body {
+	display: grid;
+	margin: 0 auto;
+	max-width: 800px;
+	line-height: 1.6;
+	font-size: 18px;
+	padding: 0 10px;
+	font-family: Sans-Serif;
+}
+
+h1, h2, h3 {
+	font-family: 'Itim', cursive;
+	line-height: 1.2;
+}
+
+.set {
+	width: 100%;
+	height: 170px;
+	resize: none;
+}
+
+form {
+	display: table;
+	width: 100%;
+}
+
+p {
+	display: table-row;
+}
+
+label {
+	display: table-cell;
+	text-align: right;
+}
+
+textarea, input, select {
+	display: table-cell;
+}
+
+form > p > label {
+    padding-right: 10px;
+}
+
+#waifu {
+	bottom: 0;
+	left: 0;
+	position: fixed;
+}
+
+.content {
+    display: grid;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    margin-top: 15px;
+}
+
+.nav {
+    font-family: 'Itim', cursive;
+    font-variant: small-caps;
+	text-align: center;
+}
+
+hr.style13 {
+	margin: 0;
+	height: 10px;
+	border: 0;
+}
+
+hr.style13b {
+	margin: 0;
+	height: 10px;
+	border: 0;
+}
+
+a {
+    text-decoration: none;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.nav a {
+    padding-left: 20px;
+    padding-right: 20px;
+	font-size: 1.6em;
+	display: inline-block;
+}
+
+.main {
+	padding: 0 20px 0 20px;
+}
+
+#search {
+    text-align: center;
+    margin: 0;
+    border: 0;
+    padding: 0;
+    max-height: 34px;
+    max-width: 75%;
+    font-size: 1.8em;
+}
+
+#search:focus {
+	outline: none;
+}
+
+.description {
+	line-height: 1.2em;
+	word-break: break-all;
+}

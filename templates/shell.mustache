@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Bootleg Dogars</title>
+		<!-- I don't know what the fuck I'm even doing -->
+		<link id="colorscheme" rel="stylesheet" href="/color{{style_suffix}}.css">
+		<link rel="stylesheet" href="/style.css">
+	</head>
+	<body>
+		<div class="current">
+			{{^champ_active}}<p>No champ :(</p>{{/champ_active}}{{#champ_active}}<p>Current battle</p><hr><a href="{{champ_battle}}"><p>{{champ_name}}</p><b>{{champ_trip}}</b></a>{{/champ_active}}
+		</div>
+		<div class="content">			
+		<img class="banner" src="https://archive-media-0.nyafuu.org/vp/image/1488/86/1488868328343.png"/>
+		<hr style="margin-bottom: -7px; z-index: 1;" class="style13">
+		<form style="text-align: center;" action="/search">
+			<input placeholder="Click here to Search..." autocomplete="off" name="q" id="search"/>
+		</form>
+		<hr style="margin-top: -7px;" class="style13b">
+		<div class="nav">
+			<a href="/">Home</a> 
+			<a href="/import">Import</a> 
+			<a href="/random">Random</a> 
+			<a href="/all">All</a> 
+			<a href="/backup.sql">Backup</a>
+		</div>			
+		<hr class="style13">
+		<div class="main">
+			{{> content}}
+		</div>
+		</div>
+		<img {{#waifu}}src="{{waifu}}"{{/waifu}}{{^waifu}} src="/lillie2.png"{{/waifu}} id="waifu"/>		
+		<script>
+		 function reloadTheme() {
+			 if(localStorage.dark == 'true') {
+				 colorscheme.href = "/color2.css";
+				 waifu.src = '/moon.png';
+			 }
+			 else {
+				 colorscheme.href = "/color.css";
+				 waifu.src = '/lillie2.png';
+			 }
+			 document.cookie = "dark=" + localStorage.dark;
+		 }
+
+		 window.onload = () => {
+			 let sets = document.getElementsByClassName('set');
+			 for(var i = 0; i < sets.length; ++i)
+				 sets[i].onfocus = function() {
+					 this.select()
+				 };
+			 reloadTheme();
+		 }
+
+		 waifu.onclick = (e) => {
+			 localStorage.dark = localStorage.dark == 'true' ? 'false' : 'true';
+			 reloadTheme();
+		 }
+		</script>
+	</body>
+</html>
