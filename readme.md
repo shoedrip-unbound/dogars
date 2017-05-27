@@ -9,3 +9,4 @@ You could infer the proper schema from the code, or get a database dump from dog
 Currently, the application runs on dogars.ml on port 1234 and an nginx rule redirects traffic from port 80 to port 1234.
 
 Works on my machine©.
+Merely a test.
