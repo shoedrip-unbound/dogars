@@ -130,6 +130,12 @@ router.get("/search", (request, response) => {
   })
 });
 
+router.post("/reload", (request, response) => {
+  console.log(request.post);
+  response.writeHead(200, {'Content-type': 'text/html'});
+  response.end('');
+});
+
 router.get("/set/:id", (request, response) => {
   db.getSetById(request.params.id, set => {
     if (!set)
