@@ -2,7 +2,7 @@
   "name": "dogars",
   "version": "1.0.0",
   "description": "Lurk more",
-  "main": "mememons.js",
+  "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/shoedrip-unbound/dogars#readme",
   "dependencies": {
+    "forever-monitor": "^1.7.1",
     "mariasql": "^0.2.6",
     "mustache": "^2.3.0",
     "node-simple-router": "^0.10.1",

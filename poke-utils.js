@@ -28,10 +28,16 @@ module.exports.formatSetFromRow = (set) => {
   rich.s = 
   rich.species_ = rich.species.toLowerCase();
   rich.species_ = rich.species_.replace(/ /g, "");
+
   rich.species_ = rich.species_.replace(/:/g, "");
   rich.species_ = rich.species_.replace(/\./g, "");
+  rich.species_ = rich.species_.replace(/'/g, "");
   rich.species_ = rich.species_.replace(/mega-x/g, "megax");
   rich.species_ = rich.species_.replace(/mega-y/g, "megay");
+
+  // I fucking give up
+  rich.species_ = rich.species_.replace(/kommo-o/g, "kommoo");
+
   rich.set_form = '';
   if (rich.name)
     rich.set_form += rich.name + ' (' + rich.species + ')';
@@ -54,7 +60,7 @@ module.exports.formatSetFromRow = (set) => {
   rich.description_html = mustache.render('{{d}}', {d: rich.description});
   rich.description_html = (rich.description_html + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2');
 
-  if (rich.happiness && rich.happiness != '255' && rich.happiness != '256')
+  if (rich.happiness && parseInt(rich.happiness) < '255')
     rich.set_form += 'Happiness: ' + rich.happiness + '\n';
   let stats = ['HP', 'Atk', 'Def', 'SpA', 'SpD', 'Spe'];
   let evstr = '';

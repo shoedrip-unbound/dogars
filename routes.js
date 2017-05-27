@@ -6,6 +6,7 @@ let shoe     = require('./shoedrip.js');
 let mustache = require('mustache');
 let Router   = require('node-simple-router');
 let router   = Router();
+let cp = require('child_process');
 
 let files = ['shell', 'index', 'set', 'all', 'import', '404', '500'];
 let fileCache = {};

@@ -3,7 +3,7 @@ let fs       = require('fs');
 let poke     = require('./poke-utils');
 let tripcode = require('tripcode');
 
-var settings = JSON.parse(fs.readFileSync('settings.json'));
+let settings = JSON.parse(fs.readFileSync('settings.json'));
 
 let c = new Client(settings.db);
 
