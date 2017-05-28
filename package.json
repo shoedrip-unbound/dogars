@@ -10,7 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/shoedrip-unbound/dogars.git"
   },
-  "author": "It is a mystery",
+  "author": "It is a mystery.",
   "license": "AGPL-3.0",
   "bugs": {
     "url": "https://github.com/shoedrip-unbound/dogars/issues"
