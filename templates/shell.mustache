@@ -32,13 +32,15 @@
 		</div>
 		<img {{#waifu}}src="{{waifu}}"{{/waifu}}{{^waifu}} src="/lillie2.png"{{/waifu}} id="waifu"/>		
 		<script>
-		 localStorage.config = (localStorage.config && JSON.parse(localStorage.config)) || { dark: localStorage.dark == 'true' };
+		 let config = (localStorage.config && JSON.parse(localStorage.config)) || { dark: localStorage.dark == 'true' };
+
 		 delete localStorage.dark;
 
 		 let reloadTheme = () => {
 			 colorscheme.href = localStorage.config.dark ? "/color2.css" : "/color.css";
 			 waifu.src = localStorage.config.dark ? '/moon.png': '/lillie2.png';
 			 document.cookie = "dark=" + localStorage.config.dark;
+			 localStorage.config = JSON.stringify(config);
 		 }
 
 		 window.onload = () => {
