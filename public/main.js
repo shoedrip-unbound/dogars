@@ -27,6 +27,10 @@ window.onload = () => {
 waifu.onclick = (e) => {
   config.dark = !config.dark;
   reloadTheme();
+  // thenk u 4 stremlinin dis feature
+  let toplay = config.dark ? moon : lillie;
+  toplay.volume = 0.7;
+  toplay.play();
 }
 
 ban.ondblclick = () => {
