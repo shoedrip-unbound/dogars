@@ -11,6 +11,12 @@
     max-width: 17vw;
 }
 
+.footer a {
+    text-align: center;
+    display: block;
+    font-family: 'Itim', cursive;
+}
+
 .current p {
     display: block;
     text-align: center;
