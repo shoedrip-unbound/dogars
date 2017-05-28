@@ -11,6 +11,8 @@ let cp = require('child_process');
 let files = ['shell', 'index', 'set', 'all', 'import', '404', '500'];
 let fileCache = {};
 
+let banners = fs.readdirSync('./public/ban');
+
 files.forEach(f => {
   let file = 'templates/' + f + '.mustache';
   fileCache[f] = fs.readFileSync(file, 'utf8');
@@ -47,10 +49,16 @@ let getCookieData = request => {
   };
 }
 
+let genericData = (request) => {
+  let ret = router.utils.extendObj(shoe.champ, getCookieData(request));
+  let rand_ban = banners[~~(Math.random() * banners.length)];
+  ret = router.utils.extendObj(ret, {banner: '/ban/' + rand_ban});
+  return ret;
+}
+
 router.get("/", (request, response) => {
   getSetOfTheDay(set => {
-    set = router.utils.extendObj(set, getCookieData(request));
-    set = router.utils.extendObj(set, shoe.champ);
+    set = router.utils.extendObj(set, genericData(request));
     response.writeHead(200, {'Content-type': 'text/html'});
     response.end(mustache.render(fileCache['shell'], set, {content: fileCache['index']}));
   });
@@ -60,15 +68,14 @@ router.get("/all", (request, response) => {
   db.getAllSets(sets => {
     sets = sets.map(e => { return poke.formatSetFromRow(e)});
     response.writeHead(200, {'Content-type': 'text/html'});
-    let data = router.utils.extendObj({sets: sets}, getCookieData(request));
-    data = router.utils.extendObj(data, shoe.champ);
+    let data = router.utils.extendObj({sets: sets}, genericData(request));
     response.end(mustache.render(fileCache['shell'], data, {content: fileCache['all']}));
   })
 });
 
 router.get("/import", (request, response) => {
   response.writeHead(200, {'Content-type': 'text/html'});
-  let data = router.utils.extendObj(shoe.champ, getCookieData(request));
+  let data = genericData(request);
   response.end(mustache.render(fileCache['shell'], data, {content: fileCache['import']}));    
 });
 
@@ -124,8 +131,7 @@ router.get("/random", (request, response) => {
 router.get("/search", (request, response) => {
   db.getSetsByName(request.get.q, sets => {
     sets = sets.map(e => { return poke.formatSetFromRow(e)});
-    let data = router.utils.extendObj({sets: sets}, getCookieData(request));
-    data = router.utils.extendObj(data, shoe.champ);
+    let data = router.utils.extendObj({sets: sets}, genericData(request));
     response.writeHead(200, {'Content-type': 'text/html'});
     response.end(mustache.render(fileCache['shell'], data, {content: fileCache['all']}));    
   })
@@ -146,16 +152,14 @@ router.get("/set/:id", (request, response) => {
       return;
     }
     set = poke.formatSetFromRow(set);
-    set = router.utils.extendObj(set, getCookieData(request));
-    set = router.utils.extendObj(set, shoe.champ);
+    set = router.utils.extendObj(set, genericData(request));
     response.writeHead(200, {'Content-type': 'text/html'});
     response.end(mustache.render(fileCache['shell'], set, {content: fileCache['set']}));
   });
 });
 
 router._404 = (request, response, path) => {
-  set = getCookieData(request);
-  set = router.utils.extendObj(set, shoe.champ);
+  set = genericData(request);
   response.writeHead(404, {'Content-type': 'text/html'});
   response.end(mustache.render(fileCache['shell'], set, {content: fileCache['404']}));
 }
