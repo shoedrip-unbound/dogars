@@ -12,7 +12,7 @@
 			{{^champ_active}}<p>No champ :(</p>{{/champ_active}}{{#champ_active}}<p>Current battle</p><hr><a href="{{champ_battle}}"><p>{{champ_name}}</p><b>{{champ_trip}}</b></a>{{/champ_active}}
 		</div>
 		<div class="content">
-			<img class="banner" src="{{banner}}"/>
+			<img id="ban" class="banner" src="{{banner}}"/>
 			<hr style="margin-bottom: -7px; z-index: 1;" class="style13">
 			<form style="text-align: center;" action="/search">
 				<input placeholder="Click here to Search..." autocomplete="off" name="q" id="search"/>
@@ -35,31 +35,6 @@
 			</div>
 		</div>
 		<img {{#waifu}}src="{{waifu}}"{{/waifu}}{{^waifu}} src="/lillie2.png"{{/waifu}} id="waifu"/>		
-		<script>
-		 let config = (localStorage.config && JSON.parse(localStorage.config)) || { dark: localStorage.dark == 'true' };
-
-		 delete localStorage.dark;
-
-		 let reloadTheme = () => {
-			 colorscheme.href = config.dark ? "/color2.css" : "/color.css";
-			 waifu.src = config.dark ? '/moon.png': '/lillie2.png';
-			 document.cookie = "dark=" + config.dark;
-			 localStorage.config = JSON.stringify(config);
-		 }
-
-		 window.onload = () => {
-			 let sets = document.getElementsByClassName('set');
-			 for(var i = 0; i < sets.length; ++i)
-				 sets[i].onfocus = function() {
-					 this.select()
-				 };
-			 reloadTheme();
-		 }
-
-		 waifu.onclick = (e) => {
-			 config.dark = !config.dark;
-			 reloadTheme();
-		 }
-		</script>
+		<script type="text/javascript" charset="utf-8" src="/main.js"></script>
 	</body>
 </html>

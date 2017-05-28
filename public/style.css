@@ -143,3 +143,7 @@ a {
 	line-height: 1.2em;
 	word-break: break-all;
 }
+
+img.custom {
+    max-width: 50%;
+}

@@ -5,10 +5,14 @@ let db       = require('./db.js');
 let shoe     = require('./shoedrip.js');
 let mustache = require('mustache');
 let Router   = require('node-simple-router');
+var mkdirp   = require('mkdirp');
 let router   = Router();
 let cp = require('child_process');
 
-let files = ['shell', 'index', 'set', 'all', 'import', '404', '500'];
+let files = fs.readdirSync('./templates').map(file => {
+  return file.replace(/\.mustache$/g, '');
+});
+
 let fileCache = {};
 
 let banners = fs.readdirSync('./public/ban');
@@ -19,6 +23,7 @@ files.forEach(f => {
   fs.watch(file, {persistent: false, }, (event, name) => {
     if (event != 'change')
       return;
+    console.log(file + ' changed');
     fileCache[f] = fs.readFileSync(file, 'utf8');
   });
 });
@@ -79,6 +84,12 @@ router.get("/import", (request, response) => {
   response.end(mustache.render(fileCache['shell'], data, {content: fileCache['import']}));    
 });
 
+router.get("/thanks", (request, response) => {
+  response.writeHead(200, {'Refresh': '2; url=/', 'Content-type': 'text/html'});
+  let data = genericData(request);
+  response.end(mustache.render(fileCache['shell'], data, {content: fileCache['thanks']}));    
+});
+
 router.post("/update/:id", (request, response) => {
   let handleErrorGen = e => {
     if(e) {
@@ -137,10 +148,62 @@ router.get("/search", (request, response) => {
   })
 });
 
-router.post("/reload", (request, response) => {
-  console.log(request.post);
-  response.writeHead(200, {'Content-type': 'text/html'});
-  response.end('');
+router.get("/suggest/:type", (request, response) => {
+  let data = genericData(request);
+  if (request.params.type == 'banner') {
+    response.writeHead(200, {'Content-type': 'text/html'});
+    response.end(mustache.render(fileCache['shell'], data, {content: fileCache['suggest-banner']}));
+  }
+  else if (/^\d+$/.test(request.params.type)) {
+    db.getSetById(request.params.type, set => {
+      if (!set)
+      {
+        response.writeHead(200, {'Refresh': '0; url=/'});
+        response.end('');
+        return;
+      }
+      set = poke.formatSetFromRow(set);
+      set = router.utils.extendObj(set, data);
+      response.writeHead(200, {'Content-type': 'text/html'});
+      response.end(mustache.render(fileCache['shell'], set, {content: fileCache['suggest-set']}));
+  });
+  }
+  else
+    router._404(request, response, '/suggest/' + request.params.type);
+});
+
+router.post("/suggest", (request, response) => {
+
+  let saveToDir = (dir) => {
+    fs.access(dir, (err) => {
+      if (err)
+        mkdirp.sync(dir);
+      fs.readdir(dir, (e, f) => {
+        if (e)
+          return console.log(e);
+        console.log('readdir: ' + f);
+        fs.writeFile(dir + '/' + f.length + '-' + request.post['multipart-data'][0].fileName,
+                     request.post['multipart-data'][0].fileData,
+                     {encoding: 'binary'},
+                     () => {
+                       console.log('Saved file content');
+                     });
+      });
+    });
+  }
+
+  if (request.post['multipart-data'][1].fileData == 'banner') {
+    saveToDir('./ban-submission');
+    response.writeHead(200, {'Refresh': '0; url=/thanks'});
+    response.end('');
+  }
+  else if (/^\d+$/.test(request.post['multipart-data'][1].fileData)) {
+    saveToDir('./sets/' + request.post['multipart-data'][1].fileData);
+    response.writeHead(200, {'Refresh': '0; url=/thanks'});
+    response.end('');
+  }
+  else
+    router._404(request, response, '/suggest/' + request.post.type);
 });
 
 router.get("/set/:id", (request, response) => {

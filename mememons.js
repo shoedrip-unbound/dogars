@@ -21,6 +21,7 @@ github.on('push', () => {
   try {
     cp.execSync('git pull origin master || true');
     cp.execSync('git pull hub master || true');
+    cp.execSync('npm install');
   }
   catch(e) {
   }

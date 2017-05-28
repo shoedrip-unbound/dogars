@@ -19,6 +19,7 @@
   "dependencies": {
     "forever-monitor": "^1.7.1",
     "mariasql": "^0.2.6",
+    "mkdirp": "^0.5.1",
     "mustache": "^2.3.0",
     "node-simple-router": "^0.10.1",
     "request": "^2.81.0",

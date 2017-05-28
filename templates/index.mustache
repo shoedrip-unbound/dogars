@@ -5,7 +5,7 @@ That's it. Now go find some memes.
 
 <h1>Meme of the day</h1>
 <h3><a href="/set/{{id}}">{{#name}}{{name}}{{/name}}{{^name}}{{species}}{{/name}}</a></h3>
-<img src="http://play.pokemonshowdown.com/sprites/xyani{{#s}}-shiny{{/s}}/{{species_}}.gif"><br/>
+<img class="set-image {{#cust}}custom{{/cust}}" data-id="{{id}}" src="{{img_url}}"><br>
 {{#description}}Description: <div class="description">{{{description_html}}}</div><br>{{/description}}
 Date added: {{date}}<br/>
 {{#creator}}Creator: {{creator}}<br/>{{/creator}}

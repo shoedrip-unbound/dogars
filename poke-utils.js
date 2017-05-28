@@ -1,3 +1,4 @@
+let fs       = require('fs');
 let mustache = require('mustache');
 
 // Shamelessly stolen and adapted from showdown-client
@@ -60,6 +61,14 @@ module.exports.formatSetFromRow = (set) => {
   rich.description_html = mustache.render('{{d}}', {d: rich.description});
   rich.description_html = (rich.description_html + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2');
 
+  const exts = ['png', 'jpg', 'gif'];
+  exts.forEach(e => {
+    if (fs.existsSync('./public/sets/' + rich.id + '.' + e)) {
+      rich.img_url = '/sets/' + rich.id + '.' + e;
+      rich.cust = true;
+    }
+  });
+  rich.img_url = rich.img_url || mustache.render('http://play.pokemonshowdown.com/sprites/xyani{{#s}}-shiny{{/s}}/{{species_}}.gif', rich);
   if (rich.happiness && parseInt(rich.happiness) < '255')
     rich.set_form += 'Happiness: ' + rich.happiness + '\n';
   let stats = ['HP', 'Atk', 'Def', 'SpA', 'SpD', 'Spe'];
