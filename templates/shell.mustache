@@ -37,9 +37,9 @@
 		 delete localStorage.dark;
 
 		 let reloadTheme = () => {
-			 colorscheme.href = localStorage.config.dark ? "/color2.css" : "/color.css";
-			 waifu.src = localStorage.config.dark ? '/moon.png': '/lillie2.png';
-			 document.cookie = "dark=" + localStorage.config.dark;
+			 colorscheme.href = config.dark ? "/color2.css" : "/color.css";
+			 waifu.src = config.dark ? '/moon.png': '/lillie2.png';
+			 document.cookie = "dark=" + config.dark;
 			 localStorage.config = JSON.stringify(config);
 		 }
 
@@ -53,7 +53,7 @@
 		 }
 
 		 waifu.onclick = (e) => {
-			 localStorage.config.dark = !localStorage.config.dark;
+			 config.dark = !config.dark;
 			 reloadTheme();
 		 }
 		</script>
