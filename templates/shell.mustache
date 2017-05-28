@@ -32,16 +32,13 @@
 		</div>
 		<img {{#waifu}}src="{{waifu}}"{{/waifu}}{{^waifu}} src="/lillie2.png"{{/waifu}} id="waifu"/>		
 		<script>
-		 function reloadTheme() {
-			 if(localStorage.dark == 'true') {
-				 colorscheme.href = "/color2.css";
-				 waifu.src = '/moon.png';
-			 }
-			 else {
-				 colorscheme.href = "/color.css";
-				 waifu.src = '/lillie2.png';
-			 }
-			 document.cookie = "dark=" + localStorage.dark;
+		 let config = (localStorage.config && JSON.parse(localStorage.config)) || { dark: localStorage.dark == 'true' };
+		 delete localStorage.dark;
+
+		 let reloadTheme = () => {
+			 colorscheme.href = config.dark ? "/color2.css" : "/color.css";
+			 waifu.src = config.dark ? '/moon.png': '/lillie2.png';
+			 document.cookie = "dark=" + config.dark;
 		 }
 
 		 window.onload = () => {
@@ -54,7 +51,7 @@
 		 }
 
 		 waifu.onclick = (e) => {
-			 localStorage.dark = localStorage.dark == 'true' ? 'false' : 'true';
+			 config.dark = !config.dark;
 			 reloadTheme();
 		 }
 		</script>
