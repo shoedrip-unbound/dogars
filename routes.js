@@ -28,6 +28,12 @@ files.forEach(f => {
   });
 });
 
+fs.watch('./public/ban', {persistent: false}, (e, n) => {
+  fs.readdir('./public/ban', (e, banfiles) => {
+    banners = banfiles;
+  });
+})
+
 let getSetOfTheDay = cb => {
   let today = new Date();
   let seed = today.getDate() * (today.getMonth() + 1) * (today.getYear() + 1900);
