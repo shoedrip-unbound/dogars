@@ -8,14 +8,17 @@ let github = githubhook({path: '/reload',
 						 secret: settings.secret});
 let cp = require('child_process');
 
+/*
 let http = require('http');
 let router = require('./routes.js').router
-
 let server = http.createServer(router);
-
 router.server = server;
-
 server.listen(process.argv[2] || 1234);
+*/
+
+//let express = require('express');
+//let app = express();
+let app = require('./routes.js').listen(process.argv[2] || 1234);
 
 github.on('push', () => {
   try {
