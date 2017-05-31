@@ -135,7 +135,7 @@ router.get("/thanks", (request, response) => {
 	response.end();
 });
 
-router.post("/update/:id", (request, response) => {
+router.post("/update/:id", (request, response, next) => {
 	let handleErrorGen = e => {
 		if(e) {
 			response.set({'Refresh': '2; url=/'});
@@ -189,7 +189,7 @@ router.get("/random", (request, response) => {
 });
 
 router.get("/search", (request, response) => {
-	db.getSetsByName(request.body.q, sets => {
+	db.getSetsByName(request.query.q, sets => {
 		sets = sets.map(e => { return poke.formatSetFromRow(e)});
 		let data = extend({sets: sets}, genericData(request));
 		response.set({'Content-type': 'text/html'});
