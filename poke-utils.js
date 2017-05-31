@@ -1,6 +1,14 @@
 let fs       = require('fs');
 let mustache = require('mustache');
 
+let clamp = (min, val, max) => {
+  if (val < min)
+    return min;
+  if (val > max)
+    return max;
+  return val;
+}
+
 // Shamelessly stolen and adapted from showdown-client
 var BattleStatIDs = {
 	HP: 'hp',
@@ -142,15 +150,15 @@ module.exports.parseSet = (text) => {
 	  }
 	} else if (line.substr(0, 9) === 'Ability: ') {
 	  line = line.substr(9);
-	  curSet.ability = line;
+	  curSet.ability = line.substr(0, 20);
 	} else if (line === 'Shiny: Yes') {
 	  curSet.shiny = true;
 	} else if (line.substr(0, 7) === 'Level: ') {
 	  line = line.substr(7);
-	  curSet.level = +line;
+	  curSet.level = clamp(1, +line, 100);
 	} else if (line.substr(0, 11) === 'Happiness: ') {
 	  line = line.substr(11);
-	  curSet.happiness = +line;
+	  curSet.happiness = clamp(0, +line, 256);
 	} else if (line.substr(0, 5) === 'EVs: ') {
 	  line = line.substr(5);
 	  var evLines = line.split('/');
@@ -164,7 +172,7 @@ module.exports.parseSet = (text) => {
 		var statid = BattleStatIDs[evLine.substr(spaceIndex + 1)];
 		var statval = parseInt(evLine.substr(0, spaceIndex), 10);
 			if (!statid) continue;
-		curSet[statid + '_ev'] = statval;
+		curSet[statid + '_ev'] = clamp(0, statval, 252);
 	  }
 	} else if (line.substr(0, 5) === 'IVs: ') {
 	  line = line.substr(5);
@@ -178,14 +186,14 @@ module.exports.parseSet = (text) => {
 		var statval = parseInt(ivLine.substr(0, spaceIndex), 10);
 		if (!statid) continue;
 			if (isNaN(statval)) statval = 31;
-		curSet[statid + '_iv'] = statval;
+		curSet[statid + '_iv'] = clamp(0, statval, 31);
 	  }
 	} else if (line.match(/^[A-Za-z]+ (N|n)ature/)) {
 	  var natureIndex = line.indexOf(' Nature');
 	  if (natureIndex === -1) natureIndex = line.indexOf(' nature');
 	  if (natureIndex === -1) continue;
 	  line = line.substr(0, natureIndex);
-	  if (line !== 'undefined') curSet.nature = line;
+	  if (line !== 'undefined') curSet.nature = line.substr(0, 15);
 	} else if (line.substr(0, 1) === '-' || line.substr(0, 1) === '~') {
 	  line = line.substr(1);
 	  if (line.substr(0, 1) === ' ') line = line.substr(1);
@@ -197,6 +205,8 @@ module.exports.parseSet = (text) => {
   curSet.move_2 = curSet.moves[1];
   curSet.move_3 = curSet.moves[2];
   curSet.move_4 = curSet.moves[3];
+  curSet.name = curSet.name.substr(0, 30);
+  curSet.species = curSet.species.substr(0, 30);
   delete curSet.moves;
   return curSet;
 }
