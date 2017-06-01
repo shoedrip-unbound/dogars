@@ -147,3 +147,27 @@ a {
 img.custom {
     max-width: 50%;
 }
+
+.page_select {
+	text-align: center;
+    font-family: 'Itim', cursive;
+}
+
+.not-active {
+   pointer-events: none;
+   cursor: default;
+}
+
+a.not-active {
+	color: #AAA;
+}
+
+.controls {
+    display: inline-block;
+    border: 1px solid;
+    border-radius: 5px;
+    padding: 5px 10px 5px 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 14px -5px;
+}

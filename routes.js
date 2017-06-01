@@ -112,13 +112,24 @@ router.get("/", (request, response) => {
 });
 
 router.get("/all", (request, response) => {
-	db.getAllSets(sets => {
+	let spp = 10; //request.query.spp || 10;
+	let npages = ~~(db.total / spp) + (db.total % spp != 0);
+	let page = request.query.page || 0;
+	page = ~~page;
+	db.getSetsPage(spp, page, sets => {
 		sets = sets.map(e => { return poke.formatSetFromRow(e)});
 		response.set({'Content-type': 'text/html'});
 		let data = extend({sets: sets}, genericData(request));
+		data = extend(data, {display_pages: true, current_page: ~~page + 1, npages: npages, lastpage: npages - 1});
+		if (page > 0) {
+			data.prev = ~~page - 1;
+			data.has_prev = true;
+		}
+		if (page + 1 < npages)
+			data.next = ~~page + 1;
 		response.send(mustache.render(fileCache['shell'], data, {content: fileCache['all']}));
 		response.end();
-	})
+	});
 });
 
 router.get("/import", (request, response) => {
