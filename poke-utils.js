@@ -102,7 +102,7 @@ module.exports.formatSetFromRow = (set) => {
   for(var i in neutral)
     if (neutral[i].toLowerCase() == rich.nature)
       nature = true;
-  if (!nature)
+  if (rich.nature && !nature)
     rich.set_form += rich.nature + ' Nature\n';
   if(ivstr != '')
     rich.set_form += 'IVs: ' + ivstr + '\n';
