@@ -158,7 +158,7 @@ module.exports.deleteSet = (request, cb) => {
   module.exports.getSetById(request.params.id, row => {
     console.log('TRIP: ' + request.body.trip);
     if (request.body.trip == '' ||
-        (request.body.trip != 'muh backdoor' &&
+        (request.body.trip != settings.admin_pass &&
          row.hash != tripcode(request.body.trip)))
       return cb('Wrong tripcode');
     c.query('DELETE FROM Sets WHERE id = ?', [request.params.id], (e, rows) => {

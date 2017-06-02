@@ -1,0 +1,11 @@
+{
+	"db": {
+		"host": "127.0.0.1",
+		"user": "some_user",
+		"database": "some_database",
+		"password": "some_pass",
+		"charset": "utf8mb4"
+	},
+	"admin_pass": "[my waifu] is [article] [noun] [preposition] [article] universe",
+	"secret": "[secret github key]"
+}
