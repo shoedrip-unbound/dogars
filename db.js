@@ -100,7 +100,7 @@ module.exports.createNewSet = (request, cb) => {
   c.query(querystr, data_arr, (e, rows) => {
     if (e)
       return cb(e);
-    cb(null, rows.info);
+    cb(null, rows);
     module.exports.total++;
   });
 }

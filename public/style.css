@@ -171,3 +171,7 @@ a.not-active {
     margin-bottom: 10px;
     box-shadow: 0 0 14px -5px;
 }
+
+hr.style13:last-of-type {
+	margin-top: 10px;
+}
