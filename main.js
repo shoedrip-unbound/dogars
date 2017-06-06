@@ -1,7 +1,7 @@
 var forever = require('forever-monitor');
 
 var child = new (forever.Monitor)('mememons.js', {
-  max: 300,
+  max: 300000,
   silent: true,
   args: [(process.argv[2] || 1234)]
 });
