@@ -44,7 +44,11 @@ module.exports.getSetById = (id, cb) => {
 }
 
 module.exports.getSetsByName = (name, cb) => {
-  c.query('select * from Sets where name like ? or species like ?', ['%' + name + '%', '%' + name + '%'], (e, rows) => {
+  let pattern = '%' + name + '%';
+  c.query('select * from Sets where name like ? or species like ? or move_1 like ? or move_2 like ? or move_3 like ? or move_4 like ?',
+          [pattern,
+           pattern, pattern, pattern, pattern,
+           pattern], (e, rows) => {
     if (e)
       console.log(e);
     cb(rows);
