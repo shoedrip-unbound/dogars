@@ -38,8 +38,23 @@ module.exports.getSetById = (id, cb) => {
   c.query('select * from Sets where id = ?', [id], (e, rows) => {
     if (e)
       console.log(e);
-    console.log(id);
     cb(rows[0]);
+  });
+}
+
+module.exports.getSetsByProperty = (props, cb) => {
+  let querystr = 'select * from Sets where ';
+  let data = [];
+  for(var i in props)
+  {
+    querystr += i + ' = ? and ';
+    data.push(props[i]);
+  }
+  querystr = querystr.substr(0, querystr.length - 5);
+  c.query(querystr, data, (e, rows) => {
+    if (e)
+      console.log(e);
+    cb(rows);
   });
 }
 

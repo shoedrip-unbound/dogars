@@ -57,6 +57,11 @@ let extend = (d, s) => {
 	return d;
 }
 
+let render = (view, data) => {
+	let subs = extend(fileCache, {content: fileCache[view]});
+	return mustache.render(fileCache['shell'], data, subs);
+}
+
 let cookie2obj = (str) => {
 	let cook = str.split(';').map(e => e.trim());
 	let ret = {};
@@ -106,7 +111,8 @@ router.get("/", (request, response) => {
 	getSetOfTheDay(set => {
 		set = extend(set, genericData(request));
 		response.set({'Content-type': 'text/html'});
-		response.send(mustache.render(fileCache['shell'], set, {content: fileCache['index']}));
+		response.send(render('index', set));
+		//response.send(mustache.render(fileCache['shell'], set, {content: fileCache['index']}));
 		response.end();
 	});
 });
@@ -127,7 +133,7 @@ router.get("/all", (request, response) => {
 		}
 		if (page + 1 < npages)
 			data.next = ~~page + 1;
-		response.send(mustache.render(fileCache['shell'], data, {content: fileCache['all']}));
+		response.send(render('all', data));
 		response.end();
 	});
 });
@@ -135,14 +141,14 @@ router.get("/all", (request, response) => {
 router.get("/import", (request, response) => {
     response.set({'Content-type': 'text/html'});
 	let data = genericData(request);
-	response.send(mustache.render(fileCache['shell'], data, {content: fileCache['import']}));    
+	response.send(render('import', data));
 	response.end();
 });
 
 router.get("/thanks", (request, response) => {
     response.set({'Refresh': '2; url=/', 'Content-type': 'text/html'});
 	let data = genericData(request);
-	response.send(mustache.render(fileCache['shell'], data, {content: fileCache['thanks']}));    
+	response.send(render('thanks', data));
 	response.end();
 });
 
@@ -187,11 +193,6 @@ router.post("/add", (request, response) => {
 	}
 });
 
-router.get("/favicon.ico", (request, response) => {
-	response.sendFile('favicon.ico');
-	response.end();
-});
-
 router.get("/random", (request, response) => {
 	let randid = Math.random() * db.total;
 	randid = ~~randid;
@@ -204,7 +205,17 @@ router.get("/search", (request, response) => {
 		sets = sets.map(e => { return poke.formatSetFromRow(e)});
 		let data = extend({sets: sets}, genericData(request));
 		response.set({'Content-type': 'text/html'});
-		response.send(mustache.render(fileCache['shell'], data, {content: fileCache['all']}));    
+		response.send(render('all', data));
+		response.end();
+	})
+});
+
+router.get("/fame", (request, response) => {
+	db.getSetsByProperty({has_custom: 1}, sets => {
+		sets = sets.map(e => { return poke.formatSetFromRow(e)});
+		let data = extend({sets: sets}, genericData(request));
+		response.set({'Content-type': 'text/html'});
+		response.send(render('fame', data));
 		response.end();
 	})
 });
@@ -213,7 +224,7 @@ router.get("/suggest/:type", (request, response) => {
 	let data = genericData(request);
 	if (request.params.type == 'banner') {
 		response.set({'Content-type': 'text/html'});
-		response.send(mustache.render(fileCache['shell'], data, {content: fileCache['suggest-banner']}));
+		response.send(render('suggest-banner', data));
 		response.end();
 	}
 	else if (/^\d+$/.test(request.params.type)) {
@@ -227,7 +238,7 @@ router.get("/suggest/:type", (request, response) => {
 			set = poke.formatSetFromRow(set);
 			set = extend(set, data);
 			response.set({'Content-type': 'text/html'});
-			response.send(mustache.render(fileCache['shell'], set, {content: fileCache['suggest-set']}));
+			response.send(render('suggest-set', set));
 			response.end();
 		});
 	}
@@ -275,7 +286,7 @@ router.get("/set/:id", (request, response) => {
 		set = poke.formatSetFromRow(set);
 		set = extend(set, genericData(request));
 		response.set({'Content-type': 'text/html'});
-		response.send(mustache.render(fileCache['shell'], set, {content: fileCache['set']}));
+		response.send(render('set', set));
 		response.end();
 	});
 });
@@ -284,16 +295,19 @@ router._404 = (request, response, path) => {
 	set = genericData(request);
 	response.status(404);
 	response.set(404, {'Content-type': 'text/html'});
-	response.send(mustache.render(fileCache['shell'], set, {content: fileCache['404']}));
+	response.send(render('404', set));
 	response.end();
 }
 
 router.use(function(request, response) {
-	response.send(mustache.render(fileCache['shell'], genericData(request), {content: fileCache['404']}));
+	response.send(render('404', genericData(request)));
+	response.end();
 });
 
 router.use(function(error, request, response, next) {
-	response.send(mustache.render(fileCache['shell'], genericData(request), {content: fileCache['500']}));
+	console.log(error);
+	response.send(render('500', genericData(request)));
+	response.end();
 });
 
 module.exports = router;
