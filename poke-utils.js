@@ -46,6 +46,7 @@ module.exports.formatSetFromRow = (set) => {
 
   // I fucking give up
   rich.species_ = rich.species_.replace(/kommo-o/g, "kommoo");
+  rich.species_ = rich.species_.replace(/pom-pom/g, "pompom");
 
   rich.set_form = '';
   if (rich.name)

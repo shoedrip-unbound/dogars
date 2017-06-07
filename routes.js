@@ -4,8 +4,6 @@ let poke     = require('./poke-utils');
 let db       = require('./db.js');
 let shoe     = require('./shoedrip.js');
 let mustache = require('mustache');
-//let Router   = require('node-simple-router');
-//let router   = Router();
 let mkdirp   = require('mkdirp');
 let mv       = require('mv');
 let cp       = require('child_process');
@@ -17,7 +15,6 @@ let express			= require('express');
 let upload = multer({dest: '/tmp'});
 let router			= express();
 let compression     = require('compression');
-
 
 router.set('env', 'production');
 router.use(bodyParser.json());
@@ -118,7 +115,7 @@ router.get("/", (request, response) => {
 });
 
 router.get("/all", (request, response) => {
-	let spp = 10; //request.query.spp || 10;
+	let spp = 15; //request.query.spp || 10;
 	let npages = ~~(db.total / spp) + (db.total % spp != 0);
 	let page = request.query.page || 0;
 	page = ~~page;
