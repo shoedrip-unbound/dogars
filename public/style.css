@@ -122,6 +122,7 @@ a {
 }
 
 #search {
+	font-family: 'Itim', cursive;
     text-align: center;
     margin: 0;
     border: 0;
@@ -216,4 +217,33 @@ hr.style13:last-of-type {
 	display: inline-flex;
 	margin-left: auto;
 	margin-right: auto;
+}
+
+.replay {
+    border: 1px solid;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.replay p {
+    margin: 0;
+}
+
+form.replay {
+    margin-bottom: 20px;
+}
+
+form.replay input[name="link"] {
+    width: 100%;
+	padding: 1px;
+}
+
+form.replay textarea {
+    width: 100%;
+}
+
+.error {
+    color: red;
+    font-weight: 900;
 }

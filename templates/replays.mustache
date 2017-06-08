@@ -1,0 +1,15 @@
+<!-- Le lazy design -->
+<h2>Replays</h2>
+<h3>Upload a replay</h3>
+<form class="replay" action="/replays" method="post">
+	{{#error}}<div class="error">You fucked up something</div>{{/error}}
+	<input placeholder="Link..." name="link"/><br>
+	<textarea maxlength="250" rows="5" name="description"></textarea><br>
+	<input type="submit"/>
+</form>
+{{#replays}}
+	<div class="replay">
+		<a href="{{link}}">{{link}}</a>
+		<p>{{description}}</p>
+	</div>
+{{/replays}}

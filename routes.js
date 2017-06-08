@@ -136,14 +136,14 @@ router.get("/all", (request, response) => {
 });
 
 router.get("/import", (request, response) => {
-    response.set({'Content-type': 'text/html'});
+	response.set({'Content-type': 'text/html'});
 	let data = genericData(request);
 	response.send(render('import', data));
 	response.end();
 });
 
 router.get("/thanks", (request, response) => {
-    response.set({'Refresh': '2; url=/', 'Content-type': 'text/html'});
+	response.set({'Refresh': '2; url=/', 'Content-type': 'text/html'});
 	let data = genericData(request);
 	response.send(render('thanks', data));
 	response.end();
@@ -198,34 +198,66 @@ router.get("/random", (request, response) => {
 });
 
 router.post("/search", (request, response) => {
-  for(var i in request.body)
-    if(request.body[i] === '')
-      delete request.body[i];
-  console.log(request.body);
-  if(request.body.q)
-	db.getSetsByName(request.body.q, sets => {
-	  sets = sets.map(poke.formatSetFromRow);
-	  let data = extend({sets: sets}, genericData(request));
-	  response.set({'Content-type': 'text/html'});
-	  response.send(render('all', data));
-	  response.end();
-	});
-  else { // Advanced search
-	db.getSetsByProperty(request.body, sets => {
-		sets = sets.map(e => { return poke.formatSetFromRow(e)});
-		let data = extend({sets: sets}, genericData(request));
-		response.set({'Content-type': 'text/html'});
-		response.send(render('all', data));
-		response.end();
-	})
-  }
+	for(var i in request.body)
+		if(request.body[i] === '')
+			delete request.body[i];
+	console.log(request.body);
+	if(request.body.q)
+		db.getSetsByName(request.body.q, sets => {
+			sets = sets.map(poke.formatSetFromRow);
+			let data = extend({sets: sets}, genericData(request));
+			response.set({'Content-type': 'text/html'});
+			response.send(render('all', data));
+			response.end();
+		});
+	else { // Advanced search
+		db.getSetsByProperty(request.body, sets => {
+			sets = sets.map(e => { return poke.formatSetFromRow(e)});
+			let data = extend({sets: sets}, genericData(request));
+			response.set({'Content-type': 'text/html'});
+			response.send(render('all', data));
+			response.end();
+		});
+	}
 });
 
 router.get("/search", (request, response) => {
-    response.set({'Content-type': 'text/html'});
+	response.set({'Content-type': 'text/html'});
 	let data = genericData(request);
 	response.send(render('search', data));
 	response.end();
+});
+
+router.get("/replays", (request, response) => {
+	db.getReplays(replays => {
+		let data = extend({replays: replays}, genericData(request));
+		if (request.query.fail)
+			data['error'] = true;
+		response.set({'Content-type': 'text/html'});
+		response.send(render('replays', data));
+		response.end();
+	});
+});
+
+router.post("/replays", (request, response) => {
+	let error = false;
+	let disp = replays => {
+		let data = extend({replays: replays}, genericData(request));
+		if(error)
+			data['error'] = true;
+		response.set({'Content-type': 'text/html'});
+		response.send(render('replays', data));
+		response.end();
+	};
+	if(/https?:\/\/replay.pokemonshowdown.com\/(.*)-[0-9]*/.test(request.body.link))
+		db.addReplay(request.body, (e) => {
+			response.set({'Refresh': '0; url=/replays'});
+			response.end();
+		});
+	else {
+		response.set({'Refresh': '0; url=/replays?fail=true'});
+		response.end();
+	}
 });
 
 router.get("/fame", (request, response) => {
