@@ -11,13 +11,17 @@ let cp = require('child_process');
 let app = require('./routes.js').listen(process.argv[2] || 1234);
 
 setInterval(() => {
-    cp.exec('mysqldump -u ' + settings.db.user + ' -p' + settings.db.password + ' memes', (e, si, se) => {
-		if (e)
-			return console.log(e);
-		fs.renameSync('./public/backup.sql', './public/backup' + (+ new Date()) + '.sql');
-		fs.writeFile('./public/backup.sql', si, () => {
-			console.log('Backup done');
-		});
+	console.log('starting backup...');
+	fs.renameSync('./public/backup.sql', './public/backup' + (+ new Date()) + '.sql');
+	let proc = cp.spawn('mysqldump', [
+		'-u', settings.db.user,
+		'-p' + settings.db.password,
+		'memes'
+	], {stdio: ['ignore',
+				fs.openSync('./public/backup.sql', 'w+'),
+				'ignore']});
+	proc.on('exit', () => {
+		console.log('backup finished...');
 	});
 }, 3600 * 1000);
 
