@@ -11,12 +11,6 @@
     max-width: 17vw;
 }
 
-.footer a {
-    text-align: center;
-    display: block;
-    font-family: 'Itim', cursive;
-}
-
 .current p {
     display: block;
     text-align: center;
@@ -55,23 +49,27 @@ h1, h2, h3 {
 	resize: none;
 }
 
-form {
+form.import {
 	display: table;
 	width: 100%;
 }
 
-p {
+form.import p {
 	display: table-row;
 }
 
-textarea, input, select {
+form.import textarea, input, select {
 	display: table-cell;
 }
 
-form > p > label {
+form.import > p > label {
 	display: table-cell;
 	text-align: right;
     padding-right: 10px;
+}
+
+form.import > p {
+	display: table-row;
 }
 
 #waifu {
@@ -193,4 +191,29 @@ hr.style13:last-of-type {
 
 .field {
     display: table-cell;
+}
+
+.something {
+    display: inline-block;
+}
+
+.something a {
+    display: block;
+    font-family: 'Itim', cursive;
+}
+
+.vr {
+    width: 1px;
+    background-color: #444;
+    margin: 0 5px 0 5px;
+}
+
+.footer {
+	display: inline-flex;
+}
+
+.something-bigger {
+	display: inline-flex;
+	margin-left: auto;
+	margin-right: auto;
 }

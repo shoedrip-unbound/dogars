@@ -45,10 +45,10 @@ module.exports.getSetById = (id, cb) => {
 module.exports.getSetsByProperty = (props, cb) => {
   let querystr = 'select * from Sets where ';
   let data = [];
-  for(var i in props)
-  {
-    querystr += i + ' = ? and ';
-    data.push(props[i]);
+  for(var i in props) {
+    querystr += '?? like ? and ';
+    data.push(i);
+    data.push('%' + props[i] + '%');
   }
   querystr = querystr.substr(0, querystr.length - 5);
   c.query(querystr, data, (e, rows) => {

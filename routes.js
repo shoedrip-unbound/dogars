@@ -197,14 +197,35 @@ router.get("/random", (request, response) => {
 	response.end();
 });
 
-router.get("/search", (request, response) => {
-	db.getSetsByName(request.query.q, sets => {
+router.post("/search", (request, response) => {
+  for(var i in request.body)
+    if(request.body[i] === '')
+      delete request.body[i];
+  console.log(request.body);
+  if(request.body.q)
+	db.getSetsByName(request.body.q, sets => {
+	  sets = sets.map(poke.formatSetFromRow);
+	  let data = extend({sets: sets}, genericData(request));
+	  response.set({'Content-type': 'text/html'});
+	  response.send(render('all', data));
+	  response.end();
+	});
+  else { // Advanced search
+	db.getSetsByProperty(request.body, sets => {
 		sets = sets.map(e => { return poke.formatSetFromRow(e)});
 		let data = extend({sets: sets}, genericData(request));
 		response.set({'Content-type': 'text/html'});
 		response.send(render('all', data));
 		response.end();
 	})
+  }
+});
+
+router.get("/search", (request, response) => {
+    response.set({'Content-type': 'text/html'});
+	let data = genericData(request);
+	response.send(render('search', data));
+	response.end();
 });
 
 router.get("/fame", (request, response) => {
