@@ -25,12 +25,36 @@ module.exports.getAllSets = (cb) => {
 	});
 }
 
+module.exports.memesInReplay = (rid, cb) => {
+	c.query('SELECT * FROM memes.Sets where id in (SELECT idset from memes.sets_in_replays where idreplay = ?)', [rid], (e, rows) => {
+		cb(e, rows);
+	});
+}
+
 module.exports.getReplays = (cb) => {
 	c.query('select * from replays order by id desc;', (e, rows) => {
 		if (e)
 			console.log(e);
 		cb(rows);
 	});
+}
+
+module.exports.getChampFromTrip = (trip, cb) => {
+	c.query('select * from memes.champs where trip = ? order by id desc;', [trip],
+			(e, rows) => {
+				if (e)
+					console.log(e);
+				cb(rows);
+			});
+}
+
+module.exports.createChampFromTrip = (name, trip, cb) => {
+	c.query('insert into memes.champs (name, trip) values (?, ?) ', [name || '', trip],
+			(e, rows) => {
+				if (e)
+					console.log(e);
+				cb(rows);
+			});
 }
 
 module.exports.addReplay = (data, cb) => {
@@ -46,8 +70,61 @@ module.exports.getSetsPage = (setPerPage, pageNumber, cb) => {
 	c.query('select * from Sets order by id desc limit ? offset ?;', [~~setPerPage, ~~offset], (e, rows) => {
 		if (e)
 			console.log(e);
-		cb(rows);
+		if(cb)
+			cb(rows);
 	});
+}
+
+module.exports.addSetToReplay = (setid, rid) => {
+	c.query('insert into memes.sets_in_replays (idreplay, idset) values (?, ?)',
+			[rid, setid], (e, rows) => {
+				if (e)
+					console.log(e);
+				console.log('=========================ADDED=============================')
+			});
+}
+
+module.exports.registerChampResult = (battleData, hasWon) => {
+	let replayurl;
+
+	if (hasWon) {
+		poke.saveReplay(battleData.champ.champ_battle, () => {
+			console.log('replay saved');
+		})
+		replayurl = 'http://replay.pokemonshowdown.com/' + battleData.roomid;
+	}
+
+	let inc = hasWon ? 'wins' : 'loses';
+	let meendthisshit = () => c.query('update memes.champs set ' + inc + ' = ' + inc + ' + 1 where trip = ?',
+									  [battleData.champ.champ_trip], (e, rows) => {
+										  if (e)
+											  console.log(e);
+										  if (!hasWon)
+											  return;
+										  module.exports.addReplay({
+											  link: replayurl,
+											  description: 'Automatically uploaded replay. Champ: ' + battleData.champ.champ_name + ' ' + battleData.champ.champ_trip
+										  }, info => {
+											  for(var i = 0; i < battleData.memes.length; ++i) {
+												  module.exports.getSetsByPropertyExact({name: battleData.memes[i].name}, (sets) => {
+													  if (sets.length < 1)
+														  return;
+													  sets = sets[0];
+													  module.exports.addSetToReplay(sets.id, info.insertId);
+												  });
+											  }
+										  });
+									  });
+	module.exports.getChampFromTrip(battleData.champ.champ_trip, (champ) => {
+		if (champ.length == 0) {
+			module.exports.createChampFromTrip(battleData.champ.champ_name, battleData.champ.champ_trip,
+											   (row) => {
+												   meendthisshit();
+											   })
+		}
+		else
+			meendthisshit();
+	})
 }
 
 module.exports.getSetById = (id, cb) => {
@@ -65,6 +142,22 @@ module.exports.getSetsByProperty = (props, cb) => {
 		querystr += '?? like ? and ';
 		data.push(i);
 		data.push('%' + props[i] + '%');
+	}
+	querystr = querystr.substr(0, querystr.length - 5);
+	c.query(querystr, data, (e, rows) => {
+		if (e)
+			console.log(e);
+		cb(rows);
+	});
+}
+
+module.exports.getSetsByPropertyExact = (props, cb) => {
+	let querystr = 'select * from Sets where ';
+	let data = [];
+	for(var i in props) {
+		querystr += '?? = ? and ';
+		data.push(i);
+		data.push(props[i]);
 	}
 	querystr = querystr.substr(0, querystr.length - 5);
 	c.query(querystr, data, (e, rows) => {

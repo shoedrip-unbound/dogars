@@ -1,4 +1,5 @@
 let fs       = require('fs');
+let _        = require('async');
 let tripcode = require('tripcode');
 let poke     = require('./poke-utils');
 let db       = require('./db.js');
@@ -22,9 +23,9 @@ router.use(bodyParser.urlencoded({ extended: true }));
 router.use(cookieParser());
 router.use(compression());
 
-let files = fs.readdirSync('./templates').map(file => {
-	return file.replace(/\.mustache$/g, '');
-});
+let files = fs.readdirSync('./templates')
+	.filter(file => /\.mustache$/g.test(file))
+	.map(file => file.replace(/\.mustache$/g, ''));
 
 let fileCache = {};
 
@@ -109,7 +110,6 @@ router.get("/", (request, response) => {
 		set = extend(set, genericData(request));
 		response.set({'Content-type': 'text/html'});
 		response.send(render('index', set));
-		//response.send(mustache.render(fileCache['shell'], set, {content: fileCache['index']}));
 		response.end();
 	});
 });
@@ -222,21 +222,52 @@ router.post("/search", (request, response) => {
 });
 
 router.get("/search", (request, response) => {
-	response.set({'Content-type': 'text/html'});
-	let data = genericData(request);
-	response.send(render('search', data));
-	response.end();
+	if(request.query.q)
+		db.getSetsByName(request.body.q, sets => {
+			sets = sets.map(poke.formatSetFromRow);
+			let data = extend({sets: sets}, genericData(request));
+			response.set({'Content-type': 'text/html'});
+			response.send(render('all', data));
+			response.end();
+		});
+	else {
+		response.set({'Content-type': 'text/html'});
+		let data = genericData(request);
+		response.send(render('search', data));
+		response.end();
+	}
 });
 
 router.get("/replays", (request, response) => {
 	db.getReplays(replays => {
-		let data = extend({replays: replays}, genericData(request));
-		if (request.query.fail)
-			data['error'] = true;
-		response.set({'Content-type': 'text/html'});
-		response.send(render('replays', data));
-		response.end();
+		_.map(replays.map(r => r.id), db.memesInReplay, (e, memes) => {
+			for(var i = 0; i < replays.length; ++i)
+				replays[i] = extend(replays[i], {memes: memes[i].map(poke.formatSetFromRow)});
+			let data = extend({replays: replays}, genericData(request));
+			if (request.query.fail)
+				data['error'] = true;
+			response.set({'Content-type': 'text/html'});
+			response.send(render('replays', data));
+			response.end();
+		});
 	});
+});
+
+router.get("/replays/add/:id", (request, response) => {
+	response.set({'Content-type': 'text/html'});
+	let data = genericData(request);
+	data.id = request.params.id;
+	response.send(render('addrset', data));
+	response.end();
+});
+
+router.post("/replays/add/:id", (request, response) => {
+	response.set({'Content-type': 'text/html'});
+	response.set({'Refresh': '0; url=/replays'});
+	response.end();
+
+	let id = request.body.set.match(/http:\/\/dogars\.ml\/set\/([0-9]+)/)[1];
+	db.addSetToReplay(id, request.params.id)
 });
 
 router.post("/replays", (request, response) => {

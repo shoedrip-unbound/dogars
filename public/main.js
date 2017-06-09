@@ -36,3 +36,7 @@ waifu.onclick = (e) => {
 ban.ondblclick = () => {
   window.location = '/suggest/banner';
 }
+
+let unzip = (elem) => {
+  elem.nextElementSibling.style.display = elem.nextElementSibling.style.display == 'block' ? 'none' : 'block';
+}
