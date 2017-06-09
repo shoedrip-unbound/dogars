@@ -63,6 +63,7 @@ levenshtein = (a, b) => {
 
 let monitorBattle = (champ) => {
 	let battleData = {};
+	champ.avatar = '166';
 	battleData.champ = champ;
 	battleData.memes = [];
 	battleData.dist = 100;
@@ -72,15 +73,15 @@ let monitorBattle = (champ) => {
 		log = log.split('|');
 		log.shift();
 		if(log[0] == 'win') {
-			db.registerChampResult(battleData, champ.showdown_name == log[1]);
+			db.registerChampResult(battleData, battleData.champ.showdown_name == log[1]);
 			return true;
 		}
 		else if(log[0] == 'player') {
 			// pls use same name when champing
 			let dist = levenshtein(champ.champ_name || '', log[2]);
 			if (dist < battleData.dist) {
-				champ.showdown_name = log[2];
-				champ.avatar = log[3];
+				battleData.showdown_name = log[2];
+				battleData.champ.avatar = log[3];
 				console.log('avatar: ' + log[3]);
 				battleData.champ_alias = log[1];
 				battleData.dist = dist;
