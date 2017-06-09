@@ -301,6 +301,15 @@ router.get("/fame", (request, response) => {
 	})
 });
 
+router.get("/champs", (request, response) => {
+	db.getChamps(champs => {
+		let data = extend({champs: champs}, genericData(request));
+		response.set({'Content-type': 'text/html'});
+		response.send(render('champs', data));
+		response.end();
+	})
+});
+
 router.get("/suggest/:type", (request, response) => {
 	let data = genericData(request);
 	if (request.params.type == 'banner') {

@@ -48,6 +48,16 @@ module.exports.getChampFromTrip = (trip, cb) => {
 			});
 }
 
+module.exports.getChamps = (cb) => {
+	c.query('select * from memes.champs order by wins desc;',
+			(e, rows) => {
+				if (e)
+					console.log(e);
+				console.log(rows);
+				cb(rows);
+			});
+}
+
 module.exports.createChampFromTrip = (name, trip, cb) => {
 	c.query('insert into memes.champs (name, trip) values (?, ?) ', [name || '', trip],
 			(e, rows) => {
@@ -80,7 +90,15 @@ module.exports.addSetToReplay = (setid, rid) => {
 			[rid, setid], (e, rows) => {
 				if (e)
 					console.log(e);
-				console.log('=========================ADDED=============================')
+			});
+}
+
+module.exports.updateChampAvatar = (trip, aid) => {
+	c.query('update memes.champs set avatar = ? where trip = ?',
+			[aid, trip], (e, rows) => {
+				if (e)
+					console.log(e);
+				console.log(aid + 'UPDATED AVATAR FOR ' + trip);
 			});
 }
 
@@ -99,6 +117,9 @@ module.exports.registerChampResult = (battleData, hasWon) => {
 									  [battleData.champ.champ_trip], (e, rows) => {
 										  if (e)
 											  console.log(e);
+										  console.log(battleData)
+										  module.exports.updateChampAvatar(battleData.champ.champ_trip,
+															   battleData.champ.avatar.substr(battleData.champ.avatar[0] == '#'));
 										  if (!hasWon)
 											  return;
 										  module.exports.addReplay({
@@ -297,4 +318,3 @@ module.exports.deleteSet = (request, cb) => {
 		});
 	});
 }
-

@@ -80,6 +80,8 @@ let monitorBattle = (champ) => {
 			let dist = levenshtein(champ.champ_name || '', log[2]);
 			if (dist < battleData.dist) {
 				champ.showdown_name = log[2];
+				champ.avatar = log[3];
+				console.log('avatar: ' + log[3]);
 				battleData.champ_alias = log[1];
 				battleData.dist = dist;
 			}
