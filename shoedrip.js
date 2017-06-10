@@ -74,7 +74,6 @@ let monitorBattle = (champ) => {
 		log = log.split('|');
 		log.shift();
 		if(log[0] == 'win') {
-			//console.log(battleData.champ);
 			db.registerChampResult(battleData, battleData.champ.showdown_name == log[1]);
 			return true;
 		}
@@ -85,7 +84,7 @@ let monitorBattle = (champ) => {
 			// pls use same name when champing
 			let dist = levenshtein(champ.champ_name || '', log[2]);
 			if (dist < battleData.dist) {
-				battleData.showdown_name = log[2];
+				battleData.champ.showdown_name = log[2];
 				battleData.champ.avatar = log[3];
 				console.log('avatar: ' + log[3]);
 				battleData.champ_alias = log[1];
@@ -94,28 +93,30 @@ let monitorBattle = (champ) => {
 			console.log('alias:' + battleData.champ_alias);
 		}
 		//[ 'switch', 432 'p2a: Manectric', 433 'Manectric-Mega, F, shiny', 434 '100/100' ]
-		else if(log[0] == 'switch' && log[1].indexOf(battleData.champ_alias) == 0) {
+		else if(log[0] == 'switch') {
 			if (battleData.dist >= 3) { // If we're still too unsure who is champ, look at who has a nickname
 				// we have a nick if the name isn't the same as the left part of the forme name, before the dash
 				//'Manectric-Mega, F, shiny'
-				let name = log[1].split(': ')[1];
-				let forme = log[2].split(',')[0].split('-')[0];
+				let name = log[1].split(': ')[1].trim();
+				let forme = log[2].split(',')[0].split('-')[0].trim();
 				if (forme != name) {
 					battleData.dist = 0; // champ is now sure, so we make sure we don't check again
 					battleData.champ_alias = log[1].split(': ')[0].substr(0, 2);
-					battleData.showdown_name = battlers[battleData.champ_alias].showdown_name;
+					battleData.champ.showdown_name = battlers[battleData.champ_alias].showdown_name;
 					battleData.champ.avatar = battlers[battleData.champ_alias].avatar;
 				}
 			}
-			let memename = log[1].substr(5);
-			battleData.activeMeme = memename;
-			console.log('Switched to ' + memename);
-			let exists = false;
-			for(var i = 0; i < battleData.memes.length; ++i)
-				if (battleData.memes[i].name == memename)
-					exists = true;
-			if(!exists)
-				battleData.memes.push({name: memename, kills: 0, dead: false})
+			if (log[1].indexOf(battleData.champ_alias) == 0) {
+				let memename = log[1].substr(5);
+				battleData.activeMeme = memename;
+				console.log('Switched to ' + memename);
+				let exists = false;
+				for(var i = 0; i < battleData.memes.length; ++i)
+					if (battleData.memes[i].name == memename)
+						exists = true;
+				if(!exists)
+					battleData.memes.push({name: memename, kills: 0, dead: false})
+			}
 		}
 		else if (log[0] == 'faint') {
 			if (log[1].indexOf(battleData.champ_alias) == 0) { // champ mon fainted
