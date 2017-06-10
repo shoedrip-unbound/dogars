@@ -74,6 +74,7 @@ let monitorBattle = (champ) => {
 		log = log.split('|');
 		log.shift();
 		if(log[0] == 'win') {
+			battleData.memes = battlers[battleData.champ_alias].team;
 			db.registerChampResult(battleData, battleData.champ.showdown_name == log[1]);
 			return true;
 		}
@@ -81,6 +82,7 @@ let monitorBattle = (champ) => {
 			battlers[log[1]] = {};
 			battlers[log[1]].showdown_name = log[2];
 			battlers[log[1]].avatar = log[3];
+			battlers[log[1]].team = [];
 			// pls use same name when champing
 			let dist = levenshtein(champ.champ_name || '', log[2]);
 			if (dist < battleData.dist) {
@@ -111,25 +113,25 @@ let monitorBattle = (champ) => {
 				battleData.activeMeme = memename;
 				console.log('Switched to ' + memename);
 				let exists = false;
-				for(var i = 0; i < battleData.memes.length; ++i)
-					if (battleData.memes[i].name == memename)
+				for(var i = 0; i < battlers[battleData.champ_alias].team.length; ++i)
+					if (battlers[battleData.champ_alias].team[i].name == memename)
 						exists = true;
 				if(!exists)
-					battleData.memes.push({name: memename, kills: 0, dead: false})
+					battlers[battleData.champ_alias].team.push({name: memename, kills: 0, dead: false})
 			}
 		}
 		else if (log[0] == 'faint') {
 			if (log[1].indexOf(battleData.champ_alias) == 0) { // champ mon fainted
 				let memename = log[1].substr(5);
 				console.log('rip: ' + memename);
-				for(var i = 0; i < battleData.memes.length; ++i)
-					if (battleData.memes[i].name == memename)
-						battleData.memes[i].dead = true;
+				for(var i = 0; i < battlers[battleData.champ_alias].team.length; ++i)
+					if (battlers[battleData.champ_alias].team[i].name == memename)
+						battlers[battleData.champ_alias].team[i].dead = true;
 			} else { // opp mon fainted, active mon gets a kills
 				console.log('gg: ' + battleData.activeMeme);
-				for(var i = 0; i < battleData.memes.length; ++i)
-					if (battleData.memes[i].name == battleData.activeMeme)
-						battleData.memes[i].kills++;				
+				for(var i = 0; i < battlers[battleData.champ_alias].team.length; ++i)
+					if (battlers[battleData.champ_alias].team[i].name == battleData.activeMeme)
+						battlers[battleData.champ_alias].team[i].kills++;				
 			}
 		}
 	});
