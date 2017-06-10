@@ -211,13 +211,28 @@ router.post("/search", (request, response) => {
 			response.end();
 		});
 	else { // Advanced search
-		db.getSetsByProperty(request.body, sets => {
-			sets = sets.map(e => { return poke.formatSetFromRow(e)});
+		let data = ['date_added', 'format', 'creator', 'hash', 'name', 'species',
+					'gender', 'item', 'ability', 'shiny', 'level', 'happiness', 'nature',
+					'move_1', 'move_2', 'move_3', 'move_4', 'hp_ev', 'atk_ev', 'def_ev',
+					'spa_ev', 'spd_ev', 'spe_ev', 'hp_iv', 'atk_iv', 'def_iv', 'spa_iv',
+					'spd_iv', 'spe_iv', 'description'];
+		for(var i in request.body)
+			if (data.indexOf(i) == -1)
+				delete request.body[i];
+		if (request.body == {}) {
 			let data = extend({sets: sets}, genericData(request));
 			response.set({'Content-type': 'text/html'});
 			response.send(render('all', data));
 			response.end();
-		});
+		} else {
+			db.getSetsByProperty(request.body, sets => {
+				sets = sets.map(e => { return poke.formatSetFromRow(e)});
+				let data = extend({sets: sets}, genericData(request));
+				response.set({'Content-type': 'text/html'});
+				response.send(render('all', data));
+				response.end();
+			});
+		}
 	}
 });
 

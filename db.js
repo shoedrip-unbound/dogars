@@ -113,6 +113,8 @@ module.exports.registerChampResult = (battleData, hasWon) => {
 	}
 
 	let inc = hasWon ? 'wins' : 'loses';
+	console.log('===================' + inc + '=================');
+
 	let meendthisshit = () => c.query('update memes.champs set ' + inc + ' = ' + inc + ' + 1 where trip = ?',
 									  [battleData.champ.champ_trip], (e, rows) => {
 										  if (e)
