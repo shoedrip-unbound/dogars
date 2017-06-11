@@ -8,10 +8,10 @@ let getCurrentThread = async () => {
 	let b = await request.get('http://a.4cdn.org/vp/catalog.json');
 	let catalog = JSON.parse(b);
 	let derp_no = 0;
-	catalog.forEach(page => {
-		page.threads.forEach(t => {
+	catalog.some(page => {
+		return page.threads.some(t => {
 			if (t.sub && t.sub.toLowerCase().indexOf('showderp') != -1 && t.no > derp_no)
-				derp_no = t.no;
+				return derp_no = t.no;
 		});
 	});
 	return derp_no;
@@ -143,8 +143,10 @@ amonitorBattle = (champ) => setTimeout(() => monitorBattle(champ), 0);
 let main = async () => {
 	try {
 		let thread = await getCurrentThread();
+		console.log(thread);
 		let threadjs = await request.get('http://a.4cdn.org/vp/thread/' + thread + '.json');
 		let champ = await getCurrentChamp(threadjs);
+		console.log(champ);
 		if (champ.champ_battle != oldbattle) {
 			oldbattle = champ.champ_battle;
 			if (champ.champ_name != undefined && champ.champ_name != '')
