@@ -1,3 +1,5 @@
+/* global require console */
+
 let fs       = require('fs');
 let _        = require('promise-async');
 let tripcode = require('tripcode');
@@ -9,7 +11,7 @@ let mkdirp   = require('mkdirp');
 let mv       = require('mv');
 let cp       = require('child_process');
 
-let cookieParser	= require('cookie-parser')
+let cookieParser	= require('cookie-parser');
 let bodyParser		= require('body-parser');
 let multer			= require('multer');
 let express			= require('express');
@@ -34,7 +36,7 @@ let banners = fs.readdirSync('./public/ban');
 files.forEach(f => {
 	let file = 'templates/' + f + '.mustache';
 	fileCache[f] = fs.readFileSync(file, 'utf8');
-	fs.watch(file, {persistent: false, }, (event, name) => {
+	fs.watch(file, {persistent: false }, (event, name) => {
 		if (event != 'change')
 			return;
 		console.log(file + ' changed');
@@ -124,7 +126,7 @@ router.get("/all", async (request, response) => {
 	let page = request.query.page || 0;
 	page = ~~page;
 	let sets = await db.getSetsPage(spp, page);
-	sets = sets.map(e => { return poke.formatSetFromRow(e)});
+	sets = sets.map(poke.formatSetFromRow);
 	let data = {sets: sets};
 	data = extend(data, {display_pages: true, current_page: ~~page + 1, npages: npages, lastpage: npages - 1});
 	if (page > 0) {
@@ -142,7 +144,7 @@ router.get("/import", (request, response) => {
 
 router.get("/thanks", (request, response) => {
 	response.set({'Refresh': '2; url=/'});
-	sendTemplate(request, response, 'import');
+	sendTemplate(request, response, 'thanks');
 });
 
 router.post("/update/:id", async (request, response, next) => {

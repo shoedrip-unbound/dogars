@@ -1,3 +1,5 @@
+/* global require console */
+
 let Client   = require('mysql');
 let fs       = require('fs');
 let poke     = require('./poke-utils');
@@ -70,9 +72,11 @@ let registerChampResult = p(async (battleData, hasWon, cb) => {
 	}
 
 	let inc = hasWon ? 'wins' : 'loses';
-	let champ = getChampFromTrip(battleData.champ.champ_trip);
-	if (champ.length == 0)
-		createChampFromTrip(battleData.champ.champ_name, battleData.champ.champ_trip)
+	let champ = await getChampFromTrip(battleData.champ.champ_trip);
+	if (champ.length == 0) {
+		await createChampFromTrip(battleData.champ.champ_name, battleData.champ.champ_trip)
+	}
+
 	await c.query('update memes.champs set ' + inc + ' = ' + inc + ' + 1 where trip = ?', [battleData.champ.champ_trip]);
 	updateChampAvatar(battleData.champ.champ_trip, battleData.champ.avatar.substr(battleData.champ.avatar[0] == '#'));
 	if (!hasWon)
@@ -258,3 +262,4 @@ module.exports.getSetsByName			= getSetsByName;
 module.exports.createNewSet				= createNewSet;
 module.exports.updateSet				= updateSet;
 module.exports.deleteSet				= deleteSet;
+module.exports.c                        = c;
