@@ -178,7 +178,7 @@ router.post("/add", async (request, response) => {
 	catch(e) {
 		console.log(e);
 		response.set({'Refresh': '2; url=/'});
-		response.send('You fucked up something. Back to the homepage in 2, 1...');
+		response.send('You fucked up something. Check your set. Back to the homepage in 2, 1...');
 		response.end();
 	}
 });

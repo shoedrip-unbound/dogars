@@ -1,6 +1,8 @@
 let fs       = require('fs');
 let mustache = require('mustache');
 let request  = require('request');
+let pokedex  = require('./pokedex.js').BattlePokedex;
+let p        = require('util').promisify;
 const WebSocket = require('ws');
 
 let clamp = (min, val, max) => {
@@ -9,6 +11,13 @@ let clamp = (min, val, max) => {
 	if (val > max)
 		return max;
 	return val;
+}
+
+let inverse = o => {
+  let r = {};
+  for(var k in o)
+    r[o[k]] = k;
+  return r;
 }
 
 // Shamelessly stolen and adapted from showdown-client
@@ -32,23 +41,33 @@ var BattleStatIDs = {
 	spe: 'spe'
 };
 
+let toId = text => {
+	// this is a duplicate of Dex.getId, for performance reasons
+	if (text && text.id) {
+		text = text.id;
+	} else if (text && text.userid) {
+		text = text.userid;
+	}
+	if (typeof text !== 'string' && typeof text !== 'number') return '';
+	return ('' + text).toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
+
 module.exports.formatSetFromRow = (set) => {
 	let rich = set;
 	let date = new Date(parseInt(set.date_added));
 	rich.date = date.toLocaleDateString();
-	rich.s = rich.species_ = rich.species.toLowerCase();
-	rich.species_ = rich.species_.replace(/ /g, "");
+	let template = pokedex[toId(rich.species)];
 
-	rich.species_ = rich.species_.replace(/:/g, "");
-	rich.species_ = rich.species_.replace(/\./g, "");
-	rich.species_ = rich.species_.replace(/'/g, "");
-	rich.species_ = rich.species_.replace(/mega-x/g, "megax");
-	rich.species_ = rich.species_.replace(/mega-y/g, "megay");
-
-	// I fucking give up
-	rich.species_ = rich.species_.replace(/kommo-o/g, "kommoo");
-	rich.species_ = rich.species_.replace(/pom-pom/g, "pompom");
-
+	if (template) {
+		if (template.baseSpecies)
+			rich.species_ = (toId(template.baseSpecies) + (template.baseSpecies !== template.species ? '-' + toId(template.forme) : ''));
+		else {
+			rich.species_ = toId(template.species);
+			if (template.forme)
+				rich.species_ += '-' + toId(template.forme);
+		}
+	}
+	
 	rich.set_form = '';
 	if (rich.name)
 		rich.set_form += rich.name + ' (' + rich.species + ')';
@@ -226,6 +245,66 @@ let headers = {
 }
 
 let replayq = 'a["|queryresponse|savereplay|';
+
+let pack = set => {
+	let packed = (set.name || '') + '|';
+	let attrs1 = ['species', 'item', 'ability'];
+	attrs1.forEach(attr => {
+		packed += toId(set[attr]) + '|';
+	});
+	packed += [1, 2, 3, 4]
+		.map(d => 'move_' + d)
+		.map(m => toId(set[m]))
+		.join(',') + '|';
+	packed += (set.nature || '') + '|';
+	packed += ['hp', 'atk', 'def', 'spa', 'spd', 'spe']
+		.map(s => s + '_ev')
+		.map(s => set[s] == 0 ? '' : set[s])
+		.join(',') + '|';
+	packed += (set.gender || '') + '|';
+	packed += ['hp', 'atk', 'def', 'spa', 'spd', 'spe']
+		.map(s => s + '_iv')
+		.map(s => set[s] == 31 ? '' : set[s])
+		.join(',') + '|';
+	if (set.shiny)
+		packed += 'S';
+	packed += '|' + ((set.level && set.level != 100) ? set.level : '') + '|';
+	packed += ((set.happiness && set.happiness < 255) ? set.happiness : '');
+	return packed;
+}
+
+let checkSet = p((set, cb) => {
+	let ws = new WebSocket('wss://sim2.psim.us/showdown/926/3jbvr0y1/websocket');
+	console.log('Starting check...');
+	ws.on('message', (data) => {
+		if (data == 'o')
+			return;
+		data = JSON.parse(data.substr(1))[0];
+		console.log('<<<' + data);
+		if (data.indexOf('|challstr|') == 0) { // wait for connection to be initialized
+			let sent = JSON.stringify("|/utm " + pack(set));
+			ws.send(sent);
+			console.log('>>>' + sent);
+			sent = JSON.stringify("|/vtm " + set.format);
+			ws.send(sent);
+			console.log('>>>' + sent);
+			return;
+		}
+		if (data.indexOf('|popup|') != 0)
+			return;
+		if (data.indexOf('|popup|Your team was rejected') == 0) {
+			str = data.substr(60);
+			ws.close();
+			cb(null, str);
+		}
+		if (data.indexOf('|popup|Your team is valid for') == 0) {
+			ws.close();
+			cb(null, null);
+		}
+	});
+})
+
+module.exports.checkSet = checkSet;
 
 let saveReplay = (url, cb) => {
 	let ws = new WebSocket('wss://sim2.psim.us/showdown/926/3jbvr0y1/websocket');

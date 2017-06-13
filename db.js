@@ -172,11 +172,20 @@ let createNewSet = p((request, cb) => {
 			querystr += ', ';
 	});
 	querystr += ')';
-	c.query(querystr, data_arr, (e, rows) => {
+	c.query(querystr, data_arr, async (e, rows) => {
 		if (e)
 			return cb(e);
 		module.exports.total++;
-		cb(null, rows);
+		let set = await getSetById(rows.insertId);
+		set = poke.formatSetFromRow(set[0]);
+		let errors = await poke.checkSet(set);
+		if (errors) {
+			await deleteSet({params: {id: set.id},
+							 body: {trip: settings.admin_pass}});
+			cb(errors, null);
+		} else {
+			cb(null, rows);
+		}
 	});
 })
 

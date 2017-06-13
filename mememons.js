@@ -5,10 +5,11 @@ let settings = JSON.parse(fs.readFileSync('settings.json'));
 
 let githubhook = require('githubhook');
 let github = githubhook({path: '/reload',
-						 secret: settings.secret});
+						 secret: settings.secret,
+						 port: 3420 + process.argv[2] - 1234});
 let cp = require('child_process');
 
-let app = require('./routes.js').listen(process.argv[2] || 1234);
+let app = require('./routes.js');
 
 setInterval(() => {
 	console.log('starting backup...');
@@ -36,4 +37,11 @@ github.on('push', () => {
   process.exit(1);
 });
 
-github.listen();
+app.listen(process.argv[2] || 1234);
+
+try {
+	github.listen();
+}
+catch(e) {
+	// beta
+}
