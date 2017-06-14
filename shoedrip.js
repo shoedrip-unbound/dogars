@@ -158,8 +158,8 @@ let main = async () => {
 		console.log(e);
 	}
 }
-/*
+
 main();
 
 setInterval(async () => {await main();}, 1000 * 60);
-*/
+
