@@ -25,8 +25,8 @@ let memesInReplay = p((rid, cb) => {
 	c.query('select * from memes.Sets where id in (select idset from memes.sets_in_replays where idreplay = ?)', [rid], cb);
 });
 
-let getReplays = p((cb) => {
-	c.query('select * from replays order by id desc;', cb);
+let getReplays = p((manual, cb) => {
+	c.query('select * from replays where manual = ? order by id desc;', [manual], cb);
 })
 
 let getChampFromTrip = p((trip, cb) => {
@@ -44,7 +44,7 @@ let createChampFromTrip = p((name, trip, cb) => {
 })
 
 let addReplay = p((data, cb) => {
-	c.query('insert into replays (link, description) values (?, ?);', [data.link, data.description] , cb);
+	c.query('insert into replays (link, description, champ, trip, manual) values (?, ?, ?, ?, ?);', [data.link, data.description, data.champ || '', data.trip || '', data.manual || false] , cb);
 })
 
 let getSetsPage = p((setPerPage, pageNumber, cb) => {
@@ -83,7 +83,9 @@ let registerChampResult = p(async (battleData, hasWon, cb) => {
 		return;
 	let info = await addReplay({
 		link: replayurl,
-		description: 'Automatically uploaded replay. Champ: ' + battleData.champ.champ_name + ' ' + battleData.champ.champ_trip
+		description: 'Automatically uploaded replay. Champ: ' + battleData.champ.champ_name + ' ' + battleData.champ.champ_trip,
+		champ: battleData.champ.champ_name,
+		trip: battleData.champ.champ_trip
 	});
 	for(var i = 0; i < battleData.memes.length; ++i) {
 		let sets = await getSetsByPropertyExact({name: battleData.memes[i].name});

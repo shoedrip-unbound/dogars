@@ -230,12 +230,16 @@ router.get("/search", async (request, response) => {
 });
 
 router.get("/replays", async (request, response) => {
-	let replays = await db.getReplays();
-	let memes = [];
-	for(var i = 0; i < replays.length; ++i)
-		memes.push(await db.memesInReplay(replays[i].id));
-	replays = replays.map((r, i) => extend(r, {memes: memes[i].map(poke.formatSetFromRow)}));
-	let data = {replays: replays};
+	let prefix = 'am';
+	let data = {};
+	for (let v of [1, 0]) {
+		let replays = await db.getReplays(v);
+		let memes = [];
+		for(var i = 0; i < replays.length; ++i)
+			memes.push(await db.memesInReplay(replays[i].id));
+		replays = replays.map((r, i) => extend(r, {memes: memes[i].map(poke.formatSetFromRow)}));
+		data[prefix[v] + 'replays'] = replays;
+	}
 	if (request.query.fail)
 		data['error'] = true;
 	sendTemplate(request, response, 'replays', data);
@@ -257,7 +261,7 @@ router.post("/replays/add/:id", async (request, response) => {
 
 router.post("/replays", async (request, response) => {
 	if(/https?:\/\/replay.pokemonshowdown.com\/(.*)-[0-9]*/.test(request.body.link)) {
-		db.addReplay(request.body);
+		db.addReplay(extend(request.body, {manual: true}));
 		response.set({'Refresh': '0; url=/replays'});
 	}
 	else {

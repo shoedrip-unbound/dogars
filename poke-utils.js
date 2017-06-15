@@ -3,7 +3,10 @@ let mustache = require('mustache');
 let request  = require('request');
 let pokedex  = require('./pokedex.js').BattlePokedex;
 let p        = require('util').promisify;
-const WebSocket = require('ws');
+let PSConnection = require('./psc.js');
+
+let connection = new PSConnection();
+connection.start();
 
 let clamp = (min, val, max) => {
 	if (val < min)
@@ -274,70 +277,44 @@ let pack = set => {
 }
 
 let checkSet = p((set, cb) => {
-	let ws = new WebSocket('wss://sim2.psim.us/showdown/926/3jbvr0y1/websocket');
-	console.log('Starting check...');
-	ws.on('message', (data) => {
-		if (data == 'o')
-			return;
-		data = JSON.parse(data.substr(1))[0];
-		console.log('<<<' + data);
-		if (data.indexOf('|challstr|') == 0) { // wait for connection to be initialized
-			let sent = JSON.stringify("|/utm " + pack(set));
-			ws.send(sent);
-			console.log('>>>' + sent);
-			sent = JSON.stringify("|/vtm " + set.format);
-			ws.send(sent);
-			console.log('>>>' + sent);
-			return;
-		}
-		if (data.indexOf('|popup|') != 0)
-			return;
+	let popupHandler = (data) => {
 		if (data.indexOf('|popup|Your team was rejected') == 0) {
 			str = data.substr(60);
-			ws.close();
 			cb(null, str);
 		}
-		if (data.indexOf('|popup|Your team is valid for') == 0) {
-			ws.close();
+		if (data.indexOf('|popup|Your team is valid for') == 0)
 			cb(null, null);
-		}
-	});
+		connection.remove(popupHandler);
+	}
+	connection.on('popup', popupHandler);
+	connection.send("|/utm " + pack(set));
+	connection.send("|/vtm " + set.format);
 })
 
 module.exports.checkSet = checkSet;
 
 let saveReplay = (url, cb) => {
-	let ws = new WebSocket('wss://sim2.psim.us/showdown/926/3jbvr0y1/websocket');
-	
 	let room = url.match(/(battle-.*)\/?/)[0];
 	let roomid = url.match(/battle-(.*)\/?/)[1];
 
-	ws.on('open', () => {
-		ws.send(JSON.stringify("|/join " + room));
-		ws.send(JSON.stringify(room + "|/savereplay"));
-	});
-
-	ws.on('message', (data) => {
-		if (data == 'o')
-			return;
-		if (data.indexOf(replayq) != 0)
-			return;
-		let str = JSON.parse(data.substr(1))[0];
-		str = str.substr(replayq.length - 3);
+	let saveHandler = (data) => {
+		let str = data.substr(replayq.length - 3);
 		let form = JSON.parse(str);
+		connection.remove(saveHandler);
 		request.post('http://play.pokemonshowdown.com/~~showdown/action.php?act=uploadreplay',
 					 {
 						 headers: headers,
 						 form: form
-					 }
-					 , (e, b) => {
+					 }, (e, b) => {
 						 if (e)
 							 console.log(e);
-						 ws.close();
 						 cb();
 					 });
+	}
 
-	});
+	connection.on('queryresponse', saveHandler);
+	connection.send("|/join " + room);
+	connection.send(room + "|/savereplay");
 }
 
 module.exports.saveReplay = (url, cb) => {

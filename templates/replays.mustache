@@ -7,7 +7,8 @@
 	<textarea maxlength="250" rows="5" name="description"></textarea><br>
 	<input type="submit"/>
 </form>
-{{#replays}}
+<h3>User uploads</h3>
+{{#mreplays}}
 	<div class="replay">
 		<a href="{{link}}">{{link}}</a>
 		<p>{{description}}</p>
@@ -20,4 +21,21 @@
 			<h3><a href="/replays/add/{{id}}">Add another notable set</a></h3>
 		</div>
 	</div>
-{{/replays}}
+{{/mreplays}}
+<input type="button" value="Automatic uploads" onclick="unzip(this);"/>
+<div style="display: none;">
+	{{#areplays}}
+		<div class="replay">
+			<a href="{{link}}">{{link}}</a>
+			<p>{{description}}</p>
+			<input type="button" value="Notable sets" onclick="unzip(this);"/>
+			<div class="notable" style="display: none;">
+				{{#memes}}
+					{{> set-base}}
+					<textarea class="set">{{set_form}}</textarea>
+				{{/memes}}
+				<h3><a href="/replays/add/{{id}}">Add another notable set</a></h3>
+			</div>
+		</div>
+	{{/areplays}}
+</div>
