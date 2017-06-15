@@ -87,12 +87,13 @@ let registerChampResult = p(async (battleData, hasWon, cb) => {
 		champ: battleData.champ.champ_name,
 		trip: battleData.champ.champ_trip
 	});
+
 	for(var i = 0; i < battleData.memes.length; ++i) {
 		let sets = await getSetsByPropertyExact({name: battleData.memes[i].name});
-		if (sets.length < 1)
-			return;
-		sets = sets[0];
-		addSetToReplay(sets.id, info.insertId, cb);
+		if (sets.length >= 1) {
+			sets = sets[0];
+			addSetToReplay(sets.id, info.insertId, cb);
+		}
 	}
 })
 
