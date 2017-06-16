@@ -3,9 +3,8 @@ let mustache = require('mustache');
 let request  = require('request');
 let pokedex  = require('./pokedex.js').BattlePokedex;
 let p        = require('util').promisify;
-let PSConnection = require('./psc.js');
+let connection = require('./PSConnection.js');
 
-let connection = new PSConnection();
 connection.start();
 
 let clamp = (min, val, max) => {
@@ -87,19 +86,19 @@ module.exports.formatSetFromRow = (set) => {
 		rich.set_form += 'Shiny: Yes\n';
 		rich.s = true;
 	}
-	else
-		rich.s = false;
 
 	rich.description_html = mustache.render('{{d}}', {d: rich.description});
 	rich.description_html = (rich.description_html + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2');
 
 	const exts = ['png', 'jpg', 'gif'];
-	exts.forEach(e => {
-		if (fs.existsSync('./public/sets/' + rich.id + '.' + e)) {
-			rich.img_url = '/sets/' + rich.id + '.' + e;
+
+	exts.map(e => '/sets/' + rich.id + '.' + e)
+		.filter(url => fs.existsSync('./public' + url))
+		.forEach(url => {
+			rich.img_url = url;
 			rich.cust = true;
-		}
-	});
+		});
+
 	rich.img_url = rich.img_url || mustache.render('http://play.pokemonshowdown.com/sprites/xyani{{#s}}-shiny{{/s}}/{{species_}}.gif', rich);
 	if (rich.happiness !== undefined && parseInt(rich.happiness) < 255)
 		rich.set_form += 'Happiness: ' + rich.happiness + '\n';
@@ -130,10 +129,11 @@ module.exports.formatSetFromRow = (set) => {
 		rich.set_form += rich.nature + ' Nature\n';
 	if(ivstr != '')
 		rich.set_form += 'IVs: ' + ivstr + '\n';
-	[1, 2, 3, 4].forEach(e => {
-		if (rich['move_' + e])
-			rich.set_form += '- ' + rich['move_' + e] + '\n';
-	});
+	rich.set_form += [1, 2, 3, 4]
+		.map(d => 'move_' + d)
+		.filter(n => rich[n])
+		.map(n => '- ' + rich[n])
+		.join('\n');
 	return rich;  
 }
 
@@ -252,9 +252,7 @@ let replayq = 'a["|queryresponse|savereplay|';
 let pack = set => {
 	let packed = (set.name || '') + '|';
 	let attrs1 = ['species', 'item', 'ability'];
-	attrs1.forEach(attr => {
-		packed += toId(set[attr]) + '|';
-	});
+	packed += attrs1.map(attr => toId(set[attr]) + '|').join('');
 	packed += [1, 2, 3, 4]
 		.map(d => 'move_' + d)
 		.map(m => toId(set[m]))
@@ -305,11 +303,7 @@ let saveReplay = (url, cb) => {
 					 {
 						 headers: headers,
 						 form: form
-					 }, (e, b) => {
-						 if (e)
-							 console.log(e);
-						 cb();
-					 });
+					 }, cb);
 	}
 
 	connection.on('queryresponse', saveHandler);

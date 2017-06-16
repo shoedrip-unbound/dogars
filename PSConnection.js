@@ -1,0 +1,83 @@
+'use strict';
+
+const WebSocket = require('ws');
+
+class PSConnection {
+	constructor() {
+		this.handlers = {};
+		this.battles = {};
+		this.monitors = {};
+	}
+
+	on(event, cb) {
+		this.handlers[event] = this.handlers[event] || [];
+		this.handlers[event].push(cb);
+	}
+
+	remove(event, cb) {
+		for (var i in this.handlers[event])
+			if (this.handlers[event][i] == cb) {
+				delete this.handlers[event][i];
+				break;
+			}
+	}
+
+	send(data) {
+		this.ws.send(JSON.stringify(data));
+	}
+
+	addBattleListener(battle) {
+		this.monitors[battle.room] = battle;
+	}
+
+	removeBattleListener(battle) {
+		delete this.monitors[battle.room];
+	}
+
+	start() {
+		try {
+			this.ws = new WebSocket('wss://sim2.psim.us/showdown/926/3jbvr0y1/websocket');
+			this.ws.on('open', () => {
+			});
+
+			this.ws.on('close', () => {
+				console.log('CONNECTION CLOSED');
+				this.start();
+			});
+			
+			this.ws.on('message', (data) => {
+				if (data == 'o')
+					return;
+				data = JSON.parse(data.substr(1))[0];
+				data = data.split('\n')
+					.filter(line => line != '');
+				if (data[0][0] == '>') {
+					let room = data[0].substr(1);
+					data = data.filter(line => line[0] != '>');
+					if (this.monitors[room]) {
+						for(let e of data) {
+							if (!this.monitors[room])
+								break;
+							let event = e.split('|')[1];
+							if (this.monitors[room][event]) {
+								this.monitors[room][event](e, e.split('|').filter(d => d != ''));
+							}
+						}
+					}
+				}
+				else {
+					data = data.filter(line => line[0] != '>');
+					for(let e of data) {
+						let event = e.split('|')[1];
+						if (this.handlers[event])
+							this.handlers[event].forEach(fun => fun(e, e.split('|').filter(d => d != '')));
+					}
+				}
+			});
+		} catch(e) {
+			console.log('Something horribly wrong happened, disabled websocket');
+		}
+	}
+};
+
+module.exports = new PSConnection();

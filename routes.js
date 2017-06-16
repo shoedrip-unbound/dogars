@@ -79,7 +79,6 @@ let cookie2obj = (str) => {
 	});
 	return ret;
 }
-
 let getSetOfTheDay = async cb => {
 	let today = new Date();
 	let seed = today.getDate() * (today.getMonth() + 1) * (today.getYear() + 1900);
@@ -191,9 +190,9 @@ router.get("/random", (request, response) => {
 });
 
 router.post("/search", async (request, response) => {
-	for(var i in request.body)
-		if(request.body[i] === '')
-			delete request.body[i];
+	Object.keys(request.body)
+		.filter(attr => request.body[attr] === '')
+		.forEach(attr => { delete request.body[attr]});
 	if(request.body.q) {
 		let sets = await db.getSetsByName(request.body.q)
 		sets = sets.map(poke.formatSetFromRow);
@@ -205,9 +204,9 @@ router.post("/search", async (request, response) => {
 					'move_1', 'move_2', 'move_3', 'move_4', 'hp_ev', 'atk_ev', 'def_ev',
 					'spa_ev', 'spd_ev', 'spe_ev', 'hp_iv', 'atk_iv', 'def_iv', 'spa_iv',
 					'spd_iv', 'spe_iv', 'description'];
-		for(var i in request.body)
-			if (data.indexOf(i) == -1)
-				delete request.body[i];
+		Object.keys(request.body)
+			.filter(data.includes)
+			.forEach(attr => { delete request.body[attr]});
 		if (request.body == {}) {
 			sendTemplate(request, response, 'all', {sets: []});
 		} else {

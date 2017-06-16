@@ -29,6 +29,7 @@
     "mustache": "^2.3.0",
     "mv": "^2.1.1",
     "mysql": "^2.13.0",
+    "mysql-promise": "^4.1.0",
     "promise-async": "^0.2.0",
     "request": "^2.81.0",
     "request-promise-native": "^1.0.4",

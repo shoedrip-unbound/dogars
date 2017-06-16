@@ -139,10 +139,8 @@ let createNewSet = p((request, cb) => {
 	row.format = "gen7ou";
 	let formats = ["gen7ou", "gen7anythinggoes", "ubers", "uu", "ru",
 				   "nu", "pu", "lc", "cap"];
-	formats.forEach(f => {
-		if (request.body.format == f)
-			row.format = f;
-	});
+	if (formats.includes(request.body.format))
+			row.format = request.body.format;
 	row.creator = request.body.creat.substr(0, 23);
 	row.description = request.body.desc.substr(0, 230);
 	row.date_added = +new Date();
@@ -162,18 +160,14 @@ let createNewSet = p((request, cb) => {
 				'spd_iv', 'spe_iv', 'description'];
 	let data_arr = [];
 	let querystr = 'INSERT INTO Sets (';
-	data.forEach(attr => {
-		data_arr.push(row[attr]);
-		querystr += attr;
-		if (attr != 'description')
-			querystr += ', ';
-	})
+
+	querystr += data.map(attr => '??').join(', ');
+	data.forEach(attr => data_arr.push(attr));
+	data.forEach(attr => data_arr.push(row[attr]));
+	
 	querystr += ') VALUES (';
-	data.forEach(attr => {
-		querystr += '?';
-		if (attr != 'description')
-			querystr += ', ';
-	});
+	querystr += data.map(attr => '?').join(', ');
+
 	querystr += ')';
 	c.query(querystr, data_arr, async (e, rows) => {
 		if (e)
@@ -201,10 +195,8 @@ let updateSet = p(async (request, cb) => {
 	row.format = "gen7ou";
 	let formats = ["gen7ou", "gen7anythinggoes", "ubers", "uu", "ru",
 				   "nu", "pu", "lc", "cap"];
-	formats.forEach(f => {
-		if (request.body.format == f)
+	if (formats.includes(request.body.format))
 			row.format = f;
-	});
 	row.description = request.body.desc.substr(0, 230);
 	row.date_added = +new Date();
 
@@ -226,12 +218,10 @@ let updateSet = p(async (request, cb) => {
 
 	let querystr = 'UPDATE Sets SET ';
 
-	data.forEach(attr => {
-		data_arr.push(row[attr]);
-		querystr += attr + ' = ?';
-		if (attr != 'description')
-			querystr += ', ';
-	})
+	querystr += data.map(attr => {
+		data_arr.push(attr, row[attr]);
+		return '?? = ?'
+	}).join(', ');
 	querystr += ' WHERE id = ?';
 	data_arr.push(request.params.id);
 	c.query(querystr, data_arr, (e, rows) => {
