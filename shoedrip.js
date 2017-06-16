@@ -1,5 +1,4 @@
 const request = require('request-promise-native');
-let connection = require('./psc.js');
 let BattleMonitor = require('./BattleMonitor.js');
 
 module.exports.champ = {};
