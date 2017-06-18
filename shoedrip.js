@@ -1,5 +1,6 @@
 const request = require('request-promise-native');
 let BattleMonitor = require('./BattleMonitor.js');
+let db = require('./db.js');
 
 module.exports.champ = {};
 
@@ -42,6 +43,8 @@ let oldbattle = null;
 // stolen from gist
 levenshtein = (a, b) => {
 	var tmp;
+	a = a || '';
+	b = b || '';
 	if (a.length === 0) { return b.length; }
 	if (b.length === 0) { return a.length; }
 	if (a.length > b.length) { tmp = a; a = b; b = tmp; }
@@ -65,10 +68,15 @@ let main = async () => {
 		let thread = await getCurrentThread();
 		let threadjs = await request.get('http://a.4cdn.org/vp/thread/' + thread + '.json');
 		let champ = await getCurrentChamp(threadjs);
+		console.log(champ);
 		if (champ.champ_battle != oldbattle) {
 			oldbattle = champ.champ_battle;
 			if (champ.champ_name != undefined && champ.champ_name != '')
 				new BattleMonitor(champ);
+		}
+		let dbchamp = await db.getChampFromTrip(champ.champ_trip);
+		if (dbchamp && dbchamp.length) {
+			champ.avatar = dbchamp[0].avatar;
 		}
 		module.exports.champ = champ;
 	}

@@ -4,11 +4,18 @@
     position: absolute;
     left: 10px;
     top: 15px;
-    margin: 0px;
-    box-shadow: 0 0 17px -5px;
-    padding: 2px 0 10px 0;
-    border-radius: 2px;
-    max-width: 17vw;
+	font-size: small;
+    position: absolute;
+    left: 10px;
+    top: 15px;
+    display: inline-block;
+    border-radius: 9999px;
+    padding: 0px;
+    width: 15vh;
+    text-align: center;
+    height: 15vh;
+    overflow: hidden;
+    box-shadow: 0 0 58px -21px, 0 4px #d0d0d0;
 }
 
 .current p {
@@ -251,13 +258,12 @@ form.replay textarea {
 
 .champ {
     border: 1px solid #e3e3e3;
-    margin: 10px 20px 15px 0px;
-    padding: 10px;
+    padding: 5px;
     border-radius: 5px;
     box-shadow: 0 5px 0px 0px #e3e3e3, 0 0 30px -15px;
     display: inline-grid;
-    width: 20%;
     overflow: hidden;
+    margin: 10px;
 }
 
 .green {
@@ -277,6 +283,6 @@ form.replay textarea {
 }
 
 .champs {
-	margin-left: auto;
-	margin-right: auto;
+    display: grid;
+    grid-template-columns: 25% 25% 25% 25%;
 }

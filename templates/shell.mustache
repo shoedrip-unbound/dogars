@@ -9,9 +9,14 @@
 		<link rel="stylesheet" href="/style.css">
 	</head>
 	<body>
-		<div class="current">
-			{{^champ_active}}<p>No champ :(</p>{{/champ_active}}{{#champ_active}}<p>Current battle</p><hr><a href="{{champ_battle}}"><p>{{champ_name}}</p><b>{{champ_trip}}</b></a>{{/champ_active}}
-		</div>
+		{{#champ_active}}
+			<a class="current" href="{{champ_battle}}">
+				<img src="http://play.pokemonshowdown.com/sprites/trainers/{{avatar}}.png"/>
+				<hr>
+				<div>{{champ_name}}</div>			
+				<div><b>{{champ_trip}}<b></div>			
+			</a>
+		{{/champ_active}}
 		<div class="content">
 			<img id="ban" class="banner" src="{{banner}}"/>
 			<hr style="margin-bottom: -7px; z-index: 1;" class="style13">
