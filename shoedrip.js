@@ -75,6 +75,7 @@ let main = async () => {
 				new BattleMonitor(champ);
 		}
 		let dbchamp = await db.getChampFromTrip(champ.champ_trip);
+		champ.avatar = '166';
 		if (dbchamp && dbchamp.length) {
 			champ.avatar = dbchamp[0].avatar;
 		}
