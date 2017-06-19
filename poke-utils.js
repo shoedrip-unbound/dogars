@@ -120,11 +120,8 @@ module.exports.formatSetFromRow = (set) => {
 	}
 	if(evstr != '')
 		rich.set_form += 'EVs: ' + evstr + '\n';
-	var neutral = ['Serious', 'Bashful', 'Docile', 'Hardy', 'Quirky'];
-	var nature = false;
-	for(var i in neutral)
-		if (neutral[i].toLowerCase() == rich.nature)
-			nature = true;
+	let neutral = ['Serious', 'Bashful', 'Docile', 'Hardy', 'Quirky'];
+	let nature = neutral.some(n => n == rich.nature);
 	if (rich.nature && !nature)
 		rich.set_form += rich.nature + ' Nature\n';
 	if(ivstr != '')
@@ -311,6 +308,7 @@ let saveReplay = (url, cb) => {
 	connection.send(room + "|/savereplay");
 }
 
+// what did I mean by this
 module.exports.saveReplay = (url, cb) => {
 	setTimeout(() => saveReplay(url, cb), 0);
 }

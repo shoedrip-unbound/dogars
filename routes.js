@@ -153,11 +153,6 @@ router.get("/thanks", (request, response) => {
 });
 
 router.post("/update/:id", async (request, response, next) => {
-	let handleErrorGen = e => {
-		if(e) {
-		}
-	};
-
 	try {
 		if (request.body.action == "Update")
 			await db.updateSet(request);

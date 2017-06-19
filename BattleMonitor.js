@@ -55,10 +55,7 @@ class BattleMonitor {
 		if (log[1].indexOf(this.battleData.champ_alias) == 0) {
 			let memename = log[1].substr(5);
 			this.battleData.activeMeme = memename;
-			let exists = false;
-			for(var i = 0; i < this.battlers[this.battleData.champ_alias].team.length; ++i)
-				if (this.battlers[this.battleData.champ_alias].team[i].name == memename)
-					exists = true;
+			let exists = this.battlers[this.battleData.champ_alias].team.some(mon => mon.name == memename);
 			if(!exists)
 				this.battlers[this.battleData.champ_alias].team.push({name: memename, kills: 0, dead: false})
 		}
@@ -73,7 +70,7 @@ class BattleMonitor {
 		} else {
 			for(var i = 0; i < this.battlers[this.battleData.champ_alias].team.length; ++i)
 				if (this.battlers[this.battleData.champ_alias].team[i].name == this.battleData.activeMeme)
-					this.battlers[this.battleData.champ_alias].team[i].kills++;				
+					this.battlers[this.battleData.champ_alias].team[i].kills++;
 		}
 	}
 }

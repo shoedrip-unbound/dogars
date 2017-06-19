@@ -1,6 +1,5 @@
 /* global require console */
 
-//let Client   = require('mysql');
 var c        = require('mysql-promise')();
 let fs       = require('fs');
 let poke     = require('./poke-utils');
