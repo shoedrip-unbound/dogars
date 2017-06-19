@@ -1,288 +1,280 @@
 @import url('https://fonts.googleapis.com/css?family=Itim');
 
 .current {
-    position: absolute;
-    left: 10px;
-    top: 15px;
-	font-size: small;
-    position: absolute;
-    left: 10px;
-    top: 15px;
-    display: inline-block;
-    border-radius: 9999px;
-    padding: 0px;
-    width: 15vh;
-    text-align: center;
-    height: 15vh;
-    overflow: hidden;
-    box-shadow: 0 0 58px -21px, 0 4px #d0d0d0;
+    top:					 15px;
+    left:					 10px;
+	width:					 144px;
+	height:					 144px;
+    padding:				 0px;
+    display:				 inline-block;
+    position:				 absolute;
+    overflow:				 hidden;
+	font-size:				 small;
+    text-align:				 center;
+    box-shadow:				 0 0 58px -21px, 0 4px #d0d0d0;
+    border-radius:			 9999px;
 }
 
 .current p {
-    display: block;
-    text-align: center;
-    margin: 0 9px 0 9px;
+    margin:					 0 9px 0 9px;
+    display:				 block;
+    text-align:				 center;
 }
 
 .current hr {
-    border: 0;
-    border-bottom: 1px solid;
-    margin: 3px 0 0 0;
+	color:					 #ccc;
+    margin:					 3px -15px 0 -15px;
+    border:					 0;
+    border-bottom:			 1px solid;
 }
 
 .current a {
-    display: block;
-    text-align: center;
+    display:				 block;
+    text-align:				 center;
 }
 
 body {
-	display: grid;
-	margin: 0 auto;
-	max-width: 800px;
-	line-height: 1.6;
-	font-size: 18px;
-	padding: 0 10px;
-	font-family: Sans-Serif;
+	margin:					 0 auto;
+	display:				 grid;
+	padding:				 0 10px;
+	font-size:				 18px;
+	max-width:				 800px;
+	font-family:			 Sans-Serif;
+	line-height:			 1.6;
 }
 
 h1, h2, h3 {
-	font-family: 'Itim', cursive;
-	line-height: 1.2;
+	font-family:			 'Itim', cursive;
+	line-height:			 1.2;
 }
 
 .set {
-	width: 100%;
-	height: 170px;
-	resize: none;
+	width:					 100%;
+	height:					 170px;
+	resize:					 none;
 }
 
 form.import {
-	display: table;
-	width: 100%;
+	width:					 100%;
+	display:				 table;
 }
 
 form.import p {
-	display: table-row;
+	display:				 table-row;
 }
 
 form.import textarea, input, select {
-	display: table-cell;
+	display:				 table-cell;
 }
 
 form.import > p > label {
-	display: table-cell;
-	text-align: right;
-    padding-right: 10px;
+	display:				 table-cell;
+	text-align:				 right;
+    padding-right:			 10px;
 }
 
 form.import > p {
-	display: table-row;
+	display:				 table-row;
 }
 
 #waifu {
-	bottom: 0;
-	left: 0;
-	position: fixed;
-	z-index: -1;
+	left:					 0;
+	bottom:					 0;
+	z-index:				 -1;
+	position:				 fixed;
 }
 
 .content {
-    display: grid;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    margin-top: 15px;
+    display:				 grid;
+    margin-top:				 15px;
+    margin-bottom:			 20px;
+    padding-bottom:			 10px;
 }
 
 .nav {
-    font-family: 'Itim', cursive;
-    font-variant: small-caps;
-	text-align: center;
+	text-align:				 center;
+    font-family:			 'Itim', cursive;
+    font-variant:			 small-caps;
 }
 
-hr.style13 {
-	margin: 0;
-	height: 10px;
-	border: 0;
-}
-
-hr.style13b {
-	margin: 0;
-	height: 10px;
-	border: 0;
+hr.style13, hr.style13b {
+	margin:					 0;
+	height:					 10px;
+	border:					 0;
 }
 
 a {
-    text-decoration: none;
-    padding-left: 5px;
-    padding-right: 5px;
+    padding-left:			 5px;
+    padding-right:			 5px;
+    text-decoration:		 none;
 }
 
 .nav a {
-    padding-left: 20px;
-    padding-right: 20px;
-	font-size: 1.6em;
-	display: inline-block;
+	display:				 inline-block;
+	font-size:				 1.6em;
+    padding-left:			 20px;
+    padding-right:			 20px;
 }
 
 .main {
-	padding: 0 20px 0 20px;
+	padding:				 0 20px 0 20px;
 }
 
 #search {
-	font-family: 'Itim', cursive;
-    text-align: center;
-    margin: 0;
-    border: 0;
-    padding: 0;
-    max-height: 34px;
-    max-width: 75%;
-    font-size: 1.8em;
+    margin:					 0;
+    border:					 0;
+    padding:				 0;
+    max-width:				 75%;
+    font-size:				 1.8em;
+    text-align:				 center;
+    max-height:				 34px;
+	font-family:			 'Itim', cursive;
 }
 
 #search:focus {
-	outline: none;
+	outline:				 none;
 }
 
 .description {
-	line-height: 1.2em;
-	word-break: break-all;
+	word-break:				 break-word;
+	line-height:			 1.2em;
 }
 
 img.custom {
-    max-width: 50%;
+    max-width:				 50%;
 }
 
 .page_select {
-	text-align: center;
-    font-family: 'Itim', cursive;
+	text-align:				 center;
+    font-family:			 'Itim', cursive;
 }
 
 .not-active {
-   pointer-events: none;
-   cursor: default;
+   cursor:					 default;
+   pointer-events:			 none;
 }
 
 a.not-active {
-	color: #AAA;
+	color:					 #AAA;
 }
 
 .controls {
-    display: inline-block;
-    border: 1px solid;
-    border-radius: 5px;
-    padding: 5px 10px 5px 10px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    box-shadow: 0 0 14px -5px;
+    border:					 1px solid;
+    display:				 inline-block;
+    padding:				 5px 10px 5px 10px;
+    margin-top:				 10px;
+    box-shadow:				 0 0 14px -5px;
+    border-radius:			 5px;
+    margin-bottom:			 10px;
 }
 
 hr.style13:last-of-type {
-	margin-top: 10px;
+	margin-top:				 10px;
 }
 
 .info {
-    display: table;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    display:				 table;
+    margin-top:				 10px;
+    margin-bottom:			 10px;
 }
 
 .row {
-    display: table-row;
+    display:				 table-row;
 }
 
 .info label {
-    display: table-cell;
-    text-align: right;
-    padding-right: 10px;
-    font-weight: 900;
+    display:				 table-cell;
+    text-align:				 right;
+    font-weight:			 900;
+    padding-right:			 10px;
 }
 
 .field {
-    display: table-cell;
+    display:				 table-cell;
 }
 
 .something {
-    display: inline-block;
+    display:				 inline-block;
 }
 
 .something a {
-    display: block;
-    font-family: 'Itim', cursive;
+    display:				 block;
+    font-family:			 'Itim', cursive;
 }
 
 .vr {
-    width: 1px;
-    background-color: #444;
-    margin: 0 5px 0 5px;
+    width:					 1px;
+    margin:					 0 5px 0 5px;
+    background-color:		 #444;
 }
 
 .footer {
-	display: inline-flex;
+	display:				 inline-flex;
 }
 
 .something-bigger {
-	display: inline-flex;
-	margin-left: auto;
-	margin-right: auto;
+	display:				 inline-flex;
+	margin-left:			 auto;
+	margin-right:			 auto;
 }
 
 .replay {
-    border: 1px solid #e3e3e3;
-    box-shadow: 0 5px 0px 0px #e3e3e3, 0 0 30px -15px;
-    border-radius: 5px;
-    padding: 15px;
-    margin-bottom: 15px;
+    border:					 1px solid #e3e3e3;
+    padding:				 15px;
+    box-shadow:				 0 5px 0px 0px #e3e3e3, 0 0 30px -15px;
+    border-radius:			 5px;
+    margin-bottom:			 15px;
 }
 
 .replay p {
-    margin: 0;
+    margin:					 0;
 }
 
 form.replay {
-    margin-bottom: 20px;
+    margin-bottom:			 20px;
 }
 
 form.replay input[name="link"] {
-    width: 100%;
-	padding: 1px;
+    width:					 100%;
+	padding:				 1px;
 }
 
 form.replay textarea {
-    width: 100%;
+    width:					 100%;
 }
 
 .error {
-    color: red;
-    font-weight: 900;
+    color:					 red;
+    font-weight:			 900;
 }
 
 .champ {
-    border: 1px solid #e3e3e3;
-    padding: 5px;
-    border-radius: 5px;
-    box-shadow: 0 5px 0px 0px #e3e3e3, 0 0 30px -15px;
-    display: inline-grid;
-    overflow: hidden;
-    margin: 10px;
+    margin:					 10px;
+    border:					 1px solid #e3e3e3;
+    padding:				 5px;
+    display:				 inline-grid;
+    overflow:				 hidden;
+    box-shadow:				 0 5px 0px 0px #e3e3e3, 0 0 30px -15px;
+    border-radius:			 5px;
 }
 
 .green {
-	color: #0E0;
+	color:					 #0E0;
 }
 
 .red {
-	color: #E00;
+	color:					 #E00;
 }
 
 .cdata {
-	display: inline;
+	display:				 inline;
 }
 
 .ctrip {
-	font-weight: 900;
+	font-weight:			 900;
 }
 
 .champs {
-    display: grid;
-    grid-template-columns: 25% 25% 25% 25%;
+    display:				 grid;
+    grid-template-columns:	 25% 25% 25% 25%;
 }

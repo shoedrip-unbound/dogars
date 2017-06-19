@@ -68,7 +68,6 @@ let main = async () => {
 		let thread = await getCurrentThread();
 		let threadjs = await request.get('http://a.4cdn.org/vp/thread/' + thread + '.json');
 		let champ = await getCurrentChamp(threadjs);
-		console.log(champ);
 		if (champ.champ_battle != oldbattle) {
 			oldbattle = champ.champ_battle;
 			if (champ.champ_name != undefined && champ.champ_name != '')

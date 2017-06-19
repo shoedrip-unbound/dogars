@@ -79,6 +79,7 @@ let cookie2obj = (str) => {
 	});
 	return ret;
 }
+
 let getSetOfTheDay = async cb => {
 	let today = new Date();
 	let seed = today.getDate() * (today.getMonth() + 1) * (today.getYear() + 1900);
@@ -115,8 +116,13 @@ let genericData = (request) => {
 router.use(express.static('./public'));
 
 router.get("/", async (request, response) => {
-	let set = await getSetOfTheDay();
-	sendTemplate(request, response, 'index', set);
+	try {
+		let set = await getSetOfTheDay();
+		sendTemplate(request, response, 'index', set);
+	}
+	catch(e) {
+		console.log(e);
+	}
 });
 
 router.get("/all", async (request, response) => {
@@ -160,6 +166,7 @@ router.post("/update/:id", async (request, response, next) => {
 		response.set({'Refresh': '0; url=/set/' + request.params.id});
 	}
 	catch(e) {
+		console.log(e);
 		response.set({'Refresh': '2; url=/'});
 		response.send('You fucked up something. Back to the homepage in 2, 1...');
 	}
@@ -250,17 +257,17 @@ router.get("/replays/add/:id", (request, response) => {
 });
 
 router.post("/replays/add/:id", async (request, response) => {
+	let id = request.body.set.match(/http:\/\/dogars\.ml\/set\/([0-9]+)/)[1];
+	await db.addSetToReplay(id, request.params.id);
+
 	response.set({'Content-type': 'text/html'});
 	response.set({'Refresh': '0; url=/replays'});
 	response.end();
-
-	let id = request.body.set.match(/http:\/\/dogars\.ml\/set\/([0-9]+)/)[1];
-	db.addSetToReplay(id, request.params.id);
 });
 
 router.post("/replays", async (request, response) => {
 	if(/https?:\/\/replay.pokemonshowdown.com\/(.*)-[0-9]*/.test(request.body.link)) {
-		db.addReplay(extend(request.body, {manual: true}));
+		await db.addReplay(extend(request.body, {manual: true}));
 		response.set({'Refresh': '0; url=/replays'});
 	}
 	else {
