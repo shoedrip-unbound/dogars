@@ -1,7 +1,6 @@
 'use strict';
 
 const WebSocket = require('ws');
-require('./ext-arrays.js');
 
 class PSConnection {
 	constructor() {
@@ -72,7 +71,7 @@ class PSConnection {
 						.map(e => [e.split('|')[1], e.split('|'), e])
 						.filter(event => this.handlers[event[0]])
 						.map(event => [this.handlers[event[0]], ...event])
-						.forEach(e => e[0](e[3], e[2].filter(d => d != '')));
+						.forEach(e => e[0].forEach(e[3], e[2].filter(d => d != '')));
 				}
 			});
 		} catch(e) {
