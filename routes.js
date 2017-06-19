@@ -192,30 +192,34 @@ router.get("/random", (request, response) => {
 });
 
 router.post("/search", async (request, response) => {
-	Object.keys(request.body)
-		.filter(attr => request.body[attr] === '')
-		.forEach(attr => { delete request.body[attr]});
-	if(request.body.q) {
-		let sets = await db.getSetsByName(request.body.q)
-		sets = sets.map(poke.formatSetFromRow);
-		sendTemplate(request, response, 'all', {sets: sets});
-	}
-	else { // Advanced search
-		let data = ['date_added', 'format', 'creator', 'hash', 'name', 'species',
-					'gender', 'item', 'ability', 'shiny', 'level', 'happiness', 'nature',
-					'move_1', 'move_2', 'move_3', 'move_4', 'hp_ev', 'atk_ev', 'def_ev',
-					'spa_ev', 'spd_ev', 'spe_ev', 'hp_iv', 'atk_iv', 'def_iv', 'spa_iv',
-					'spd_iv', 'spe_iv', 'description'];
+	try {
 		Object.keys(request.body)
-			.filter(data.includes)
+			.filter(attr => request.body[attr] === '')
 			.forEach(attr => { delete request.body[attr]});
-		if (request.body == {}) {
-			sendTemplate(request, response, 'all', {sets: []});
-		} else {
-			let sets = await db.getSetsByProperty(request.body);
-			sets = sets.map(e => { return poke.formatSetFromRow(e)});
-			sendTemplate(request, response, 'all', {sets: sets});			
+		if(request.body.q) {
+			let sets = await db.getSetsByName(request.body.q)
+			sets = sets.map(poke.formatSetFromRow);
+			sendTemplate(request, response, 'all', {sets: sets});
 		}
+		else { // Advanced search
+			let data = ['date_added', 'format', 'creator', 'hash', 'name', 'species',
+						'gender', 'item', 'ability', 'shiny', 'level', 'happiness', 'nature',
+						'move_1', 'move_2', 'move_3', 'move_4', 'hp_ev', 'atk_ev', 'def_ev',
+						'spa_ev', 'spd_ev', 'spe_ev', 'hp_iv', 'atk_iv', 'def_iv', 'spa_iv',
+						'spd_iv', 'spe_iv', 'description'];
+			Object.keys(request.body)
+				.filter(v => !data.includes(v))
+				.forEach(attr => { delete request.body[attr]});
+			if (request.body == {}) {
+				sendTemplate(request, response, 'all', {sets: []});
+			} else {
+				let sets = await db.getSetsByProperty(request.body);
+				sets = sets.map(e => { return poke.formatSetFromRow(e)});
+				sendTemplate(request, response, 'all', {sets: sets});			
+			}
+		}
+	} catch(e) {
+		console.log(e);
 	}
 });
 

@@ -1,31 +1,18 @@
 <form class="import" action="/add" method="post">
-	<p>
-		<label>Set: </label><textarea style="width: 336px; height: 151px;" name="set"></textarea><br/>
-	</p>
-	<p>
-		<label>Description: </label><input type="text" name="desc"/><br/>
-	</p>
-	<p>
-		<label>Creator: </label><input name="creat"/><br/>
-	</p>
-	<p>
-		<label>Tripcode: </label><input name="trip"/><br/>
-	</p>
-	<p>
-		<label>Format: </label>
-		<select name="format">
-			<option value="gen7ou">gen7ou</option>
-			<option value="gen7anythinggoes">gen7anythinggoes</option>
-			<option value="ubers">ubers</option>
-			<option value="uu">uu</option>
-			<option value="ru">ru</option>
-			<option value="nu">nu</option>
-			<option value="pu">pu</option>
-			<option value="lc">lc</option>
-			<option value="cap">cap</option>
-		</select>
-	</p>
-	<p>
-		<label><input type="submit"/></label>
-	</p>
+	<label>Set: </label><textarea style="height: 151px;" name="set"></textarea>
+	<label>Description: </label><input type="text" name="desc"/>
+	<label>Creator: </label><input name="creat"/>
+	<label>Tripcode: </label><input name="trip"/>
+	<label>Format: </label>
+	<select name="format">
+		<option value="gen7ou">gen7ou</option>
+		<option value="gen7anythinggoes">gen7anythinggoes</option>
+		<option value="ubers">ubers</option>
+		<option value="uu">uu</option>
+		<option value="ru">ru</option>
+		<option value="nu">nu</option>
+		<option value="pu">pu</option>
+		<option value="lc">lc</option>
+	</select>
+	<input type="submit"/>
 </form>

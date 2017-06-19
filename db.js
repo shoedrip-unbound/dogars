@@ -69,7 +69,7 @@ let getSetsByProperty = async props => {
 	let querystr = 'select * from Sets where ';
 	let data = [];
 	querystr += Object.keys(props).map(i => '?? like ?').join(' and ');
-	Object.keys(props).forEach(i => data.push(i, props[i]));
+	Object.keys(props).forEach(i => data.push(i, '%' + props[i] + '%'));
 	return await c.query(querystr, data);
 }
 
