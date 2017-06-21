@@ -12,17 +12,13 @@ let reloadTheme = () => {
 window.onload = () => {
 	let sets = document.getElementsByClassName('set');
 	let i;
-	sets.forEach(set => {
-		set.onfocus = () => {
-			set.select()
-		}
-	});
+	for(let set of sets)
+		set.onfocus = () => set.select()
 	let images = document.getElementsByClassName('set-image');
-	images.forEach(image => () => {
+	for(let image of images)
 		image.ondblclick = () => {
 			window.location = '/suggest/' + image.dataset.id;
 		}
-	});
 	reloadTheme();
 }
 

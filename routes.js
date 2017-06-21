@@ -1,15 +1,14 @@
 /* global require console */
 
 let fs       = require('fs');
-let _        = require('promise-async');
+let cp       = require('child_process');
 let tripcode = require('tripcode');
-let poke     = require('./poke-utils');
-let db       = require('./db.js');
-let shoe     = require('./shoedrip.js');
 let mustache = require('mustache');
 let mkdirp   = require('mkdirp');
 let mv       = require('mv');
-let cp       = require('child_process');
+let poke     = require('./poke-utils');
+let db       = require('./db.js');
+let shoe     = require('./shoedrip.js');
 
 let cookieParser	= require('cookie-parser');
 let bodyParser		= require('body-parser');

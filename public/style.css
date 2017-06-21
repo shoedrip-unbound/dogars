@@ -67,20 +67,8 @@ form.import input[type="submit"] {
     grid-column-start: 2;
 }
 
-form.import p {
-    display: table-row;
-}
-
-form.import textarea, input, select {
-    display: table-cell;
-}
-
 form.import > label {
     text-align: right;
-}
-
-form.import > p {
-    display: table-row;
 }
 
 form.search {
@@ -202,24 +190,18 @@ hr.style13:last-of-type {
 }
 
 .info {
-    display:      table;
-    margin-top:    10px;
+    display: grid;
+    margin-top: 10px;
+    grid-column-start: span 4;
     margin-bottom: 10px;
-}
-
-.row {
-    display: table-row;
+    grid-template-columns: 2fr 8fr;
+    grid-column-gap: 10px;
+    grid-row-gap: 5px;
 }
 
 .info label {
-    display: table-cell;
     text-align:   right;
     font-weight:    900;
-    padding-right: 10px;
-}
-
-.field {
-    display: table-cell;
 }
 
 .something {
@@ -307,5 +289,64 @@ form.replay textarea {
 
 .champs {
     display:                          grid;
-    grid-template-columns: 25% 25% 25% 25%;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+
+/*------------------------------*/
+
+input[type="submit"]:focus,
+input[type="button"]:focus{
+    outline: none;
+}
+
+input[type="submit"]:active,
+input[type="button"]:active {
+    color: rebeccapurple;
+}
+
+input[type="submit"]:hover,
+input[type="button"]:hover {
+    color: #0069c5;
+}
+
+input[type="submit"], input[type="button"] {
+    color:               inherit;
+    height:                 48px;
+    cursor:              pointer;
+    border:            5px solid;
+    font-size:             1.5em;
+    background:      transparent;
+    font-family: 'Itim', cursive;
+    font-variant:     small-caps;
+    border-radius:          10px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+form input[type="submit"],
+form input[type="button"] {
+	width: 150px;
+}
+
+select[name="format"] {
+    border: 3px solid;
+    border-radius: 5px;
+    width: 100px;
+    background: transparent;
+    color: inherit;
+    height: 34px;
+}
+
+.set-info {
+    display: grid;
+    grid-template-columns: 1fr 30fr;
+}
+
+.set-info > h3, .set-info > div {
+    grid-column-start: span 2;
+	text-align: center;
+}
+
+.info > div {
+	text-align: left;
 }
