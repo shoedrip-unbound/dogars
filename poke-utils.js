@@ -272,6 +272,8 @@ let pack = set => {
 }
 
 let checkSet = p((set, cb) => {
+	if (!connection.usable)
+		return cb(null, null);
 	let popupHandler = (data) => {
 		if (data.indexOf('|popup|Your team was rejected') == 0) {
 			str = data.substr(60);
@@ -289,6 +291,8 @@ let checkSet = p((set, cb) => {
 module.exports.checkSet = checkSet;
 
 let saveReplay = (url, cb) => {
+	if (!connection.usable)
+		return cb("Replay couldn't be saved", null);
 	let room = url.match(/(battle-.*)\/?/)[0];
 	let roomid = url.match(/battle-(.*)\/?/)[1];
 

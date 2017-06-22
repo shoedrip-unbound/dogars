@@ -158,14 +158,13 @@ router.post("/update/:id", async (request, response, next) => {
 		else if (request.body.action == "Delete")
 			await db.deleteSet(request);
 		response.set({'Refresh': '0; url=/set/' + request.params.id});
+		response.end();    
 	}
 	catch(e) {
-		console.log(e);
-		response.set({'Refresh': '2; url=/'});
-		response.send('You fucked up something. Back to the homepage in 2, 1...');
-	}
-	finally {
-		response.end();    
+		e = e.replace(/\|\|/g, '\n');
+		e = e.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2');
+		response.set({'Refresh': '10; url=/import'});
+		sendTemplate(request, response, 'reject', { reason: e });
 	}
 });
 
@@ -262,6 +261,11 @@ router.get("/replays/add/:id", (request, response) => {
 
 router.post("/replays/add/:id", async (request, response) => {
 	let id = request.body.set.match(/http:\/\/dogars\.ml\/set\/([0-9]+)/)[1];
+	if (!id) {
+		response.set({'Refresh': '5; url=/replays'});
+		sendTemplate(request, response, 'genreject', { reason: 'Your submission was rejected because the URL was wrong'});
+		return;
+	}
 	await db.addSetToReplay(id, request.params.id);
 
 	response.set({'Content-type': 'text/html'});

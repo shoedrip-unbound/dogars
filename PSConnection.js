@@ -7,6 +7,7 @@ class PSConnection {
 		this.handlers = {};
 		this.battles = {};
 		this.monitors = {};
+		this.usable = false;
 	}
 
 	on(event, cb) {
@@ -37,12 +38,20 @@ class PSConnection {
 	start() {
 		try {
 			this.ws = new WebSocket('wss://sim2.psim.us/showdown/926/3jbvr0y1/websocket');
+			this.ws.on('error', () => {
+				console.log('Failed to connect. Websocket was disabled, some feature might not work properly');				
+				this.usable = false;
+			});
+			
 			this.ws.on('open', () => {
+				console.log('Failed to connect. Websocket was disabled, some feature might not work properly');				
+				this.usable = true;
 			});
 
 			this.ws.on('close', () => {
 				console.log('CONNECTION CLOSED');
-				this.start();
+				this.usable = false;
+				//this.start();
 			});
 			
 			this.ws.on('message', (data) => {
