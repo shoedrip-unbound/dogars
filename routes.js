@@ -176,11 +176,17 @@ router.post("/add", async (request, response) => {
 		response.end();
 	}
 	catch(e) {
-		console.log(e);
-		response.set({'Refresh': '2; url=/'});
-		response.send('You fucked up something. Check your set. Back to the homepage in 2, 1...');
-		response.end();
+		e = e.replace(/\|\|/g, '\n');
+		e = e.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2');
+		response.set({'Refresh': '10; url=/import'});
+		sendTemplate(request, response, 'reject', { reason: e });
 	}
+});
+
+router.post("/trip", (request, response) => {
+	console.log(request.body);
+	response.send(tripcode(request.body.v));
+	response.end();
 });
 
 router.get("/random", (request, response) => {

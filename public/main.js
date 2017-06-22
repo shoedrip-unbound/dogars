@@ -20,6 +20,20 @@ window.onload = () => {
 			window.location = '/suggest/' + image.dataset.id;
 		}
 	reloadTheme();
+	let trip = document.getElementsByName('trip')[0];
+	if(trip) {
+		trip.onkeyup = async () => {
+			let req = new Request('/trip', { method: 'POST',
+											 headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+											 body: 'v=' + trip.value });
+			let res = await fetch(req);
+			let arr = await res.arrayBuffer();
+			let str = new TextDecoder().decode(arr);
+			let tripbox = document.getElementsByClassName('info')[0].children[3];
+			let real = tripbox.textContent.substr(0, 10);
+			tripbox.textContent = real + ' | ' + str;
+		}
+	}
 }
 
 waifu.onclick = (e) => {

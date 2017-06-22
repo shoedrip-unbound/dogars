@@ -18,8 +18,8 @@ c.query('SELECT COUNT(*) FROM Sets').then(rows => {
 });
 
 let getAllSets			= async	()							=> await c.query('select * from Sets');
-let memesInReplay		= async rid							=> await c.query('select * from memes.Sets where id in (select idset from memes.sets_in_replays where idreplay = ?)', [rid])
-let getReplays			= async manual						=> await c.query('select * from replays where manual = ? order by id desc;', [manual])
+let memesInReplay		= async rid							=> await c.query('select * from memes.Sets where id in (select idset from memes.sets_in_replays where idreplay = ?)', [rid]);
+let getReplays			= async manual						=> await c.query('select * from replays where manual = ? order by id desc;', [manual]);
 let getChampFromTrip	= async trip						=> await c.query('select * from memes.champs where trip = ? order by id desc;', [trip]);
 let getChamps			= async ()							=> await c.query('select * from memes.champs order by wins desc;');
 let createChampFromTrip = async (name, trip)				=> await c.query('insert into memes.champs (name, trip) values (?, ?) ', [name || '', trip]);
@@ -27,7 +27,7 @@ let addReplay			= async data						=> await c.query('insert into replays (link, d
 let getSetsPage			= async (setPerPage, pageNumber)	=> await c.query('select * from Sets order by id desc limit ? offset ?;', [~~setPerPage, ~~(setPerPage * pageNumber)]);
 let addSetToReplay		= async (setid, rid)				=> await c.query('insert into memes.sets_in_replays (idreplay, idset) values (?, ?)', [rid, setid]);
 let updateChampAvatar	= async (trip, aid)					=> await c.query('update memes.champs set avatar = ? where trip = ?', [aid, trip]);
-let getSetById			= async id							=> await c.query('select * from Sets where id = ?', [id])
+let getSetById			= async id							=> await c.query('select * from Sets where id = ?', [id]);
 
 let registerChampResult = async (battleData, hasWon) => {
 	let replayurl;
