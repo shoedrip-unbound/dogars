@@ -81,7 +81,10 @@ let main = async () => {
 		module.exports.champ = champ;
 	}
 	catch(e) {
+		console.log('--------------------------------------------------------------------------------');
 		console.log('An error occured while retriving some data.\nSome features might now work properly');
+		console.log(e);
+		console.log('--------------------------------------------------------------------------------');
 	}
 }
 

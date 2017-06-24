@@ -44,14 +44,14 @@ class PSConnection {
 			});
 			
 			this.ws.on('open', () => {
-				console.log('Failed to connect. Websocket was disabled, some feature might not work properly');				
+				console.log('kek');
 				this.usable = true;
 			});
 
 			this.ws.on('close', () => {
 				console.log('CONNECTION CLOSED');
 				this.usable = false;
-				//this.start();
+				this.start();
 			});
 			
 			this.ws.on('message', (data) => {
