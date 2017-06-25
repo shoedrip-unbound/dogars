@@ -3,6 +3,11 @@
 let fs       = require('fs');
 let settings = JSON.parse(fs.readFileSync('settings.json'));
 
+console.elog = function(level, ...args) {
+	if (settings.log_level && ~~settings.log_level > level)
+	   console.log(...args);
+}
+
 let githubhook = require('githubhook');
 let github = githubhook({path: '/reload',
 						 secret: settings.secret,
@@ -12,7 +17,7 @@ let cp = require('child_process');
 let app = require('./routes.js');
 
 setInterval(() => {
-	console.log('starting backup...');
+	console.elog(0, 'starting backup...');
 	fs.renameSync('./public/backup.sql', './public/backup' + (+ new Date()) + '.sql');
 	let proc = cp.spawn('mysqldump', [
 		'-u', settings.db.user,
@@ -22,7 +27,7 @@ setInterval(() => {
 				fs.openSync('./public/backup.sql', 'w+'),
 				'ignore']});
 	proc.on('exit', () => {
-		console.log('backup finished...');
+		console.elog(0, 'backup finished...');
 	});
 }, 3600 * 1000);
 
@@ -37,7 +42,9 @@ github.on('push', () => {
   process.exit(1);
 });
 
+console.log(0, 'listening');
 app.listen(process.argv[2] || 1234);
+console.log(0, 'not blocking');
 
 try {
 	github.listen();
