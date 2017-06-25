@@ -9,6 +9,7 @@ let mv       = require('mv');
 let poke     = require('./poke-utils');
 let db       = require('./db.js');
 let shoe     = require('./shoedrip.js');
+let notes    = require('./git-notes.js');
 
 let cookieParser	= require('cookie-parser');
 let bodyParser		= require('body-parser');
@@ -355,6 +356,18 @@ router.get("/set/:id", async (request, response) => {
 	}
 	set = poke.formatSetFromRow(set);
 	sendTemplate(request, response, 'set', set);
+});
+
+router.get("/changelog", async (request, response) => {
+	try {
+		let mynotes = await notes.get(); // [{commit:, msg:}, ...]
+		mynotes = mynotes.filter(item => item.type)
+			.map(item => extend(item, {type: item.type.indexOf('bug') == 0 ? 'bug' : 'plus-square', commit: item.commit.substr(0, 6)}));
+		sendTemplate(request, response, 'changelog', { notes: mynotes });
+	}
+	catch(e) {
+		console.log(e);
+	}
 });
 
 router._404 = (request, response, path) => {

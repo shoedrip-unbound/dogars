@@ -34,7 +34,7 @@ let registerChampResult = async (battleData, hasWon) => {
 
 	if (hasWon) {
 		poke.saveReplay(battleData.champ.champ_battle, () => {
-			console.log('replay saved');
+			console.log('replay saved (' + battleData.champ.champ_battle + ')');
 		});
 		replayurl = 'http://replay.pokemonshowdown.com/' + battleData.roomid;
 	}

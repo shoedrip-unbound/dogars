@@ -350,3 +350,7 @@ select[name="format"] {
 .info > div {
 	text-align: left;
 }
+
+.item {
+    margin: 15px 0 15px 0;
+}
