@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/shoedrip-unbound/dogars#readme",
   "dependencies": {
+    "apiai": "^4.0.2",
     "body-parser": "^1.17.2",
     "compression": "^1.6.2",
     "cookie-parser": "^1.4.3",

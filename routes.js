@@ -1,15 +1,17 @@
 /* global require console */
 
-let fs       = require('fs');
-let cp       = require('child_process');
-let tripcode = require('tripcode');
-let mustache = require('mustache');
-let mkdirp   = require('mkdirp');
-let mv       = require('mv');
-let poke     = require('./poke-utils');
-let db       = require('./db.js');
-let shoe     = require('./shoedrip.js');
-let notes    = require('./git-notes.js');
+let fs         = require('fs');
+let cp         = require('child_process');
+let tripcode   = require('tripcode');
+let mustache   = require('mustache');
+let mkdirp     = require('mkdirp');
+let mv         = require('mv');
+let poke       = require('./poke-utils');
+let db         = require('./db.js');
+let shoe       = require('./shoedrip.js');
+let notes      = require('./git-notes.js');
+let emotionmap = require('./emotions.js');
+let settings   = JSON.parse(fs.readFileSync('settings.json'));
 
 let cookieParser	= require('cookie-parser');
 let bodyParser		= require('body-parser');
@@ -18,6 +20,8 @@ let express			= require('express');
 let upload          = multer({dest: '/tmp'});
 let router			= express();
 let compression     = require('compression');
+let apiai           = require('apiai');
+let bot             = apiai(settings.botkey);
 
 router.set('env', 'production');
 router.use(bodyParser.json());
@@ -65,7 +69,7 @@ let render = (view, data) => {
 let sendTemplate = (req, res, n, data) => {
 	data = data || {};
 	res.set({'Content-type': 'text/html'});
-	data = extend(data, genericData(req));
+	data = extend(data, genericData(req, res));
 	res.send(render(n, data));
 	res.end();
 }
@@ -91,23 +95,36 @@ let getSetOfTheDay = async cb => {
 	return poke.formatSetFromRow(set[0]);
 }
 
-let getCookieData = request => {
-	if (!request.headers.cookie)
-		return {
-			dark: 'false',
-			style_suffix: '',
-			waifu: '/lillie2.png'
-		};
+let getCookieData = (request, response) => {
+	let default_cookie = {
+		dark: 'false',
+		style_suffix: '',
+		waifu: '/lillie2.png',
+		talked: false,
+		talkSession: '' + (~~(Math.random() * 10000000))
+	};
+	if (!request.headers.cookie) {
+		console.log('GENERATING NEW COOKIES');
+		for (let i in default_cookie)
+			response.cookie(i, default_cookie[i]);
+		return default_cookie;
+	}
 	let cook = cookie2obj(request.headers.cookie);
-	return {
+	cook = extend(default_cookie, cook);
+	let ret = {
 		dark: cook.dark,
 		style_suffix: cook.dark == 'true' ? '2' : '',
-		waifu: cook.dark == 'true' ? '/moon.png' : '/lillie2.png'
+		waifu: cook.dark == 'true' ? '/moon.png' : '/lillie2.png',
+		talked: cook.talked,
+		talkSession: cook.talkSession
 	};
+	for (let i in ret)
+		response.cookie(i, ret[i]);
+	return ret;
 }
 
-let genericData = (request) => {
-	let ret = extend(shoe.champ, getCookieData(request));
+let genericData = (request, response) => {
+	let ret = extend(shoe.champ, getCookieData(request, response));
 	let rand_ban = banners[~~(Math.random() * banners.length)];
 	ret = extend(ret, {banner: '/ban/' + rand_ban});
 	return ret;
@@ -291,6 +308,40 @@ router.get("/fame", async (request, response) => {
 	sendTemplate(request, response, 'fame', {sets: sets});
 });
 
+router.post("/lillie", async (request, response) => {
+	try{
+		//hack
+		request.headers.cookie = request.body.cook;
+		let data = getCookieData(request, response);
+		if (!data.talkSession || !request.body.message) {
+			response.send(JSON.stringify({}));
+			response.end();
+			return;
+		}
+		let req = bot.textRequest(request.body.message, {
+			sessionId: data.talkSession
+		});
+		req.on('response', r => {
+			let output = extend(r.result, {
+				emotion: emotionmap[r.result.action] || ''
+			});
+			response.send(JSON.stringify(output));
+			response.end();
+		});
+		req.on('error', r => {
+			console.log('ERROR;');
+			console.log(r);
+			response.send(JSON.stringify({}));
+			response.end();
+		});
+		req.end();
+		console.log('request sent;');
+	}catch(e){
+		console.log(e);
+	}
+
+});
+
 router.get("/champs", async (request, response) => {
 	let champs = await db.getChamps();
 	let data = {champs: champs};
@@ -358,11 +409,15 @@ router.get("/set/:id", async (request, response) => {
 	sendTemplate(request, response, 'set', set);
 });
 
+let mynotes = false;
+
 router.get("/changelog", async (request, response) => {
 	try {
-		let mynotes = await notes.get(); // [{commit:, msg:}, ...]
-		mynotes = mynotes.filter(item => item.type)
-			.map(item => extend(item, {type: item.type.indexOf('bug') == 0 ? 'bug' : 'plus-square', commit: item.commit.substr(0, 6)}));
+		if (!mynotes) {
+			mynotes = await notes.get(); // [{commit:, msg:}, ...]
+			mynotes = mynotes.filter(item => item.type)
+				.map(item => extend(item, {type: item.type.indexOf('bug') == 0 ? 'bug' : 'plus-square', commit: item.commit.substr(0, 6)}));
+		}
 		sendTemplate(request, response, 'changelog', { notes: mynotes });
 	}
 	catch(e) {
@@ -371,7 +426,7 @@ router.get("/changelog", async (request, response) => {
 });
 
 router._404 = (request, response, path) => {
-	set = genericData(request);
+	set = genericData(request, response);
 	response.status(404);
 	response.set(404, {'Content-type': 'text/html'});
 	response.send(render('404', set));
@@ -379,13 +434,13 @@ router._404 = (request, response, path) => {
 }
 
 router.use(function(request, response) {
-	response.send(render('404', genericData(request)));
+	response.send(render('404', genericData(request, response)));
 	response.end();
 });
 
 router.use(function(error, request, response, next) {
 	console.log(error);
-	response.send(render('500', genericData(request)));
+	response.send(render('500', genericData(request, response)));
 	response.end();
 });
 

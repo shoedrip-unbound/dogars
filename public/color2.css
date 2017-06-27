@@ -47,3 +47,18 @@ textarea, input, select {
     border-radius: 2px;
 }
 
+#waifu {
+    left:         0;
+    bottom:       0 !important;
+    z-index:     -1;
+    position: fixed;
+}
+
+
+.lillietalk {
+	display: none;
+}
+
+#response {
+	display: none !important;
+}

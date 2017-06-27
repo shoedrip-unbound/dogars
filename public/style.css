@@ -96,7 +96,7 @@ form.search input[type="submit"] {
 
 #waifu {
     left:         0;
-    bottom:       0;
+    bottom:    36px;
     z-index:     -1;
     position: fixed;
 }
@@ -353,4 +353,33 @@ select[name="format"] {
 
 .item {
     margin: 15px 0 15px 0;
+}
+
+.lillietalk {
+    position: fixed;
+	z-index: -1;
+    left: 0;
+    bottom: 0;
+}
+
+.lillietalk > input  {
+    width: 300px;
+    padding: 8px;
+    font-size: 0.8em;
+}
+
+#response {
+	z-index: -1;
+    position: fixed;
+    width: 200px;
+    border: 1px solid;
+    left: 176px;
+    bottom: 150px;
+    height: 110px;
+    border-radius: 5px;
+    background-color: white;
+    box-shadow: 0 0 58px -21px, 0 4px #d0d0d0;
+    padding: 10px;
+    display: inline-table;
+    font-size: medium;
 }
