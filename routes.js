@@ -325,6 +325,7 @@ router.post("/lillie", async (request, response) => {
 			let output = extend(r.result, {
 				emotion: emotionmap[r.result.action] || ''
 			});
+			console.log(data.talkSession + ': ' + request.body.message);
 			response.send(JSON.stringify(output));
 			response.end();
 		});
