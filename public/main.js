@@ -12,14 +12,19 @@ let reloadTheme = () => {
 let display_message = (msg) => {
 	response.style.display = 'inline-table';
 	response.textContent = '';
-	let inter = setInterval(() => {
+	let inter;
+	let addNextChar = () => {
 		if (msg == '') {
-			clearInterval(inter);
 			return;
 		}
-		response.textContent += msg.substr(0, 1);
+		let c = msg.substr(0, 1);
+		response.textContent += c;
 		msg = msg.substr(1);
-	}, 16);
+		let time = ".,!".indexOf(c) == -1 ? 32 : 250;
+		console.log(time);
+		inter = setTimeout(addNextChar, time);
+	};
+	inter = setTimeout(addNextChar, 16);
 }
 
 window.onload = () => {
@@ -70,6 +75,9 @@ window.onload = () => {
 		let data = JSON.parse(str);
 		console.log(data);
 		display_message(data.fulfillment.speech);
+		waifu.src = '/lillie2.png';
+		if (data.emotion)
+			waifu.src = '/lillie-' + data.emotion + '.png';
 	}
 }
 
