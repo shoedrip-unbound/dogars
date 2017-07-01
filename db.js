@@ -141,7 +141,7 @@ let updateSet = async (request) => {
 	let formats = ["gen7ou", "gen7anythinggoes", "ubers", "uu", "ru",
 				   "nu", "pu", "lc", "cap"];
 	if (formats.includes(request.body.format))
-		row.mforat = request.body.format;
+		row.format = request.body.format;
 	row.description = request.body.desc.substr(0, 230);
 	row.date_added = +new Date();
 	
