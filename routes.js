@@ -90,8 +90,13 @@ let getSetOfTheDay = async cb => {
 	seed = seed % db.total;
 	// >set of the "day"
 	// >changes everytime you add or delete a set
-	let set = db.getSetById('' + seed);
-	set = await set;
+	let set;
+	// hack
+	while (!set) {
+		set = db.getSetById('' + seed);
+		set = await set;
+		seed = seed + 1 % db.total;
+	}
 	return poke.formatSetFromRow(set[0]);
 }
 
@@ -425,14 +430,6 @@ router.get("/changelog", async (request, response) => {
 		console.log(e);
 	}
 });
-
-router._404 = (request, response, path) => {
-	set = genericData(request, response);
-	response.status(404);
-	response.set(404, {'Content-type': 'text/html'});
-	response.send(render('404', set));
-	response.end();
-}
 
 router.use(function(request, response) {
 	response.send(render('404', genericData(request, response)));
