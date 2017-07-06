@@ -90,9 +90,9 @@ let getSetOfTheDay = async cb => {
 	seed = seed % db.total;
 	// >set of the "day"
 	// >changes everytime you add or delete a set
-	let set;
+	let set = [];
 	// hack
-	while (!set) {
+	while (!set[0]) {
 		set = db.getSetById('' + seed);
 		set = await set;
 		seed = seed + 1 % db.total;
