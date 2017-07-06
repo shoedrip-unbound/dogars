@@ -28,6 +28,7 @@ let getSetsPage			= async (setPerPage, pageNumber)	=> await c.query('select * fr
 let addSetToReplay		= async (setid, rid)				=> await c.query('insert into memes.sets_in_replays (idreplay, idset) values (?, ?)', [rid, setid]);
 let updateChampAvatar	= async (trip, aid)					=> await c.query('update memes.champs set avatar = ? where trip = ?', [aid, trip]);
 let getSetById			= async id							=> await c.query('select * from Sets where id = ?', [id]);
+let getSetByNo			= async no							=> await c.query('select * from Sets limit 1 offset ?', [no]);
 
 let registerChampResult = async (battleData, hasWon) => {
 	let replayurl;
@@ -202,6 +203,7 @@ module.exports.addSetToReplay			= addSetToReplay;
 module.exports.updateChampAvatar		= updateChampAvatar;
 module.exports.registerChampResult		= registerChampResult;
 module.exports.getSetById				= getSetById;
+module.exports.getSetByNo				= getSetByNo;
 module.exports.getSetsByProperty		= getSetsByProperty;
 module.exports.getSetsByPropertyExact	= getSetsByPropertyExact;
 module.exports.getSetsByName			= getSetsByName;
