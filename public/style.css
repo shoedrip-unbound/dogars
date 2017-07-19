@@ -266,6 +266,7 @@ form.replay textarea {
     padding:               5px;
     display:       inline-grid;
     overflow:           hidden;
+	position:         relative;
     border-radius:         5px;
     box-shadow: 0 5px 0 0 #eee,
 	            0 0 30px -15px;
@@ -382,4 +383,20 @@ select[name="format"] {
     padding: 10px;
     display: inline-table;
     font-size: medium;
+}
+
+.elo {
+    position: absolute;
+    border: 1px solid;
+    border-radius: 50px;
+    width: 70px;
+    right: 0;
+    height: 70px;
+    text-align: center;
+    vertical-align: sub;
+    margin: 5px;
+}
+
+.elo > div {
+    padding-top: 18px;
 }
