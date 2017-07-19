@@ -130,7 +130,6 @@ let genericData = (request, response) => {
 }
 
 router.use(express.static('./public'));
-router.use('/json', require('./json.js'));
 
 router.get("/", async (request, response) => {
 	try {
