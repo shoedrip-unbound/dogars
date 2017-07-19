@@ -3,6 +3,7 @@
 var c        = require('mysql-promise')();
 let fs       = require('fs');
 let poke     = require('./poke-utils');
+let request  = require('request-promise-native');
 let tripcode = require('tripcode');
 let settings = JSON.parse(fs.readFileSync('settings.json'));
 let p        = require('util').promisify;
@@ -33,6 +34,18 @@ let getSetByNo			= async no							=> await c.query('select * from Sets limit 1 o
 let registerChampResult = async (battleData, hasWon) => {
 	let replayurl;
 
+	try {
+		let b = await request.get('https://play.pokemonshowdown.com/~~showdown/action.php?act=ladderget&user=' + encodeURIComponent(battleData.champ.showdown_name));
+		b = JSON.parse(b.substr(1));
+		b = ~~b.filter(e => e.formatid == 'gen7ou')[0].elo;
+		// no need to sync
+		c.query('update memes.champs set elo = ? where trip = ?', [b, battleData.champ.champ_trip]);
+		// might be useful to store this
+		c.query('update memes.champs set showdown_name = ? where trip = ?', [battleData.champ.showdown_name, battleData.champ.champ_trip]);
+	}
+	catch(e) {
+		console.log(e);
+	}
 	if (hasWon) {
 		poke.saveReplay(battleData.champ.champ_battle, () => {
 			console.log('replay saved (' + battleData.champ.champ_battle + ')');
