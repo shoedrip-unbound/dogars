@@ -256,19 +256,29 @@ router.get("/search", async (request, response) => {
 });
 
 router.get("/replays", async (request, response) => {
-	let prefix = 'am';
 	let data = {};
-	for (let v of [1, 0]) {
-		let replays = await db.getReplays(v);
-		let memes = [];
-		for(var i = 0; i < replays.length; ++i)
-			memes.push(await db.memesInReplay(replays[i].id));
-		replays = replays.map((r, i) => extend(r, {memes: memes[i].map(poke.formatSetFromRow)}));
-		data[prefix[v] + 'replays'] = replays;
-	}
+	let replays = await db.getReplays(1);
+	let memes = [];
+	for(var i = 0; i < replays.length; ++i)
+		memes.push(await db.memesInReplay(replays[i].id));
+	replays = replays.map((r, i) => extend(r, {memes: memes[i].map(poke.formatSetFromRow)}));
+	data['mreplays'] = replays;
 	if (request.query.fail)
 		data['error'] = true;
 	sendTemplate(request, response, 'replays', data);
+});
+
+router.get("/replays/auto", async (request, response) => {
+	let data = {};
+	let replays = await db.getReplays(0);
+	let memes = [];
+	for(var i = 0; i < replays.length; ++i)
+		memes.push(await db.memesInReplay(replays[i].id));
+	replays = replays.map((r, i) => extend(r, {memes: memes[i].map(poke.formatSetFromRow)}));
+	data['areplays'] = replays;
+	if (request.query.fail)
+		data['error'] = true;
+	sendTemplate(request, response, 'replaysa', data);
 });
 
 router.get("/replays/add/:id", (request, response) => {
