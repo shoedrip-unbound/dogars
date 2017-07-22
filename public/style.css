@@ -389,14 +389,15 @@ select[name="format"] {
     position: absolute;
     border: 1px solid;
     border-radius: 50px;
-    width: 70px;
     right: 0;
-    height: 70px;
+    width: 45px;
+    height: 45px;
     text-align: center;
     vertical-align: sub;
     margin: 5px;
 }
 
 .elo > div {
-    padding-top: 18px;
+    padding-top: 11px;
+	font-size: small;
 }

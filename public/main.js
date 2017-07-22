@@ -97,3 +97,22 @@ ban.ondblclick = () => {
 let unzip = (elem) => {
 	elem.nextElementSibling.style.display = elem.nextElementSibling.style.display == 'block' ? 'none' : 'block';
 }
+
+let getChampStats = champ => {
+	return {
+		wins: ~~champ.children[2].children[0].textContent,
+		losses: ~~champ.children[2].children[1].textContent,
+		elo: ~~(champ.children[3] ? champ.children[3].children[0].textContent : 0)
+	};
+}
+
+let sortChamps = function() {
+	let champs = document.getElementsByClassName('champs')[0];
+	let getData = 'return ' + this.value + ';';
+	getData = new Function(getData);
+	let arr = [].slice.call(champs.children).sort((a, b) => {
+		let adata = getData.call(getChampStats(a));
+		let bdata = getData.call(getChampStats(b));
+		return bdata - adata;
+	}).forEach(e => e.parentNode.appendChild(e))
+}

@@ -1,4 +1,12 @@
-<h2>Champs</h2>
+<h2>Champs
+	<select name="format" onchange="sortChamps.call(this);" name="crit" value="Sort by...">
+		<option value="this.wins">Wins</option>
+		<option value="this.losses">Losses</option>
+		<option value="(this.wins / (this.losses ? this.losses : 1))">W/L Ratio</option>
+		<option value="(this.wins + this.losses)">Total Battles</option>
+		<option value="this.elo">ELO</option>
+	</select>
+</h2>
 <div>
 	<div class="champs">
 		{{#champs}}
