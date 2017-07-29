@@ -129,7 +129,7 @@ let genericData = (request, response) => {
 	return ret;
 }
 
-router.use(express.static('./public'));
+router.use(express.static('./public', {maxAge: '1d'}));
 
 router.get("/", async (request, response) => {
 	try {
