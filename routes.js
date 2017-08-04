@@ -246,7 +246,7 @@ router.post("/search", async (request, response) => {
 
 router.get("/search", async (request, response) => {
 	if(request.query.q) {
-		let sets = await db.getSetsByName(request.body.q);
+		let sets = await db.getSetsByName(request.query.q);
 		sets = sets.map(poke.formatSetFromRow);
 		sendTemplate(request, response, 'all', {sets: sets});
 	}
