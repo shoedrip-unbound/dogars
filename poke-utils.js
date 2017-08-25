@@ -77,7 +77,7 @@ module.exports.formatSetFromRow = (set) => {
 		rich.set_form += rich.species;
 	if (rich.gender != '')
 		rich.set_form += ' (' + rich.gender + ')';
-	if (rich.item != '')
+	if (rich.item && rich.item != '')
 		rich.set_form += ' @ ' + rich.item;
 	rich.set_form += '\nAbility: ' + rich.ability + '\n';
 	if (rich.level && rich.level != '100')
