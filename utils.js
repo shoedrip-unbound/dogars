@@ -68,7 +68,7 @@ let render = (view, data) => {
 
 let sendTemplate = (req, res, n, data) => {
 	data = data || {};
-	data.phone = isMobile(req.get('User-Agent'));
+	data.phone = false; //isMobile(req.get('User-Agent'));
 	res.set({'Content-type': 'text/html'});
 	data = extend(data, genericData(req, res));
 	res.send(render(n, data));
@@ -127,7 +127,8 @@ let genericData = (request, response) => {
 	let rand_ban = banners[~~(Math.random() * banners.length)];
 	ret = extend(ret, {
 		banner: '/ban/' + rand_ban,
-		phone: isMobile(request.get('User-Agent'))});
+		phone: false//isMobile(request.get('User-Agent'))
+	});
 	return ret;
 }
 

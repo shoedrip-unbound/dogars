@@ -12,7 +12,7 @@ let shoe       = require('./shoedrip.js');
 let notes      = require('./git-notes.js');
 let emotionmap = require('./emotions.js');
 let settings   = JSON.parse(fs.readFileSync('settings.json'));
-let utils = require('./utils.js');
+let utils	   = require('./utils.js');
 
 let cookieParser	= require('cookie-parser');
 let bodyParser		= require('body-parser');
