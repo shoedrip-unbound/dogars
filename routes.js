@@ -12,6 +12,7 @@ let shoe       = require('./shoedrip.js');
 let notes      = require('./git-notes.js');
 let emotionmap = require('./emotions.js');
 let settings   = JSON.parse(fs.readFileSync('settings.json'));
+let utils = require('./utils.js');
 
 let cookieParser	= require('cookie-parser');
 let bodyParser		= require('body-parser');
@@ -29,112 +30,13 @@ router.use(bodyParser.urlencoded({ extended: true }));
 router.use(cookieParser());
 router.use(compression());
 
-let files = fs.readdirSync('./templates')
-	.filter(file => /\.mustache$/g.test(file))
-	.map(file => file.replace(/\.mustache$/g, ''));
-
-let fileCache = {};
-
-let banners = fs.readdirSync('./public/ban');
-
-files.forEach(f => {
-	let file = 'templates/' + f + '.mustache';
-	fileCache[f] = fs.readFileSync(file, 'utf8');
-	fs.watch(file, {persistent: false }, (event, name) => {
-		if (event != 'change')
-			return;
-		console.log(file + ' changed');
-		fileCache[f] = fs.readFileSync(file, 'utf8');
-	});
-});
-
-fs.watch('./public/ban', {persistent: false}, (e, n) => {
-	fs.readdir('./public/ban', (e, banfiles) => {
-		banners = banfiles;
-	});
-})
-
-let extend = (d, s) => {
-	let ret = d;
-	for(var i in s)
-		d[i] = s[i];
-	return d;
-}
-
-let render = (view, data) => {
-	let subs = extend(fileCache, {content: fileCache[view]});
-	return mustache.render(fileCache['shell'], data, subs);
-}
-
-let sendTemplate = (req, res, n, data) => {
-	data = data || {};
-	res.set({'Content-type': 'text/html'});
-	data = extend(data, genericData(req, res));
-	res.send(render(n, data));
-	res.end();
-}
-
-let cookie2obj = (str) => {
-	let cook = str.split(';').map(e => e.trim());
-	let ret = {};
-	cook.forEach(e => {
-		let spl = e.split('=').map(kv => kv.trim());
-		ret[spl[0]] = spl[1];
-	});
-	return ret;
-}
-
-let getSetOfTheDay = async cb => {
-	let today = new Date();
-	let seed = today.getDate() * (today.getMonth() + 1) * (today.getYear() + 1900);
-	seed = seed % db.total;
-	// >set of the "day"
-	// >changes everytime you add or delete a set
-	let set = await db.getSetByNo(seed);
-	return poke.formatSetFromRow(set[0]);
-}
-
-let getCookieData = (request, response) => {
-	let default_cookie = {
-		dark: 'false',
-		style_suffix: '',
-		waifu: '/lillie2.png',
-		talked: false,
-		talkSession: '' + (~~(Math.random() * 10000000))
-	};
-	if (!request.headers.cookie) {
-		console.log('GENERATING NEW COOKIES');
-		for (let i in default_cookie)
-			response.cookie(i, default_cookie[i]);
-		return default_cookie;
-	}
-	let cook = cookie2obj(request.headers.cookie);
-	cook = extend(default_cookie, cook);
-	let ret = {
-		dark: cook.dark,
-		style_suffix: cook.dark == 'true' ? '2' : '',
-		waifu: cook.dark == 'true' ? '/moon.png' : '/lillie2.png',
-		talked: cook.talked,
-		talkSession: cook.talkSession
-	};
-	for (let i in ret)
-		response.cookie(i, ret[i]);
-	return ret;
-}
-
-let genericData = (request, response) => {
-	let ret = extend(shoe.champ, getCookieData(request, response));
-	let rand_ban = banners[~~(Math.random() * banners.length)];
-	ret = extend(ret, {banner: '/ban/' + rand_ban});
-	return ret;
-}
-
 router.use(express.static('./public', {maxAge: '1d'}));
 
 router.get("/", async (request, response) => {
 	try {
-		let set = await getSetOfTheDay();
-		sendTemplate(request, response, 'index', set);
+		console.log('----------------------------------------HOME----------------------------------------');
+		let set = await utils.getSetOfTheDay();
+		utils.sendTemplate(request, response, 'index', set);
 	}
 	catch(e) {
 		console.log(e);
@@ -149,23 +51,23 @@ router.get("/all", async (request, response) => {
 	let sets = await db.getSetsPage(spp, page);
 	sets = sets.map(poke.formatSetFromRow);
 	let data = {sets: sets};
-	data = extend(data, {display_pages: true, current_page: ~~page + 1, npages: npages, lastpage: npages - 1});
+	data = utils.extend(data, {display_pages: true, current_page: ~~page + 1, npages: npages, lastpage: npages - 1});
 	if (page > 0) {
 		data.prev = ~~page - 1;
 		data.has_prev = true;
 	}
 	if (page + 1 < npages)
 		data.next = ~~page + 1;
-	sendTemplate(request, response, 'all', data);
+	utils.sendTemplate(request, response, 'all', data);
 });
 
 router.get("/import", (request, response) => {
-	sendTemplate(request, response, 'import');
+	utils.sendTemplate(request, response, 'import');
 });
 
 router.get("/thanks", (request, response) => {
 	response.set({'Refresh': '2; url=/'});
-	sendTemplate(request, response, 'thanks');
+	utils.sendTemplate(request, response, 'thanks');
 });
 
 router.post("/update/:id", async (request, response, next) => {
@@ -181,7 +83,7 @@ router.post("/update/:id", async (request, response, next) => {
 		e = e.replace(/\|\|/g, '\n');
 		e = e.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2');
 		response.set({'Refresh': '10; url=/import'});
-		sendTemplate(request, response, 'reject', { reason: e });
+		utils.sendTemplate(request, response, 'reject', { reason: e });
 	}
 });
 
@@ -195,7 +97,7 @@ router.post("/add", async (request, response) => {
 		e = e.replace(/\|\|/g, '\n');
 		e = e.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2');
 		response.set({'Refresh': '10; url=/import'});
-		sendTemplate(request, response, 'reject', { reason: e });
+		utils.sendTemplate(request, response, 'reject', { reason: e });
 	}
 });
 
@@ -220,7 +122,7 @@ router.post("/search", async (request, response) => {
 		if(request.body.q) {
 			let sets = await db.getSetsByName(request.body.q)
 			sets = sets.map(poke.formatSetFromRow);
-			sendTemplate(request, response, 'all', {sets: sets});
+			utils.sendTemplate(request, response, 'all', {sets: sets});
 		}
 		else { // Advanced search
 			let data = ['date_added', 'format', 'creator', 'hash', 'name', 'species',
@@ -232,11 +134,11 @@ router.post("/search", async (request, response) => {
 				.filter(v => !data.includes(v))
 				.forEach(attr => { delete request.body[attr]});
 			if (request.body == {}) {
-				sendTemplate(request, response, 'all', {sets: []});
+				utils.sendTemplate(request, response, 'all', {sets: []});
 			} else {
 				let sets = await db.getSetsByProperty(request.body);
 				sets = sets.map(e => { return poke.formatSetFromRow(e)});
-				sendTemplate(request, response, 'all', {sets: sets});			
+				utils.sendTemplate(request, response, 'all', {sets: sets});			
 			}
 		}
 	} catch(e) {
@@ -248,10 +150,10 @@ router.get("/search", async (request, response) => {
 	if(request.query.q) {
 		let sets = await db.getSetsByName(request.query.q);
 		sets = sets.map(poke.formatSetFromRow);
-		sendTemplate(request, response, 'all', {sets: sets});
+		utils.sendTemplate(request, response, 'all', {sets: sets});
 	}
 	else {
-		sendTemplate(request, response, 'search', {});
+		utils.sendTemplate(request, response, 'search', {});
 	}
 });
 
@@ -261,11 +163,11 @@ router.get("/replays", async (request, response) => {
 	let memes = [];
 	for(var i = 0; i < replays.length; ++i)
 		memes.push(await db.memesInReplay(replays[i].id));
-	replays = replays.map((r, i) => extend(r, {memes: memes[i].map(poke.formatSetFromRow)}));
+	replays = replays.map((r, i) => utils.extend(r, {memes: memes[i].map(poke.formatSetFromRow)}));
 	data['mreplays'] = replays;
 	if (request.query.fail)
 		data['error'] = true;
-	sendTemplate(request, response, 'replays', data);
+	utils.sendTemplate(request, response, 'replays', data);
 });
 
 router.get("/replays/auto", async (request, response) => {
@@ -274,23 +176,23 @@ router.get("/replays/auto", async (request, response) => {
 	let memes = [];
 	for(var i = 0; i < replays.length; ++i)
 		memes.push(await db.memesInReplay(replays[i].id));
-	replays = replays.map((r, i) => extend(r, {memes: memes[i].map(poke.formatSetFromRow)}));
+	replays = replays.map((r, i) => utils.extend(r, {memes: memes[i].map(poke.formatSetFromRow)}));
 	data['areplays'] = replays;
 	if (request.query.fail)
 		data['error'] = true;
-	sendTemplate(request, response, 'replaysa', data);
+	utils.sendTemplate(request, response, 'replaysa', data);
 });
 
 router.get("/replays/add/:id", (request, response) => {
 	data = { id: request.params.id };
-	sendTemplate(request, response, 'addrset', data);
+	utils.sendTemplate(request, response, 'addrset', data);
 });
 
 router.post("/replays/add/:id", async (request, response) => {
 	let id = request.body.set.match(/http:\/\/dogars\.ml\/set\/([0-9]+)/)[1];
 	if (!id) {
 		response.set({'Refresh': '5; url=/replays'});
-		sendTemplate(request, response, 'genreject', { reason: 'Your submission was rejected because the URL was wrong'});
+		utils.sendTemplate(request, response, 'genreject', { reason: 'Your submission was rejected because the URL was wrong'});
 		return;
 	}
 	await db.addSetToReplay(id, request.params.id);
@@ -302,7 +204,7 @@ router.post("/replays/add/:id", async (request, response) => {
 
 router.post("/replays", async (request, response) => {
 	if(/https?:\/\/replay.pokemonshowdown.com\/(.*)-[0-9]*/.test(request.body.link)) {
-		await db.addReplay(extend(request.body, {manual: true}));
+		await db.addReplay(utils.extend(request.body, {manual: true}));
 		response.set({'Refresh': '0; url=/replays'});
 	}
 	else {
@@ -314,14 +216,14 @@ router.post("/replays", async (request, response) => {
 router.get("/fame", async (request, response) => {
 	let sets = await db.getSetsByProperty({has_custom: 1})
 	sets = sets.map(e => { return poke.formatSetFromRow(e)});
-	sendTemplate(request, response, 'fame', {sets: sets});
+	utils.sendTemplate(request, response, 'fame', {sets: sets});
 });
 
 router.post("/lillie", async (request, response) => {
 	try{
 		//hack
 		request.headers.cookie = request.body.cook;
-		let data = getCookieData(request, response);
+		let data = utils.getCookieData(request, response);
 		if (!data.talkSession || !request.body.message) {
 			response.send(JSON.stringify({}));
 			response.end();
@@ -331,7 +233,7 @@ router.post("/lillie", async (request, response) => {
 			sessionId: data.talkSession
 		});
 		req.on('response', r => {
-			let output = extend(r.result, {
+			let output = utils.extend(r.result, {
 				emotion: emotionmap[r.result.action] || ''
 			});
 			console.log(data.talkSession + ': ' + request.body.message);
@@ -355,13 +257,13 @@ router.post("/lillie", async (request, response) => {
 router.get("/champs", async (request, response) => {
 	let champs = await db.getChamps();
 	let data = {champs: champs};
-	sendTemplate(request, response, 'champs', data);
+	utils.sendTemplate(request, response, 'champs', data);
 });
 
 router.get("/suggest/:type", async (request, response) => {
 	let data = {};
 	if (request.params.type == 'banner') {
-		sendTemplate(request, response, 'suggest-banner');
+		utils.sendTemplate(request, response, 'suggest-banner');
 	}
 	else if (/^\d+$/.test(request.params.type)) {
 		let set = await db.getSetById(request.params.type);
@@ -372,10 +274,8 @@ router.get("/suggest/:type", async (request, response) => {
 			return;
 		}
 		set = poke.formatSetFromRow(set);
-		sendTemplate(request, response, 'suggest-set', set);
+		utils.sendTemplate(request, response, 'suggest-set', set);
 	}
-	else
-		router._404(request, response, '/suggest/' + request.params.type);
 });
 
 router.post("/suggest", upload.single('sugg'), (request, response, next) => {
@@ -403,8 +303,6 @@ router.post("/suggest", upload.single('sugg'), (request, response, next) => {
 		response.set({'Refresh': '0; url=/thanks'});
 		response.end();
 	}
-	else
-		router._404(request, response, '/suggest/' + request.params.type);
 });
 
 router.get("/set/:id", async (request, response) => {
@@ -416,7 +314,7 @@ router.get("/set/:id", async (request, response) => {
 		return;
 	}
 	set = poke.formatSetFromRow(set);
-	sendTemplate(request, response, 'set', set);
+	utils.sendTemplate(request, response, 'set', set);
 });
 
 let mynotes = false;
@@ -426,9 +324,9 @@ router.get("/changelog", async (request, response) => {
 		if (!mynotes) {
 			mynotes = await notes.get(); // [{commit:, msg:}, ...]
 			mynotes = mynotes.filter(item => item.type)
-				.map(item => extend(item, {type: item.type.indexOf('bug') == 0 ? 'bug' : 'plus-square', commit: item.commit.substr(0, 6)}));
+				.map(item => utils.extend(item, {type: item.type.indexOf('bug') == 0 ? 'bug' : 'plus-square', commit: item.commit.substr(0, 6)}));
 		}
-		sendTemplate(request, response, 'changelog', { notes: mynotes });
+		utils.sendTemplate(request, response, 'changelog', { notes: mynotes });
 	}
 	catch(e) {
 		console.log(e);
@@ -436,13 +334,15 @@ router.get("/changelog", async (request, response) => {
 });
 
 router.use(function(request, response) {
-	response.send(render('404', genericData(request, response)));
+	response.status(404);
+	response.send(utils.render('404', utils.genericData(request, response)));
 	response.end();
 });
 
 router.use(function(error, request, response, next) {
 	console.log(error);
-	response.send(render('500', genericData(request, response)));
+	response.status(500);
+	response.send(utils.render('500', utils.genericData(request, response)));
 	response.end();
 });
 
