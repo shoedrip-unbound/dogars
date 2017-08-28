@@ -28,7 +28,10 @@ let addReplay			= async data						=> await c.query('insert into replays (link, d
 let getSetsPage			= async (setPerPage, pageNumber)	=> await c.query('select * from Sets order by id desc limit ? offset ?;', [~~setPerPage, ~~(setPerPage * pageNumber)]);
 let addSetToReplay		= async (setid, rid)				=> await c.query('insert into memes.sets_in_replays (idreplay, idset) values (?, ?)', [rid, setid]);
 let updateChampAvatar	= async (trip, aid)					=> await c.query('update memes.champs set avatar = ? where trip = ?', [aid, trip]);
-let updateChampName		= async (trip, aid)					=> await c.query('update memes.champs set name = ? where trip = ?', [aid, trip]);
+let updateChampName		= async (trip, aid)					=> {
+	console.log("UPDTATECHAMPNAME", trip, aid);
+	return await c.query('update memes.champs set name = ? where trip = ?', [aid, trip]);
+}
 let getSetById			= async id							=> await c.query('select * from Sets where id = ?', [id]);
 let getSetByNo			= async no							=> await c.query('select * from Sets limit 1 offset ?', [no]);
 
@@ -61,8 +64,9 @@ let registerChampResult = async (battleData, hasWon) => {
 	}
 
 	await c.query('update memes.champs set ' + inc + ' = ' + inc + ' + 1 where trip = ?', [battleData.champ.champ_trip]);
+	console.log(battleData);
 	updateChampAvatar(battleData.champ.champ_trip, battleData.champ.avatar.substr(battleData.champ.avatar[0] == '#'));
-	updateChampName(battleData.champ.champ_trip, battleData.champ_name);
+	updateChampName(battleData.champ.champ_trip, battleData.champ.champ_name);
 	if (!hasWon)
 		return;
 	let info = await addReplay({
