@@ -54,20 +54,51 @@ let toId = text => {
 	return ('' + text).toLowerCase().replace(/[^a-z0-9]+/g, '');
 }
 
+let getTemplate = (name) => {
+	name = toId(name);
+	if (pokedex[name])
+		return pokedex[name];
+	for (var i in pokedex) {
+		// What's the difference between a Form and Forme, Zarel?
+		// Why do some Forms have a dex entry while others don't and
+		// some Formes have an entry and others don't??? kys
+		let formeIdx = pokedex[i].otherFormes ? pokedex[i].otherFormes.indexOf(name) : -1;
+		let formIdx = pokedex[i].otherForms ? pokedex[i].otherForms.indexOf(name) : -1;
+		if (formeIdx != -1) {
+			return pokedex[pokedex[i].otherFormes[formeIdx]] || pokedex[i];
+		}
+		if (formIdx != -1) {
+			return pokedex[pokedex[i].otherForms[formIdx]] || pokedex[i];
+		}
+	}
+};
+
+let getSpecies = (template, spec) => {
+	try {
+		if (template.otherForms) {
+			let formIdx = template.otherForms.indexOf(spec);
+			if (formIdx != -1) {
+				let name = template.otherForms[formIdx].slice(template.species.length);
+				return toId(template.species) + '-' + name;
+			}
+		}
+		if (template.baseSpecies)
+			return toId(template.baseSpecies) + '-' + toId(template.forme);
+		return toId(template.species);
+	}
+	catch(e) {
+		console.log(e);
+	}
+}
+
 module.exports.formatSetFromRow = (set) => {
 	let rich = set;
 	let date = new Date(parseInt(set.date_added));
 	rich.date = date.toLocaleDateString();
-	let template = pokedex[toId(rich.species)];
+	let template = getTemplate(rich.species);
 
 	if (template) {
-		if (template.baseSpecies)
-			rich.species_ = (toId(template.baseSpecies) + (template.baseSpecies !== template.species ? '-' + toId(template.forme) : ''));
-		else {
-			rich.species_ = toId(template.species);
-			if (template.forme)
-				rich.species_ += '-' + toId(template.forme);
-		}
+		rich.species_ = getSpecies(template, toId(rich.species));
 	}
 	
 	rich.set_form = '';
