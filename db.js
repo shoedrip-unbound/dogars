@@ -41,6 +41,8 @@ let registerChampResult = async (battleData, hasWon) => {
 	try {
 		let b = await request.get('https://play.pokemonshowdown.com/~~showdown/action.php?act=ladderget&user=' + encodeURIComponent(battleData.champ.showdown_name));
 		b = JSON.parse(b.substr(1));
+		if (b.length == 0)
+			throw "Unregistered or never played";
 		b = ~~b.filter(e => e.formatid == 'gen7ou')[0].elo;
 		// no need to sync
 		c.query('update memes.champs set elo = ? where trip = ?', [b, battleData.champ.champ_trip]);
@@ -141,7 +143,7 @@ let createNewSet = async (request) => {
 	module.exports.total++;
 	let set = await getSetById(rows.insertId);
 	set = poke.formatSetFromRow(set[0]);
-	let errors = await poke.checkSet(set);
+	let errors = await poke.checkSet(buildCheckableSet(set));
 	if (errors) {
 		deleteSet({params: {id: set.id},
 				   body: {trip: settings.admin_pass}});
@@ -149,6 +151,14 @@ let createNewSet = async (request) => {
 	} else {
 		return rows;
 	}
+}
+
+let buildCheckableSet = set => {
+	let nset = set;
+	[1, 2, 3, 4]
+		.map(d => 'move_' + d)
+		.forEach(mp => nset[mp] = nset[mp].split('/')[0].trim());
+	return nset;
 }
 
 let updateSet = async (request) => {
