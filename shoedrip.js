@@ -12,6 +12,8 @@ let getCurrentThread = async () => {
 		return page.threads.some(t => {
 			if (t.sub && t.sub.toLowerCase().indexOf('showderp') != -1 && t.no > derp_no)
 				return derp_no = t.no;
+			if (t.com && t.com.toLowerCase().indexOf('dogars.ml') != -1 && t.no > derp_no)
+				return derp_no = t.no;
 		});
 	});
 	return derp_no;
@@ -57,7 +59,8 @@ levenshtein = (a, b) => {
 		for (j = 1; j <= alen; j++) {
 			tmp = row[j - 1];
 			row[j - 1] = res;
-			res = b[i - 1] === a[j - 1] ? tmp : Math.min(tmp + 1, Math.min(res + 1, row[j] + 1));
+			res = b[i - 1] === a[j - 1] ? tmp : Math.min(tmp + 1,
+														 Math.min(res + 1, row[j] + 1));
 		}
 	}
 	return res;
