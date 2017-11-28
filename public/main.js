@@ -61,6 +61,11 @@ window.onload = () => {
 		}
 	}
 
+	let add = [109, 97, 105, 108, 116, 111, 58, 115, 104, 111, 101, 100, 114, 105, 112, 45, 117, 110, 98, 111, 117, 110, 100, 64, 100, 111, 103, 97, 114, 115, 46, 109, 108];
+	let mail = document.getElementById('mail');
+	add = add.map(f => String.fromCodePoint(f)).join('');
+	mail.setAttribute('href', add);
+
 	msgbox.onkeydown = async e => {
 		if (e.key != 'Enter')
 			return;
