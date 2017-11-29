@@ -55,9 +55,12 @@ class PSConnection {
 			});
 			
 			this.ws.on('message', (data) => {
-				if (data == 'o')
-					return;
-				data = JSON.parse(data.substr(1))[0];
+			        if (data == 'o') {
+				    return;
+				}
+			        data = JSON.parse(data.substr(1))[0];
+			        if (!data.split)
+				    return;
 				data = data.split('\n')
 					.filter(line => line != '');
 				if (data[0][0] == '>') {
