@@ -30,7 +30,7 @@ router.use(bodyParser.urlencoded({ extended: true }));
 router.use(cookieParser());
 router.use(compression());
 
-router.use(express.static('./public', {maxAge: '1d'}));
+router.use(express.static('./public', {lastModified: true}));
 
 router.get("/", async (request, response) => {
 	try {
@@ -332,6 +332,38 @@ router.get("/changelog", async (request, response) => {
 		console.log(e);
 	}
 });
+
+router.get("/contact", async (request, response) => {
+	try {
+		utils.sendTemplate(request, response, 'contact', {});
+	}
+	catch(e) {
+		console.log(e);
+	}
+});
+
+
+let spawn = require('child_process').spawnSync;
+router.post("/contact", async (request, response, next) => {
+	try {
+		let inputData = "Subject: " + request.body.sub + "\n";
+		inputData += request.body.com + '\n';
+
+		let child = spawn('sendmail', [settings.admin_mail], {
+			input: inputData
+		});
+
+		response.set({'Refresh': '2; url=/'});
+		utils.sendTemplate(request, response, 'thanks');
+		response.end();    
+	}
+	catch(e) {
+		response.status(500);
+		response.send(utils.render('404', utils.genericData(request, response)));
+		response.end();
+	}
+});
+
 
 router.use(function(request, response) {
 	response.status(404);

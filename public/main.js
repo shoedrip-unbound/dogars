@@ -9,10 +9,11 @@ let reloadTheme = () => {
 	localStorage.config = JSON.stringify(config);
 }
 
+let inter;
 let display_message = (msg) => {
 	response.style.display = 'inline-table';
 	response.textContent = '';
-	let inter;
+	clearTimeout(inter);
 	let addNextChar = () => {
 		if (msg == '') {
 			return;
@@ -21,7 +22,6 @@ let display_message = (msg) => {
 		response.textContent += c;
 		msg = msg.substr(1);
 		let time = ".,!".indexOf(c) == -1 ? 32 : 250;
-		console.log(time);
 		inter = setTimeout(addNextChar, time);
 	};
 	inter = setTimeout(addNextChar, 16);
