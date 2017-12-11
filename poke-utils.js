@@ -329,13 +329,18 @@ let saveReplay = (url, cb) => {
 
 	let saveHandler = (data) => {
 		let str = data.substr(replayq.length - 3);
-		let form = JSON.parse(str);
-		connection.remove(saveHandler);
-		request.post('http://play.pokemonshowdown.com/~~showdown/action.php?act=uploadreplay',
-					 {
-						 headers: headers,
-						 form: form
-					 }, cb);
+		try {
+			let form = JSON.parse(str);
+			request.post('http://play.pokemonshowdown.com/~~showdown/action.php?act=uploadreplay',
+						 {
+							 headers: headers,
+							 form: form
+						 }, cb);
+			connection.remove('queryresponse', saveHandler);
+		} catch (e) {
+			console.log("Couldn't save replay:", data);
+			connection.remove('queryresponse', saveHandler);
+		}
 	}
 
 	connection.on('queryresponse', saveHandler);
