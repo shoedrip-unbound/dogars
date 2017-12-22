@@ -43,7 +43,10 @@ let registerChampResult = async (battleData, hasWon) => {
 		b = JSON.parse(b.substr(1));
 		if (b.length == 0)
 			throw "Unregistered or never played";
-		b = ~~b.filter(e => e.formatid == 'gen7ou')[0].elo;
+		b = ~~b.filter(e => e.formatid == 'gen7ou')[0];
+		if (!b)
+			throw "Never played OU";
+		b = b.elo;
 		// no need to sync
 		c.query('update memes.champs set elo = ? where trip = ?', [b, battleData.champ.champ_trip]);
 		// might be useful to store this
@@ -67,7 +70,8 @@ let registerChampResult = async (battleData, hasWon) => {
 
 	await c.query('update memes.champs set ' + inc + ' = ' + inc + ' + 1 where trip = ?', [battleData.champ.champ_trip]);
 	console.log(battleData);
-	updateChampAvatar(battleData.champ.champ_trip, battleData.champ.avatar.substr(battleData.champ.avatar[0] == '#'));
+	if (battleData.champ.avatar)
+		updateChampAvatar(battleData.champ.champ_trip, battleData.champ.avatar.substr(battleData.champ.avatar[0] == '#'));
 	updateChampName(battleData.champ.champ_trip, battleData.champ.champ_name);
 	if (!hasWon)
 		return;
@@ -157,7 +161,8 @@ let buildCheckableSet = set => {
 	let nset = set;
 	[1, 2, 3, 4]
 		.map(d => 'move_' + d)
-		.forEach(mp => nset[mp] = nset[mp].split('/')[0].trim());
+		.forEach(mp => nset[mp] = nset[mp] ? nset[mp].split('/')[0].trim() : null);
+	// TODO: check if nset[mp] == null here
 	return nset;
 }
 

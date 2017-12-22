@@ -43,7 +43,7 @@ let getCurrentChamp = async b => {
 let oldbattle = null;
 
 // stolen from gist
-levenshtein = (a, b) => {
+let levenshtein = (a, b) => {
 	var tmp;
 	a = a || '';
 	b = b || '';

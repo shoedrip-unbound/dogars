@@ -134,7 +134,7 @@ let genericData = (request, response) => {
 
 module.exports.genericData = genericData;
 module.exports.getCookieData = getCookieData;
-module.exports.getSetOfTheDay =getSetOfTheDay;
+module.exports.getSetOfTheDay = getSetOfTheDay;
 module.exports.cookie2obj = cookie2obj;
 module.exports.sendTemplate = sendTemplate;
 module.exports.render = render;

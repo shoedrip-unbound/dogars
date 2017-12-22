@@ -31,6 +31,10 @@ class PSConnection {
 		this.monitors[battle.room] = battle;
 	}
 
+	newConnection() {
+		return new PSConnection();
+	}
+
 	removeBattleListener(battle) {
 		delete this.monitors[battle.room];
 	}
@@ -39,7 +43,8 @@ class PSConnection {
 		try {
 			this.ws = new WebSocket('wss://sim2.psim.us/showdown/926/3jbvr0y1/websocket');
 			this.ws.on('error', () => {
-				console.log('Failed to connect. Websocket was disabled, some feature might not work properly');				
+				console.log('Failed to connect. Websocket was disabled, some feature might not work properly');
+				// TODO: try to reconnect ASAP
 				this.usable = false;
 			});
 			
