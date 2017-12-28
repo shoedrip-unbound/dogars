@@ -45,7 +45,6 @@ class BattleMonitor {
 		this.battlers = {};
 
 		this.room = champ.champ_battle.match(/(battle-.*)\/?/)[0];
-		console.log("watching", this.room);
 		this.con.addBattleListener(this);
 		this.con.send('|/join ' + this.room);
 
@@ -89,7 +88,6 @@ class BattleMonitor {
 		this.battlers[log[1]].showdown_name = log[2];
 		this.battlers[log[1]].avatar = log[3];
 		this.battlers[log[1]].team = [];
-		console.log(this.battlers);
 		let dist = levenshtein(this.battleData.champ.champ_name || '', log[2]);
 		if (dist < this.battleData.dist) {
 			this.battleData.champ.showdown_name = log[2];
@@ -99,16 +97,13 @@ class BattleMonitor {
 		}
 		if (this.battlers.p1 && this.battlers.p2) {
 			while (this.gpcbs.length) {
-				console.log('===========', this.gpcbs);
 				let cb = this.gpcbs.shift();
-				console.log(cb);
 				cb(null, [this.battlers.p1.showdown_name, this.battlers.p2.showdown_name]);
 			}
 		}
 	}
 
 	_getPlayers(cb) {
-		console.log("Get players CALLED");
 		this.gpcbs.push(cb);
 	}
 

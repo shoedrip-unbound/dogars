@@ -4,18 +4,21 @@ let db = require('./db.js');
 
 module.exports.champ = {};
 
+let max = (a, b) => a < b ? b : a;
+
 let getCurrentThread = async () => {
 	let b = await request.get('http://a.4cdn.org/vp/catalog.json');
 	let catalog = JSON.parse(b);
 	let derp_no = 0;
-	catalog.some(page => {
-		return page.threads.some(t => {
+	catalog.forEach(page => {
+		page.threads.forEach(t => {
 			if (t.sub && t.sub.toLowerCase().indexOf('showderp') != -1 && t.no > derp_no)
-				return derp_no = t.no;
+				derp_no = max(t.no, derp_no);
 			if (t.com && t.com.toLowerCase().indexOf('dogars.ml') != -1 && t.no > derp_no)
-				return derp_no = t.no;
+				derp_no = max(t.no, derp_no);
 		});
 	});
+	console.log('Thread determined to be', derp_no);
 	return derp_no;
 }
 

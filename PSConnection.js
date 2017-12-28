@@ -82,7 +82,6 @@ class PSConnection {
 								break;
 							let event = e.split('|')[1];
 							if (this.monitors[room][event]) {
-								console.log(room, event, e);
 								this.monitors[room][event](e, e.split('|').filter(d => d != ''));
 							}
 						}
