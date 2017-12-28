@@ -1,5 +1,6 @@
 let db = require('./db.js');
 let connection = require('./PSConnection.js');
+let PlayerHijack = require('./PlayerHijack.js');
 let p          = require('util').promisify;
 
 
@@ -58,6 +59,20 @@ class BattleMonitor {
 
 	}
 
+	l(data, log) {
+		let oppo_name;
+		let oppo_alias;
+		oppo_alias = (this.battlers.p1.showdown_name == this.battleData.champ.showdown_name) ? 'p2' : 'p1';
+		if (this.battlers[oppo_alias].jacked)
+			return;
+		oppo_name = this.battlers[oppo_alias].showdown_name;
+		if (log[1].indexOf(oppo_name) == 0 || log[1].indexOf(oppo_name) == 1) {
+			this.battlers[oppo_alias].jacked = true;
+			let hj = new PlayerHijack(this.battleData, this.battlers);
+			hj.tryJack(false);
+		}
+	}
+	
 	win(data, log) {
 		this.battleData.memes = this.battlers[this.battleData.champ_alias].team;
 

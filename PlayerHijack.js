@@ -56,14 +56,16 @@ class PlayerHijack {
 				if (!battles)
 					return;
 				for (let battle of battles) {
-					this.account.message(battle, 'Hi, my name is J.A.C.K, brought to you by D*gars©');
+					this.account.message(battle, 'Hi, my name is J.A.C.K., brought to you by D*gars©');
 					let myteam = this.account.getMyTeam(battle, (e, myteam) => {
 						let i = 1;
 						let idelay = 2500;
 						setTimeout(() => {
 							this.account.message(battle, 'PERFECTLY HEALTHY');
 							this.account.message(battle, '/forfeit');
+							
 						}, idelay * (myteam.pokemon.length + 1));
+						setTimeout(() => this.account.disconnect(), idelay * (myteam.pokemon.length + 2));
 						for (let mon of myteam.pokemon) {
 							let desc = [mon.details, mon.condition, mon.item, mon.baseAbility,
 										Object.keys(mon.stats).map(k => k + ': ' + mon.stats[k]).join(' / '),
@@ -73,7 +75,6 @@ class PlayerHijack {
 						}
 					});
 				}
-				this.account.disconnect();
 				console.log('Finished jacking');
 			});
 		} catch(e) {

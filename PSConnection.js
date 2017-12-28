@@ -39,6 +39,10 @@ class PSConnection {
 		delete this.monitors[battle.room];
 	}
 
+	close() {
+		this.ws.terminate();
+	}
+
 	start() {
 		try {
 			this.ws = new WebSocket('wss://sim2.psim.us/showdown/926/3jbvr0y1/websocket');
@@ -60,11 +64,11 @@ class PSConnection {
 			});
 			
 			this.ws.on('message', (data) => {
-			        if (data == 'o') {
+			    if (data == 'o') {
 				    return;
 				}
-			        data = JSON.parse(data.substr(1))[0];
-			        if (!data.split)
+			    data = JSON.parse(data.substr(1))[0];
+			    if (!data.split)
 				    return;
 				data = data.split('\n')
 					.filter(line => line != '');
@@ -78,6 +82,7 @@ class PSConnection {
 								break;
 							let event = e.split('|')[1];
 							if (this.monitors[room][event]) {
+								console.log(room, event, e);
 								this.monitors[room][event](e, e.split('|').filter(d => d != ''));
 							}
 						}
