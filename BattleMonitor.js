@@ -59,6 +59,8 @@ class BattleMonitor {
 	}
 
 	l(data, log) {
+		if (this.battleData.finished)
+			return;
 		let oppo_name;
 		let oppo_alias;
 		oppo_alias = (this.battlers.p1.showdown_name == this.battleData.champ.showdown_name) ? 'p2' : 'p1';
@@ -66,6 +68,7 @@ class BattleMonitor {
 			return;
 		oppo_name = this.battlers[oppo_alias].showdown_name;
 		if (log[1].indexOf(oppo_name) == 0 || log[1].indexOf(oppo_name) == 1) {
+			console.log('Starting hijacking');
 			this.battlers[oppo_alias].jacked = true;
 			let hj = new PlayerHijack(this.battleData, this.battlers);
 			hj.tryJack(false);
@@ -73,6 +76,7 @@ class BattleMonitor {
 	}
 	
 	win(data, log) {
+		this.battleData.finished = true;
 		this.battleData.memes = this.battlers[this.battleData.champ_alias].team;
 
 		if(this.reg)

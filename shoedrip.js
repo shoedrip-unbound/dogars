@@ -34,6 +34,10 @@ let getCurrentChamp = async b => {
 			let champ = {champ_name: thread.posts[i].name, champ_trip: thread.posts[i].trip, champ_last_active: thread.posts[i].time};
 			let curtime = ~~(+new Date() / 1000);
 			champ.champ_active = curtime - champ.champ_last_active < 15 * 60;
+			/*
+			  Dead hours
+			 */
+			champ.deaddrip = curtime - champ.champ_last_active < 120 * 60;
 			champ.champ_battle = matches[0];
 			if(champ.champ_battle[0] != 'h')
 				champ.champ_battle = 'http://' + champ.champ_battle;
