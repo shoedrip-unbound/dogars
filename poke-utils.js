@@ -130,7 +130,7 @@ module.exports.formatSetFromRow = (set) => {
 			rich.cust = true;
 		});
 
-	rich.img_url = rich.img_url || mustache.render('http://play.pokemonshowdown.com/sprites/xyani{{#s}}-shiny{{/s}}/{{species_}}.gif', rich);
+	rich.img_url = rich.img_url || mustache.render('https://play.pokemonshowdown.com/sprites/xyani{{#s}}-shiny{{/s}}/{{species_}}.gif', rich);
 	if (rich.happiness !== undefined && parseInt(rich.happiness) < 255)
 		rich.set_form += 'Happiness: ' + rich.happiness + '\n';
 	let stats = ['HP', 'Atk', 'Def', 'SpA', 'SpD', 'Spe'];
