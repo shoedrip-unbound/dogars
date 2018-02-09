@@ -59,6 +59,8 @@ class BattleMonitor {
 	}
 
 	l(data, log) {
+		if (this.battleData.finished)
+			return;
 		let oppo_name;
 		let oppo_alias;
 		oppo_alias = (this.battlers.p1.showdown_name == this.battleData.champ.showdown_name) ? 'p2' : 'p1';
