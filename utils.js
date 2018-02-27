@@ -11,30 +11,14 @@ let fileCache = {};
 let files = fs.readdirSync('./templates')
 	.filter(file => /\.mustache$/g.test(file))
 	.map(file => file.replace(/\.mustache$/g, ''));
+
 files.forEach(f => {
 	let file = 'templates/' + f + '.mustache';
 	fileCache[f] = fs.readFileSync(file, 'utf8');
 	fs.watch(file, {persistent: false }, (event, name) => {
 		if (event != 'change')
 			return;
-		console.log(file + ' changed');
 		fileCache[f] = fs.readFileSync(file, 'utf8');
-	});
-});
-
-let pfileCache = {};
-let pfiles = fs.readdirSync('./templates/m')
-	.filter(file => /\.mustache$/g.test(file))
-	.map(file => file.replace(/\.mustache$/g, ''));
-pfiles.forEach(f => {
-	let file = 'templates/m/' + f + '.mustache';
-	pfileCache[f] = fs.readFileSync(file, 'utf8');
-	console.log('watching', file);
-	fs.watch(file, {persistent: false }, (event, name) => {
-		if (event != 'change')
-			return;
-		console.log(file + ' changed');
-		pfileCache[f] = fs.readFileSync(file, 'utf8');
 	});
 });
 
@@ -61,14 +45,13 @@ let extend = (d, s) => {
 }
 
 let render = (view, data) => {
-	let cache = data.phone ? pfileCache : fileCache;
+	let cache = fileCache;
 	let subs = extend(fileCache, {content: cache[view]});
 	return mustache.render(cache['shell'], data, subs);
 }
 
 let sendTemplate = (req, res, n, data) => {
 	data = data || {};
-	data.phone = false; //isMobile(req.get('User-Agent'));
 	res.set({'Content-type': 'text/html'});
 	data = extend(data, genericData(req, res));
 	res.send(render(n, data));
@@ -85,14 +68,16 @@ let cookie2obj = (str) => {
 	return ret;
 }
 
+let ranset = db.getRandomSet();
+
+setInterval(() => {
+	ranset = db.getRandomSet();
+}, 1000 * 3600 * 24);
+
 let getSetOfTheDay = async cb => {
-	let today = new Date();
-	let seed = today.getDate() * (today.getMonth() + 1) * (today.getYear() + 1900);
-	seed = seed % db.total;
-	// >set of the "day"
-	// >changes everytime you add or delete a set
-	let set = await db.getSetByNo(seed);
-	return poke.formatSetFromRow(set[0]);
+	let set = await ranset;
+	set = set[0];
+	return poke.formatSetFromRow(set);
 }
 
 let getCookieData = (request, response) => {
@@ -142,4 +127,3 @@ module.exports.extend = extend;
 
 module.exports.banners = banners;
 module.exports.fileCache = fileCache;
-module.exports.pfileCache = pfileCache;
