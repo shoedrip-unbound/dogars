@@ -34,7 +34,6 @@ router.use(express.static('./public', {lastModified: true}));
 
 router.get("/", async (request, response) => {
 	try {
-		console.log('----------------------------------------HOME----------------------------------------');
 		let set = await utils.getSetOfTheDay();
 		utils.sendTemplate(request, response, 'index', set);
 	}
@@ -77,7 +76,7 @@ router.post("/update/:id", async (request, response, next) => {
 		else if (request.body.action == "Delete")
 			await db.deleteSet(request);
 		response.set({'Refresh': '0; url=/set/' + request.params.id});
-		response.end();    
+		response.end();
 	}
 	catch(e) {
 		e = e.replace(/\|\|/g, '\n');
@@ -105,14 +104,13 @@ router.post("/add", async (request, response) => {
 });
 
 router.post("/trip", (request, response) => {
-	console.log(request.body);
 	response.send(tripcode(request.body.v));
 	response.end();
 });
 
-router.get("/random", (request, response) => {
-	let randid = Math.random() * db.total;
-	randid = ~~randid;
+router.get("/random", async (request, response) => {
+	let ranset = await db.getRandomSet();
+	let randid = ranset[0].id;
 	response.set({'Refresh': '0; url=/set/' + randid});
 	response.end();
 });
@@ -141,7 +139,7 @@ router.post("/search", async (request, response) => {
 			} else {
 				let sets = await db.getSetsByProperty(request.body);
 				sets = sets.map(e => { return poke.formatSetFromRow(e)});
-				utils.sendTemplate(request, response, 'all', {sets: sets});			
+				utils.sendTemplate(request, response, 'all', {sets: sets});
 			}
 		}
 	} catch(e) {
@@ -160,30 +158,30 @@ router.get("/search", async (request, response) => {
 	}
 });
 
-router.get("/replays", async (request, response) => {
+let repl = async (request, response, manual, template, aname) => {
 	let data = {};
-	let replays = await db.getReplays(1);
+	let replays = await db.getReplays(manual);
+	let sets = await db.getReplaysSets(manual);
 	let memes = [];
-	for(var i = 0; i < replays.length; ++i)
-		memes.push(await db.memesInReplay(replays[i].id));
-	replays = replays.map((r, i) => utils.extend(r, {memes: memes[i].map(poke.formatSetFromRow)}));
-	data['mreplays'] = replays;
+	let idx = 0;
+	for (var i = 0; i < replays.length && idx < sets.length; ++i) {
+		if (sets[idx].idreplay == replays[i].id) {
+			memes.push(sets[idx++]);
+		}
+	}
+	replays = replays.map((r, i) => utils.extend(r, {memes: memes.filter(m => r.id == m.idreplay).map(poke.formatSetFromRow)}));
+	data[aname] = replays;
 	if (request.query.fail)
 		data['error'] = true;
-	utils.sendTemplate(request, response, 'replays', data);
+	utils.sendTemplate(request, response, template, data);
+}
+
+router.get("/replays", async (request, response) => {
+	await repl(request, response, 1, 'replays', 'mreplays');
 });
 
 router.get("/replays/auto", async (request, response) => {
-	let data = {};
-	let replays = await db.getReplays(0);
-	let memes = [];
-	for(var i = 0; i < replays.length; ++i)
-		memes.push(await db.memesInReplay(replays[i].id));
-	replays = replays.map((r, i) => utils.extend(r, {memes: memes[i].map(poke.formatSetFromRow)}));
-	data['areplays'] = replays;
-	if (request.query.fail)
-		data['error'] = true;
-	utils.sendTemplate(request, response, 'replaysa', data);
+	await repl(request, response, 0, 'replaysa', 'areplays');
 });
 
 router.get("/replays/add/:id", (request, response) => {
@@ -192,7 +190,7 @@ router.get("/replays/add/:id", (request, response) => {
 });
 
 router.post("/replays/add/:id", async (request, response) => {
-	let id = request.body.set.match(/http:\/\/dogars\.ml\/set\/([0-9]+)/)[1];
+	let id = request.body.set.match(/https?:\/\/dogars\.ml\/set\/([0-9]+)/)[1];
 	if (!id) {
 		response.set({'Refresh': '5; url=/replays'});
 		utils.sendTemplate(request, response, 'genreject', { reason: 'Your submission was rejected because the URL was wrong'});
@@ -239,7 +237,6 @@ router.post("/lillie", async (request, response) => {
 			let output = utils.extend(r.result, {
 				emotion: emotionmap[r.result.action] || ''
 			});
-			console.log(data.talkSession + ': ' + request.body.message);
 			response.send(JSON.stringify(output));
 			response.end();
 		});
@@ -250,7 +247,6 @@ router.post("/lillie", async (request, response) => {
 			response.end();
 		});
 		req.end();
-		console.log('request sent;');
 	}catch(e){
 		console.log(e);
 	}
@@ -358,7 +354,7 @@ router.post("/contact", async (request, response, next) => {
 
 		response.set({'Refresh': '2; url=/'});
 		utils.sendTemplate(request, response, 'thanks');
-		response.end();    
+		response.end();
 	}
 	catch(e) {
 		response.status(500);

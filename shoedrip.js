@@ -83,10 +83,12 @@ let main = async () => {
 			if (champ.champ_name != undefined && champ.champ_name != '')
 				new BattleMonitor(champ);
 		}
-		let dbchamp = await db.getChampFromTrip(champ.champ_trip);
-		champ.avatar = '166';
-		if (dbchamp && dbchamp.length) {
-			champ.avatar = dbchamp[0].avatar;
+		if (champ.champ_active) {
+			let dbchamp = await db.getChampFromTrip(champ.champ_trip);
+			champ.avatar = '166';
+			if (dbchamp && dbchamp.length) {
+				champ.avatar = dbchamp[0].avatar;
+			}
 		}
 		module.exports.champ = champ;
 	}

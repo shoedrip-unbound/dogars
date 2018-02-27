@@ -21,6 +21,7 @@ c.query('SELECT COUNT(*) FROM Sets').then(rows => {
 let getAllSets			= async	()							=> await c.query('select * from Sets');
 let memesInReplay		= async rid							=> await c.query('select * from memes.Sets where id in (select idset from memes.sets_in_replays where idreplay = ?)', [rid]);
 let getReplays			= async manual						=> await c.query('select * from replays where manual = ? order by id desc;', [manual]);
+let getReplaysSets		= async manual						=> await c.query('select * from replays inner join sets_in_replays on replays.id = sets_in_replays.idreplay inner join Sets on idset = Sets.id where manual = ? order by replays.id desc', [manual]);
 let getChampFromTrip	= async trip						=> await c.query('select * from memes.champs where trip = ? order by id desc;', [trip]);
 let getChamps			= async ()							=> await c.query('select * from memes.champs order by wins desc;');
 let createChampFromTrip = async (name, trip)				=> await c.query('insert into memes.champs (name, trip) values (?, ?) ', [name || '', trip]);
@@ -28,12 +29,12 @@ let addReplay			= async data						=> await c.query('insert into replays (link, d
 let getSetsPage			= async (setPerPage, pageNumber)	=> await c.query('select * from Sets order by id desc limit ? offset ?;', [~~setPerPage, ~~(setPerPage * pageNumber)]);
 let addSetToReplay		= async (setid, rid)				=> await c.query('insert into memes.sets_in_replays (idreplay, idset) values (?, ?)', [rid, setid]);
 let updateChampAvatar	= async (trip, aid)					=> await c.query('update memes.champs set avatar = ? where trip = ?', [aid, trip]);
-let updateChampName		= async (trip, aid)					=> {
-	console.log("UPDTATECHAMPNAME", trip, aid);
-	return await c.query('update memes.champs set name = ? where trip = ?', [aid, trip]);
-}
 let getSetById			= async id							=> await c.query('select * from Sets where id = ?', [id]);
 let getSetByNo			= async no							=> await c.query('select * from Sets limit 1 offset ?', [no]);
+let getRandomSet		= async () => await c.query('SELECT * FROM Sets AS r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM Sets)) AS id) AS r2 WHERE r1.id >= r2.id LIMIT 1');
+let updateChampName		= async (trip, aid)					=> {
+	return await c.query('update memes.champs set name = ? where trip = ?', [aid, trip]);
+}
 
 let registerChampResult = async (battleData, hasWon) => {
 	let replayurl;
@@ -57,7 +58,6 @@ let registerChampResult = async (battleData, hasWon) => {
 	}
 	if (hasWon) {
 		poke.saveReplay(battleData.champ.champ_battle, () => {
-			console.log('replay saved (' + battleData.champ.champ_battle + ')');
 		});
 		replayurl = 'http://replay.pokemonshowdown.com/' + battleData.roomid;
 	}
@@ -69,7 +69,6 @@ let registerChampResult = async (battleData, hasWon) => {
 	}
 
 	await c.query('update memes.champs set ' + inc + ' = ' + inc + ' + 1 where trip = ?', [battleData.champ.champ_trip]);
-	console.log(battleData);
 	if (battleData.champ.avatar)
 		updateChampAvatar(battleData.champ.champ_trip, battleData.champ.avatar.substr(battleData.champ.avatar[0] == '#'));
 	updateChampName(battleData.champ.champ_trip, battleData.champ.champ_name);
@@ -92,10 +91,12 @@ let registerChampResult = async (battleData, hasWon) => {
 }
 
 let getSetsByProperty = async props => {
-	let querystr = 'select * from Sets where ';
+	let querystr = 'select * from Sets ';
 	let data = [];
-	querystr += Object.keys(props).map(i => '?? like ?').join(' and ');
+	let where_clause = Object.keys(props).map(i => '?? like ?').join(' and ');
 	Object.keys(props).forEach(i => data.push(i, '%' + props[i] + '%'));
+	if (where_clause)
+		query_str += 'where ' + where_clause;
 	return await c.query(querystr, data);
 }
 
@@ -138,7 +139,7 @@ let createNewSet = async (request) => {
 				'spd_iv', 'spe_iv', 'description'];
 	let data_arr = [];
 	let querystr =
-		'INSERT INTO Sets (' + data.map(attr => '??').join(', ')	
+		'INSERT INTO Sets (' + data.map(attr => '??').join(', ')
 		+ ') VALUES (' + data.map(attr => '?').join(', ') + ')';
 
 	data_arr.push(...data, ...data.map(attr => row[attr]));
@@ -171,7 +172,7 @@ let updateSet = async (request) => {
 	row = row[0];
 	if (request.body.trip == '' || (request.body.trip != settings.admin_pass && row.hash != tripcode(request.body.trip)))
 		throw 'Wrong tripcode';
-	
+
 	row.format = "gen7ou";
 	let formats = ["gen7ou", "gen7anythinggoes", "ubers", "uu", "ru",
 				   "nu", "pu", "lc", "cap"];
@@ -179,7 +180,7 @@ let updateSet = async (request) => {
 		row.format = request.body.format;
 	row.description = request.body.desc.substr(0, 230);
 	row.date_added = +new Date();
-	
+
 	try {
 		let pok = poke.parseSet(request.body.set);
 		for(var i in pok)
@@ -193,20 +194,20 @@ let updateSet = async (request) => {
 	catch(e) {
 		throw e;
 	}
-	
+
 	let data = ['date_added', 'format', 'creator', 'hash', 'name', 'species',
 				'gender', 'item', 'ability', 'shiny', 'level', 'happiness', 'nature',
 				'move_1', 'move_2', 'move_3', 'move_4', 'hp_ev', 'atk_ev', 'def_ev',
 				'spa_ev', 'spd_ev', 'spe_ev', 'hp_iv', 'atk_iv', 'def_iv', 'spa_iv',
 				'spd_iv', 'spe_iv', 'description'];
-	
+
 	let data_arr = [];
-	
+
 	let querystr = 'UPDATE Sets SET ';
-	
+
 	querystr += data.map(attr => '?? = ?').join(', ');
 	querystr += ' WHERE id = ?';
-	
+
 	data.map(attr => data_arr.push(attr, row[attr]));
 	data_arr.push(request.params.id);
 	let rows = await c.query(querystr, data_arr);
@@ -214,7 +215,7 @@ let updateSet = async (request) => {
 }
 
 let deleteSet = async request => {
-	let row = await getSetById(request.params.id);	
+	let row = await getSetById(request.params.id);
 	row = row[0];
 	if (request.body.trip == '' ||
 		(request.body.trip != settings.admin_pass &&
@@ -245,3 +246,5 @@ module.exports.createNewSet				= createNewSet;
 module.exports.updateSet				= updateSet;
 module.exports.deleteSet				= deleteSet;
 module.exports.c                        = c;
+module.exports.getReplaysSets			= getReplaysSets;
+module.exports.getRandomSet				= getRandomSet;
