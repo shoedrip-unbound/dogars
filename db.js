@@ -96,7 +96,7 @@ let getSetsByProperty = async props => {
 	let where_clause = Object.keys(props).map(i => '?? like ?').join(' and ');
 	Object.keys(props).forEach(i => data.push(i, '%' + props[i] + '%'));
 	if (where_clause)
-		query_str += 'where ' + where_clause;
+		querystr += 'where ' + where_clause;
 	return await c.query(querystr, data);
 }
 
