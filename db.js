@@ -6,7 +6,6 @@ let poke     = require('./poke-utils');
 let request  = require('request-promise-native');
 let tripcode = require('tripcode');
 let settings = JSON.parse(fs.readFileSync('settings.json'));
-let p        = require('util').promisify;
 
 c.configure(settings.db);
 
@@ -31,7 +30,7 @@ let addSetToReplay		= async (setid, rid)				=> await c.query('insert into memes.
 let updateChampAvatar	= async (trip, aid)					=> await c.query('update memes.champs set avatar = ? where trip = ?', [aid, trip]);
 let getSetById			= async id							=> await c.query('select * from Sets where id = ?', [id]);
 let getSetByNo			= async no							=> await c.query('select * from Sets limit 1 offset ?', [no]);
-let getRandomSet		= async () => await c.query('SELECT * FROM Sets AS r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM Sets)) AS id) AS r2 WHERE r1.id >= r2.id LIMIT 1');
+let getRandomSet		= async ()							=> await c.query('SELECT * FROM Sets AS r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM Sets)) AS id) AS r2 WHERE r1.id >= r2.id LIMIT 1');
 let updateChampName		= async (trip, aid)					=> {
 	return await c.query('update memes.champs set name = ? where trip = ?', [aid, trip]);
 }
@@ -81,7 +80,7 @@ let registerChampResult = async (battleData, hasWon) => {
 		trip: battleData.champ.champ_trip
 	});
 
-	for(var i = 0; i < battleData.memes.length; ++i) {
+	for(let i = 0; i < battleData.memes.length; ++i) {
 		let sets = await getSetsByPropertyExact({name: battleData.memes[i].name});
 		if (sets.length >= 1) {
 			sets = sets[0];

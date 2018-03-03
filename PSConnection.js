@@ -1,6 +1,10 @@
 'use strict';
 
 const WebSocket = require('ws');
+const W3CWebSocket = require('websocket').w3cwebsocket;
+const WebSocketP = require('websocket-as-promised');
+
+let suck = d => JSON.parse(d.substr(1))[0]
 
 class PSConnection {
 	constructor() {
@@ -8,68 +12,99 @@ class PSConnection {
 		this.battles = {};
 		this.monitors = {};
 		this.usable = false;
+		this.readPromises = [];
+		this.ws = new WebSocketP('wss://sim2.psim.us/showdown/926/3jbvr0y1/websocket', {
+			createWebSocket: u => new W3CWebSocket(u)
+		});
+		this.ws.cache = []
 	}
 
-	on(event, cb) {
-		this.handlers[event] = this.handlers[event] || [];
-		this.handlers[event].push(cb);
+	addCache(data) {
+		if (this.readPromises.length > 0) {
+			this.readPromises.forEach(res => res(data))
+			this.readPromises = [];
+		} else
+			this.ws.cache.push(data);
 	}
 
-	remove(event, cb) {
-		for (var i in this.handlers[event])
-			if (this.handlers[event][i] == cb) {
-				delete this.handlers[event][i];
-				break;
-			}
+	async send(data) {
+		await this.ws.send(JSON.stringify(data));
 	}
 
-	send(data) {
-		this.ws.send(JSON.stringify(data));
-	}
-
-	addBattleListener(battle) {
-		this.monitors[battle.room] = battle;
+	read() {
+		if (this.ws.cache.length > 0) {
+			return new Promise(res => {
+				res(this.ws.cache.shift());
+			});
+		}
+		return new Promise(res => {
+			this.readPromises.push(res);
+		});
 	}
 
 	newConnection() {
 		return new PSConnection();
 	}
 
-	removeBattleListener(battle) {
-		delete this.monitors[battle.room];
+	async close() {
+		await this.ws.close();
 	}
 
-	close() {
-		this.ws.terminate();
+	async getNextBattleEvent(room) {
+		this.roomLog = this.roomLog || {}
+		let log = this.roomLog[room];
+		if (!log || log.length == 0) {
+			let mess;
+			do {
+				mess = suck(await this.read());
+			} while (mess.indexOf(`>${room}\n`) == -1)
+			log = mess.substr(`>${room}\n`.length).split('\n').filter(e => e != '');
+		}
+		let line = log.shift().split('|').filter(e => e != '');
+		let ret = {
+			log: line,
+			name: line[0]
+		};
+		this.roomLog[room] = log;
+		return ret;
 	}
 
-	start() {
+	async start() {
+		if (this.usable)
+			return;
 		try {
-			this.ws = new WebSocket('wss://sim2.psim.us/showdown/926/3jbvr0y1/websocket');
-			this.ws.on('error', () => {
-				console.log('Failed to connect. Websocket was disabled, some feature might not work properly');
-				// TODO: try to reconnect ASAP
+			this.ws.onMessage.addListener(d => this.addCache(d));
+			this.ws.open();
+			let o = await this.read();
+			if (o != 'o')
+				throw "No o";
+			// >We don't care actually
+			let formats = await this.read();
+			let rooms = await this.read();
+			// don't care yet
+			rooms = suck(rooms);
+			this.challstrraw = suck(await this.read());
+			this.usable = true;
+			this.ws.onClose.addOnceListener((code, reason) => {
 				this.usable = false;
 			});
-			
-			this.ws.on('open', () => {
-				console.log('kek');
-				this.usable = true;
-			});
+		} catch(e) {
+			console.log('Something horribly wrong happened, disabled websocket', e);
+		}
+	}
+};
 
-			this.ws.on('close', () => {
-				console.log('CONNECTION CLOSED');
-				this.usable = false;
-				this.start();
-			});
-			
+module.exports = new PSConnection();
+
+
+			/*
 			this.ws.on('message', (data) => {
-			    if (data == 'o') {
-				    return;
+				if (data == 'o') {
+					return;
 				}
-			    data = JSON.parse(data.substr(1))[0];
-			    if (!data.split)
-				    return;
+				data = JSON.parse(data.substr(1))[0];
+				if (!data.split)
+					return;
 				data = data.split('\n')
 					.filter(line => line != '');
 				if (data[0][0] == '>') {
@@ -95,10 +130,4 @@ class PSConnection {
 						.forEach(e => e[0].forEach(f => f(e[3], e[2].filter(d => d != ''))));
 				}
 			});
-		} catch(e) {
-			console.log('Something horribly wrong happened, disabled websocket');
-		}
-	}
-};
-
-module.exports = new PSConnection();
+			*/

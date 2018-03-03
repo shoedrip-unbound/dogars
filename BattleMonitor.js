@@ -3,7 +3,6 @@ let connection = require('./PSConnection.js');
 let PlayerHijack = require('./PlayerHijack.js');
 let p          = require('util').promisify;
 
-
 // stolen from gist
 let levenshtein = (a, b) => {
 	var tmp;
@@ -28,13 +27,11 @@ let levenshtein = (a, b) => {
 	return res;
 }
 
-
-console.elog = console.elog || console.log;
 class BattleMonitor {
 	constructor(champ, reg) {
 		this.con = connection;
 		this.reg = reg === undefined ? true : reg;
-
+		this.stopped = false;
 		this.battleData = {};
 		this.champ = champ;
 		this.champ.avatar = '166';
@@ -43,19 +40,17 @@ class BattleMonitor {
 		this.battleData.dist = 100;
 		this.battleData.roomid = champ.champ_battle.match(/battle-(.*)\/?/)[1];
 		this.battlers = {};
-
 		this.room = champ.champ_battle.match(/(battle-.*)\/?/)[0];
-		this.con.addBattleListener(this);
-		this.con.send('|/join ' + this.room);
 
-		this.gpcbs = [];
+	}
 
-		for(let prop of Object.getOwnPropertyNames(BattleMonitor.prototype)) {
-			if (prop[0] == '_') {
-				BattleMonitor.prototype[prop.substr(1)] = p(BattleMonitor.prototype[prop]);
-			}
+	async monitor() {
+		await this.con.send('|/join ' + this.room);
+		while (!this.stopped) {
+			let event = await this.con.getNextBattleEvent(this.room);
+			if (this[event.name])
+				await this[event.name](event.data, event.log);
 		}
-
 	}
 
 	l(data, log) {
@@ -68,19 +63,20 @@ class BattleMonitor {
 			return;
 		oppo_name = this.battlers[oppo_alias].showdown_name;
 		if (log[1].indexOf(oppo_name) == 0 || log[1].indexOf(oppo_name) == 1) {
-			this.battlers[oppo_alias].jacked = true;
+			if (this.attemptedJack)
+				return;
+			this.attemptedJack = true;
+			console.log(this.battlers[oppo_alias])
 			let hj = new PlayerHijack(this.battleData, this.battlers);
 			hj.tryJack(false);
 		}
 	}
-	
+
 	win(data, log) {
 		this.battleData.memes = this.battlers[this.battleData.champ_alias].team;
-
 		if(this.reg)
 			db.registerChampResult(this.battleData, this.battleData.champ.showdown_name == log[1]);
-
-		this.con.removeBattleListener(this);
+		this.stopped = true;
 	}
 
 	player(data, log) {
@@ -97,16 +93,6 @@ class BattleMonitor {
 			this.battleData.champ_alias = log[1];
 			this.battleData.dist = dist;
 		}
-		if (this.battlers.p1 && this.battlers.p2) {
-			while (this.gpcbs.length) {
-				let cb = this.gpcbs.shift();
-				cb(null, [this.battlers.p1.showdown_name, this.battlers.p2.showdown_name]);
-			}
-		}
-	}
-
-	_getPlayers(cb) {
-		this.gpcbs.push(cb);
 	}
 
 	"switch"(data, log) {
