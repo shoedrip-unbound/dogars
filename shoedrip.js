@@ -18,7 +18,6 @@ let getCurrentThread = async () => {
 				derp_no = max(t.no, derp_no);
 		});
 	});
-	console.log('Thread determined to be', derp_no);
 	return derp_no;
 }
 
@@ -50,6 +49,7 @@ let getCurrentChamp = async b => {
 let oldbattle = null;
 
 // stolen from gist
+// but leven(((shtein))) is actually garbage at detecting similar nicknames
 let levenshtein = (a, b) => {
 	var tmp;
 	a = a || '';
@@ -76,12 +76,14 @@ let levenshtein = (a, b) => {
 let main = async () => {
 	try {
 		let thread = await getCurrentThread();
-		let threadjs = await request.get('http://a.4cdn.org/vp/thread/' + thread + '.json');
+		let threadjs = await request.get(`http://a.4cdn.org/vp/thread/${thread}.json`);
 		let champ = await getCurrentChamp(threadjs);
 		if (champ.champ_battle != oldbattle) {
 			oldbattle = champ.champ_battle;
-			if (champ.champ_name != undefined && champ.champ_name != '')
-				new BattleMonitor(champ);
+			if (champ.champ_name != undefined && champ.champ_name != '') {
+				let bm = new BattleMonitor(champ);
+				await bm.monitor();
+			}
 		}
 		if (champ.champ_active) {
 			let dbchamp = await db.getChampFromTrip(champ.champ_trip);

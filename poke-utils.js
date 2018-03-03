@@ -1,11 +1,11 @@
 let fs       = require('fs');
 let mustache = require('mustache');
-let request  = require('request');
+const request = require('request-promise-native');
 let pokedex  = require('./pokedex.js').BattlePokedex;
 let p        = require('util').promisify;
 let connection = require('./PSConnection.js');
 
-connection.start();
+let suck = d => JSON.parse(d.substr(1))[0]
 
 let clamp = (min, val, max) => {
 	if (val < min)
@@ -18,7 +18,7 @@ let clamp = (min, val, max) => {
 let inverse = o => {
   let r = {};
   for(var k in o)
-    r[o[k]] = k;
+	r[o[k]] = k;
   return r;
 }
 
@@ -100,7 +100,7 @@ module.exports.formatSetFromRow = (set) => {
 	if (template) {
 		rich.species_ = getSpecies(template, toId(rich.species));
 	}
-	
+
 	rich.set_form = '';
 	if (rich.name)
 		rich.set_form += rich.name + ' (' + rich.species + ')';
@@ -162,7 +162,7 @@ module.exports.formatSetFromRow = (set) => {
 		.filter(n => rich[n])
 		.map(n => '- ' + rich[n])
 		.join('\n');
-	return rich;  
+	return rich;
 }
 
 module.exports.parseSet = (text) => {
@@ -302,53 +302,35 @@ let pack = set => {
 	return packed;
 }
 
-let checkSet = p((set, cb) => {
-	if (!connection.usable)
-		return cb(null, null);
-	let popupHandler = (data) => {
-		if (data.indexOf('|popup|Your team was rejected') == 0) {
-			str = data.substr(60);
-			cb(null, str);
-		}
-		if (data.indexOf('|popup|Your team is valid for') == 0)
-			cb(null, null);
-		connection.remove(popupHandler);
-	}
-	connection.on('popup', popupHandler);
-	connection.send("|/utm " + pack(set));
-	connection.send("|/vtm " + set.format);
-})
+let checkSet = async set => {
+	await connection.send("|/utm " + pack(set));
+	await connection.send("|/vtm " + set.format);
+	let data = suck(await connection.read());
+	if (data.indexOf('|popup|Your team was rejected') != -1)
+		return data.substr(60);
+	return null;
+}
 
-module.exports.checkSet = checkSet;
-
-let saveReplay = (url, cb) => {
-	if (!connection.usable)
-		return cb("Replay couldn't be saved", null);
+let saveReplay = async url => {
 	let room = url.match(/(battle-.*)\/?/)[0];
 	let roomid = url.match(/battle-(.*)\/?/)[1];
 
-	let saveHandler = (data) => {
-		let str = data.substr(replayq.length - 3);
-		try {
-			let form = JSON.parse(str);
-			request.post('http://play.pokemonshowdown.com/~~showdown/action.php?act=uploadreplay',
-						 {
-							 headers: headers,
-							 form: form
-						 }, cb);
-			connection.remove('queryresponse', saveHandler);
-		} catch (e) {
-			console.log("Couldn't save replay:", data);
-			connection.remove('queryresponse', saveHandler);
-		}
+	await connection.send("|/join " + room);
+	await connection.send(room + "|/savereplay");
+	let data = suck(await connection.read());
+	data = suck(await connection.read());
+	let str = data.substr(replayq.length - 3);
+	try {
+		let form = JSON.parse(str);
+		//console.log(form)
+		await request.post('http://play.pokemonshowdown.com/~~showdown/action.php?act=uploadreplay', {
+			headers: headers,
+			form: form
+		});
+	} catch (e) {
+		console.log("Couldn't save replay:", data, e);
 	}
-
-	connection.on('queryresponse', saveHandler);
-	connection.send("|/join " + room);
-	connection.send(room + "|/savereplay");
 }
 
-// what did I mean by this
-module.exports.saveReplay = (url, cb) => {
-	setTimeout(() => saveReplay(url, cb), 0);
-}
+module.exports.saveReplay = saveReplay;
+module.exports.checkSet = checkSet;

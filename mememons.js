@@ -2,6 +2,7 @@
 
 let fs       = require('fs');
 let settings = JSON.parse(fs.readFileSync('settings.json'));
+let connection = require('./PSConnection.js');
 
 console.elog = function(level, ...args) {
 	if (settings.log_level && ~~settings.log_level > level)
@@ -33,18 +34,21 @@ setInterval(() => {
 
 github.on('push', () => {
   try {
-    cp.execSync('git pull origin master || true');
-    cp.execSync('git pull hub master || true');
-    cp.execSync('npm install');
+	cp.execSync('git pull origin master || true');
+	cp.execSync('git pull hub master || true');
+	cp.execSync('npm install');
   }
   catch(e) {
   }
   process.exit(1);
 });
 
-console.log(0, 'listening');
-app.listen(process.argv[2] || 1234);
-console.log(0, 'not blocking');
+(async () => {
+	console.log(0, 'listening');
+	await connection.start();
+	app.listen(process.argv[2] || 1234);
+	console.log(0, 'not blocking');
+})();
 
 try {
 	github.listen();

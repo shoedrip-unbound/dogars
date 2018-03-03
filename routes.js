@@ -363,7 +363,6 @@ router.post("/contact", async (request, response, next) => {
 	}
 });
 
-
 router.use(function(request, response) {
 	response.status(404);
 	response.send(utils.render('404', utils.genericData(request, response)));
