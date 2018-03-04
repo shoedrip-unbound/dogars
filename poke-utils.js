@@ -319,6 +319,7 @@ let saveReplay = async url => {
 	await connection.send(room + "|/savereplay");
 	let data = suck(await connection.read());
 	data = suck(await connection.read());
+	console.log(data);
 	let str = data.substr(replayq.length - 3);
 	try {
 		let form = JSON.parse(str);

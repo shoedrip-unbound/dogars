@@ -13,6 +13,7 @@ let notes      = require('./git-notes.js');
 let emotionmap = require('./emotions.js');
 let settings   = JSON.parse(fs.readFileSync('settings.json'));
 let utils	   = require('./utils.js');
+let logger	   = require('./logger');
 
 let cookieParser	= require('cookie-parser');
 let bodyParser		= require('body-parser');
@@ -36,8 +37,7 @@ router.get("/", async (request, response) => {
 	try {
 		let set = await utils.getSetOfTheDay();
 		utils.sendTemplate(request, response, 'index', set);
-	}
-	catch(e) {
+	} catch(e) {
 		console.log(e);
 	}
 });
@@ -71,14 +71,17 @@ router.get("/thanks", (request, response) => {
 
 router.post("/update/:id", async (request, response, next) => {
 	try {
-		if (request.body.action == "Update")
+		if (request.body.action == "Update") {
+			logger.log(0, "Updating set", request.params.id);
 			await db.updateSet(request);
-		else if (request.body.action == "Delete")
+		} else if (request.body.action == "Delete") {
+			logger.log(0, "Updating set", request.params.id);
 			await db.deleteSet(request);
+		}
 		response.set({'Refresh': '0; url=/set/' + request.params.id});
 		response.end();
-	}
-	catch(e) {
+	} catch(e) {
+		logger.log(0, "Rejecting modifications to set", request.params.id);
 		e = e.replace(/\|\|/g, '\n');
 		e = e.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2');
 		response.set({'Refresh': '10; url=/import'});
@@ -89,10 +92,11 @@ router.post("/update/:id", async (request, response, next) => {
 router.post("/add", async (request, response) => {
 	try {
 		let info = await db.createNewSet(request);
+		logger.log(0, "Added a new set...");
 		response.set({'Refresh': '0; url=/set/' + info.insertId});
 		response.end();
-	}
-	catch(e) {
+	} catch(e) {
+		logger.log(0, "Rejecting new set...");
 		e = e || '';
 		e = e.replace(/\|\|/g, '\n');
 		e = e.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2');
@@ -124,8 +128,7 @@ router.post("/search", async (request, response) => {
 			let sets = await db.getSetsByName(request.body.q)
 			sets = sets.map(poke.formatSetFromRow);
 			utils.sendTemplate(request, response, 'all', {sets: sets});
-		}
-		else { // Advanced search
+		} else { // Advanced search
 			let data = ['date_added', 'format', 'creator', 'hash', 'name', 'species',
 						'gender', 'item', 'ability', 'shiny', 'level', 'happiness', 'nature',
 						'move_1', 'move_2', 'move_3', 'move_4', 'hp_ev', 'atk_ev', 'def_ev',
@@ -152,8 +155,7 @@ router.get("/search", async (request, response) => {
 		let sets = await db.getSetsByName(request.query.q);
 		sets = sets.map(poke.formatSetFromRow);
 		utils.sendTemplate(request, response, 'all', {sets: sets});
-	}
-	else {
+	} else {
 		utils.sendTemplate(request, response, 'search', {});
 	}
 });
@@ -164,8 +166,8 @@ let repl = async (request, response, manual, template, aname) => {
 	let sets = await db.getReplaysSets(manual);
 	let memes = [];
 	let idx = 0;
-	for (var i = 0; i < replays.length && idx < sets.length; ++i) {
-		if (sets[idx].idreplay == replays[i].id) {
+	for (var i = 0; i < replays.length; ++i) {
+		while (idx < sets.length && sets[idx].idreplay == replays[i].id) {
 			memes.push(sets[idx++]);
 		}
 	}
@@ -207,8 +209,7 @@ router.post("/replays", async (request, response) => {
 	if(/https?:\/\/replay.pokemonshowdown.com\/(.*)-[0-9]*/.test(request.body.link)) {
 		await db.addReplay(utils.extend(request.body, {manual: true}));
 		response.set({'Refresh': '0; url=/replays'});
-	}
-	else {
+	} else {
 		response.set({'Refresh': '0; url=/replays?fail=true'});
 	}
 	response.end();
@@ -247,7 +248,7 @@ router.post("/lillie", async (request, response) => {
 			response.end();
 		});
 		req.end();
-	}catch(e){
+	} catch(e) {
 		console.log(e);
 	}
 
@@ -263,8 +264,7 @@ router.get("/suggest/:type", async (request, response) => {
 	let data = {};
 	if (request.params.type == 'banner') {
 		utils.sendTemplate(request, response, 'suggest-banner');
-	}
-	else if (/^\d+$/.test(request.params.type)) {
+	} else if (/^\d+$/.test(request.params.type)) {
 		let set = await db.getSetById(request.params.type);
 		set = set[0];
 		if (!set) {
@@ -293,11 +293,12 @@ router.post("/suggest", upload.single('sugg'), (request, response, next) => {
 	}
 
 	if (request.body.type == 'banner') {
+		logger.log(0, "Added a banner suggestion...");
 		saveToDir('./ban-submission');
 		response.set({'Refresh': '0; url=/thanks'});
 		response.end();
-	}
-	else if (/^\d+$/.test(request.body.type)) {
+	} else if (/^\d+$/.test(request.body.type)) {
+		logger.log(0, "Added a new set image suggestion...");
 		saveToDir('./sets/' + request.body.type);
 		response.set({'Refresh': '0; url=/thanks'});
 		response.end();
@@ -326,8 +327,7 @@ router.get("/changelog", async (request, response) => {
 				.map(item => utils.extend(item, {type: item.type.indexOf('bug') == 0 ? 'bug' : 'plus-square', commit: item.commit.substr(0, 6)}));
 		}
 		utils.sendTemplate(request, response, 'changelog', { notes: mynotes });
-	}
-	catch(e) {
+	} catch(e) {
 		console.log(e);
 	}
 });
@@ -335,8 +335,7 @@ router.get("/changelog", async (request, response) => {
 router.get("/contact", async (request, response) => {
 	try {
 		utils.sendTemplate(request, response, 'contact', {});
-	}
-	catch(e) {
+	} catch(e) {
 		console.log(e);
 	}
 });
@@ -355,8 +354,7 @@ router.post("/contact", async (request, response, next) => {
 		response.set({'Refresh': '2; url=/'});
 		utils.sendTemplate(request, response, 'thanks');
 		response.end();
-	}
-	catch(e) {
+	} catch(e) {
 		response.status(500);
 		response.send(utils.render('404', utils.genericData(request, response)));
 		response.end();

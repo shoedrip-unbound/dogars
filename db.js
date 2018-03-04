@@ -6,6 +6,7 @@ let poke     = require('./poke-utils');
 let request  = require('request-promise-native');
 let tripcode = require('tripcode');
 let settings = JSON.parse(fs.readFileSync('settings.json'));
+let logger	 = require('./logger');
 
 c.configure(settings.db);
 
@@ -14,6 +15,7 @@ let total = 0;
 c.query('SELECT COUNT(*) FROM Sets').then(rows => {
 	total = rows[0]['COUNT(*)'];
 	total = parseInt(total);
+	logger.log(0, total, "sets in database");
 	module.exports.total = total;
 });
 
@@ -24,7 +26,7 @@ let getReplaysSets		= async manual						=> await c.query('select * from replays 
 let getChampFromTrip	= async trip						=> await c.query('select * from memes.champs where trip = ? order by id desc;', [trip]);
 let getChamps			= async ()							=> await c.query('select * from memes.champs order by wins desc;');
 let createChampFromTrip = async (name, trip)				=> await c.query('insert into memes.champs (name, trip) values (?, ?) ', [name || '', trip]);
-let addReplay			= async data						=> await c.query('insert into replays (link, description, champ, trip, manual) values (?, ?, ?, ?, ?);', [data.link, data.description, data.champ || '', data.trip || '', data.manual || false]);
+let addReplay			= async data						=> await c.query('insert into memes.replays (link, description, champ, trip, manual) values (?, ?, ?, ?, ?);', [data.link, data.description, data.champ || '', data.trip || '', data.manual || false]);
 let getSetsPage			= async (setPerPage, pageNumber)	=> await c.query('select * from Sets order by id desc limit ? offset ?;', [~~setPerPage, ~~(setPerPage * pageNumber)]);
 let addSetToReplay		= async (setid, rid)				=> await c.query('insert into memes.sets_in_replays (idreplay, idset) values (?, ?)', [rid, setid]);
 let updateChampAvatar	= async (trip, aid)					=> await c.query('update memes.champs set avatar = ? where trip = ?', [aid, trip]);
@@ -35,36 +37,50 @@ let updateChampName		= async (trip, aid)					=> {
 	return await c.query('update memes.champs set name = ? where trip = ?', [aid, trip]);
 }
 
+let toId = text => {
+	// this is a duplicate of Dex.getId, for performance reasons
+	if (text && text.id) {
+		text = text.id;
+	} else if (text && text.userid) {
+		text = text.userid;
+	}
+	if (typeof text !== 'string' && typeof text !== 'number') return '';
+	return ('' + text).toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
+
 let registerChampResult = async (battleData, hasWon) => {
 	let replayurl;
-
 	try {
-		let b = await request.get('https://play.pokemonshowdown.com/~~showdown/action.php?act=ladderget&user=' + encodeURIComponent(battleData.champ.showdown_name));
+		logger.log(0, `Checking elo of ${toId(battleData.champ.showdown_name)}`);
+		let b = await request.get(`https://play.pokemonshowdown.com/~~showdown/action.php?act=ladderget&user=${toId(battleData.champ.showdown_name)}`);
 		b = JSON.parse(b.substr(1));
 		if (b.length == 0)
 			throw "Unregistered or never played";
-		b = ~~b.filter(e => e.formatid == 'gen7ou')[0];
+		b = b.filter(e => e.formatid == 'gen7ou')[0];
 		if (!b)
 			throw "Never played OU";
-		b = b.elo;
+		b = ~~b.elo;
+		logger.log(0, `${battleData.champ.showdown_name} has a elo of ${b}`);
 		// no need to sync
 		c.query('update memes.champs set elo = ? where trip = ?', [b, battleData.champ.champ_trip]);
 		// might be useful to store this
 		c.query('update memes.champs set showdown_name = ? where trip = ?', [battleData.champ.showdown_name, battleData.champ.champ_trip]);
-	}
-	catch(e) {
+	} catch(e) {
 		console.log(e);
 	}
 	if (hasWon) {
-		poke.saveReplay(battleData.champ.champ_battle, () => {
-		});
+		logger.log(0, `${battleData.champ.showdown_name} won`);
+		await poke.saveReplay(battleData.champ.champ_battle);
 		replayurl = 'http://replay.pokemonshowdown.com/' + battleData.roomid;
+	} else {
+		logger.log(0, `${battleData.champ.showdown_name} lost`);
 	}
 
 	let inc = hasWon ? 'wins' : 'loses';
 	let champ = await getChampFromTrip(battleData.champ.champ_trip);
 	if (champ.length == 0) {
-		await createChampFromTrip(battleData.champ.champ_name, battleData.champ.champ_trip)
+		logger.log(0, `This was ${battleData.champ.champ_name} first battle`);
+		await createChampFromTrip(battleData.champ.champ_name, battleData.champ.champ_trip);
 	}
 
 	await c.query('update memes.champs set ' + inc + ' = ' + inc + ' + 1 where trip = ?', [battleData.champ.champ_trip]);
@@ -73,20 +89,25 @@ let registerChampResult = async (battleData, hasWon) => {
 	updateChampName(battleData.champ.champ_trip, battleData.champ.champ_name);
 	if (!hasWon)
 		return;
+	logger.log(0, `Adding ${battleData.champ.champ_name} battle to database`);
 	let info = await addReplay({
 		link: replayurl,
 		description: 'Automatically uploaded replay. Champ: ' + battleData.champ.champ_name + ' ' + battleData.champ.champ_trip,
 		champ: battleData.champ.champ_name,
 		trip: battleData.champ.champ_trip
 	});
-
+	logger.log(0, `Replay successfully added ${info}`);
+	logger.log(0, `${battleData.memes.length} memes detected in champs team`);
+	let n = 0;
 	for(let i = 0; i < battleData.memes.length; ++i) {
 		let sets = await getSetsByPropertyExact({name: battleData.memes[i].name});
 		if (sets.length >= 1) {
 			sets = sets[0];
+			++n;
 			addSetToReplay(sets.id, info.insertId);
 		}
 	}
+	logger.log(0, `${n} memes matched in db`);
 }
 
 let getSetsByProperty = async props => {

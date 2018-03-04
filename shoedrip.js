@@ -1,6 +1,7 @@
 const request = require('request-promise-native');
 let BattleMonitor = require('./BattleMonitor.js');
 let db = require('./db.js');
+let logger	 = require('./logger');
 
 module.exports.champ = {};
 
@@ -18,6 +19,7 @@ let getCurrentThread = async () => {
 				derp_no = max(t.no, derp_no);
 		});
 	});
+	logger.log(0, `Current thread determined to be ${derp_no}`);
 	return derp_no;
 }
 
@@ -38,6 +40,7 @@ let getCurrentChamp = async b => {
 			 */
 			champ.deaddrip = curtime - champ.champ_last_active < 120 * 60;
 			champ.champ_battle = matches[0];
+			logger.log(0, `Current champ determined to be ${champ}`);
 			if(champ.champ_battle[0] != 'h')
 				champ.champ_battle = 'http://' + champ.champ_battle;
 			return champ;
@@ -81,17 +84,22 @@ let main = async () => {
 		if (champ.champ_battle != oldbattle) {
 			oldbattle = champ.champ_battle;
 			if (champ.champ_name != undefined && champ.champ_name != '') {
+				logger.log(0, `Champ has a name so we can monitor battle`);
 				let bm = new BattleMonitor(champ);
-				await bm.monitor();
+				bm.monitor();
+			} else {
+				logger.log(0, `Champ has no name so we can't monitor battle`);
 			}
 		}
 		if (champ.champ_active) {
+			logger.log(0, `Champ is considered active`);
 			let dbchamp = await db.getChampFromTrip(champ.champ_trip);
 			champ.avatar = '166';
 			if (dbchamp && dbchamp.length) {
 				champ.avatar = dbchamp[0].avatar;
 			}
-		}
+		} else
+			logger.log(0, `Champ is dead`);
 		module.exports.champ = champ;
 	}
 	catch(e) {
@@ -102,6 +110,7 @@ let main = async () => {
 	}
 }
 
+logger.log(0, "Starting shoedrip watcher");
 main();
 
 setInterval(async () => {await main();}, 1000 * 60);

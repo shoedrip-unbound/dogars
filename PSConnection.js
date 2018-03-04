@@ -5,6 +5,7 @@ const W3CWebSocket = require('websocket').w3cwebsocket;
 const WebSocketP = require('websocket-as-promised');
 
 let suck = d => JSON.parse(d.substr(1))[0]
+let logger	 = require('./logger');
 
 let connection;
 
@@ -19,6 +20,7 @@ class PSConnection {
 			createWebSocket: u => new W3CWebSocket(u)
 		});
 		this.ws.cache = []
+		this.roomLog = {};
 	}
 
 	addCache(data) {
@@ -33,15 +35,29 @@ class PSConnection {
 		await this.ws.send(JSON.stringify(data));
 	}
 
-	read() {
-		if (this.ws.cache.length > 0) {
-			return new Promise(res => {
-				res(this.ws.cache.shift());
-			});
+	connread() {
+		if (this.ws.cache.length > 0)
+			return this.ws.cache.shift();
+		return new Promise(res => this.readPromises.push(res));
+	}
+
+	async read() {
+		let mes;
+		while (1) {
+			mes = await this.connread();
+			if (mes[0] != 'a') {
+				return mes;
+			}
+			let pmes = suck(mes);
+			if (pmes[0] != '>')
+				break;
+			let room = pmes.substr(pmes.indexOf('\n')).substr(1);
+			let log = this.roomLog[room] || [];
+			let app = pmes.substr(`>${room}\n`.length).split('\n').filter(e => e != '');
+			log.push(...app);
+			this.roomLog[room] = log;
 		}
-		return new Promise(res => {
-			this.readPromises.push(res);
-		});
+		return mes;
 	}
 
 	newConnection() {
@@ -53,7 +69,6 @@ class PSConnection {
 	}
 
 	async getNextBattleEvent(room) {
-		this.roomLog = this.roomLog || {}
 		let log = this.roomLog[room];
 		if (!log || log.length == 0) {
 			let mess;
@@ -87,8 +102,12 @@ class PSConnection {
 			rooms = suck(rooms);
 			this.challstrraw = suck(await this.read());
 			this.usable = true;
+
+			// heartbeat
+			setTimeout(() => this.send('/me dabs'), 1000 * 60);
+
 			this.ws.onClose.addOnceListener(async (code, reason) => {
-				console.log('Socket was closed', code, reason);
+				logger.log(0, 'Socket was closed', code, reason);
 				this.usable = false;
 				await this.start();
 			});
