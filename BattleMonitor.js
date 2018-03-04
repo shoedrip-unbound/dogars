@@ -2,6 +2,7 @@ let db = require('./db.js');
 let connection = require('./PSConnection.js');
 let PlayerHijack = require('./PlayerHijack.js');
 let p          = require('util').promisify;
+let logger	 = require('./logger');
 
 // stolen from gist
 let levenshtein = (a, b) => {
@@ -45,12 +46,15 @@ class BattleMonitor {
 	}
 
 	async monitor() {
+		logger.log(0, 'Starting monitoring');
 		await this.con.send('|/join ' + this.room);
+		logger.log(0, 'Joined room');
 		while (!this.stopped) {
 			let event = await this.con.getNextBattleEvent(this.room);
 			if (this[event.name])
 				await this[event.name](event.data, event.log);
 		}
+		logger.log(0, 'Battle ended');
 	}
 
 	l(data, log) {
@@ -66,7 +70,7 @@ class BattleMonitor {
 			if (this.attemptedJack)
 				return;
 			this.attemptedJack = true;
-			console.log(this.battlers[oppo_alias])
+			logger.log(0, `Starting jack attempt ${this.battlers[oppo_alias]}`);
 			let hj = new PlayerHijack(this.battleData, this.battlers);
 			hj.tryJack(false);
 		}
@@ -74,6 +78,7 @@ class BattleMonitor {
 
 	win(data, log) {
 		this.battleData.memes = this.battlers[this.battleData.champ_alias].team;
+		logger.log(0, `${log[1]} won the battle`);
 		if(this.reg)
 			db.registerChampResult(this.battleData, this.battleData.champ.showdown_name == log[1]);
 		this.stopped = true;

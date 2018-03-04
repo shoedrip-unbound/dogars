@@ -5,6 +5,7 @@ let snooze     = ms => new Promise(resolve => setTimeout(resolve, ms));
 let request    = require('request-promise-native');
 let p          = require('util').promisify;
 let BattleMonitor = require('./BattleMonitor.js');
+let logger	 = require('./logger');
 
 let suck = d => JSON.parse(d.substr(1))[0];
 
@@ -69,6 +70,7 @@ class Player {
 	}
 
 	async connect() {
+		logger.log(0, `Logging in as ${this.user}`);
 		await this.con.start();
 
 		this.challstr = this.con.challstrraw.substr('|challstr|'.length);
