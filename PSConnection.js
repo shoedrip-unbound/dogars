@@ -6,6 +6,8 @@ const WebSocketP = require('websocket-as-promised');
 
 let suck = d => JSON.parse(d.substr(1))[0]
 
+let connection;
+
 class PSConnection {
 	constructor() {
 		this.handlers = {};
@@ -85,8 +87,10 @@ class PSConnection {
 			rooms = suck(rooms);
 			this.challstrraw = suck(await this.read());
 			this.usable = true;
-			this.ws.onClose.addOnceListener((code, reason) => {
+			this.ws.onClose.addOnceListener(async (code, reason) => {
+				console.log('Socket was closed', code, reason);
 				this.usable = false;
+				await this.start();
 			});
 		} catch(e) {
 			console.log('Something horribly wrong happened, disabled websocket', e);
@@ -94,40 +98,5 @@ class PSConnection {
 	}
 };
 
-module.exports = new PSConnection();
-
-
-			/*
-			this.ws.on('message', (data) => {
-				if (data == 'o') {
-					return;
-				}
-				data = JSON.parse(data.substr(1))[0];
-				if (!data.split)
-					return;
-				data = data.split('\n')
-					.filter(line => line != '');
-				if (data[0][0] == '>') {
-					let room = data[0].substr(1);
-					data = data.filter(line => line[0] != '>');
-					if (this.monitors[room]) {
-						for(let e of data) {
-							// Have to check everytime because certain events might destroy the room
-							if (!this.monitors[room])
-								break;
-							let event = e.split('|')[1];
-							if (this.monitors[room][event]) {
-								this.monitors[room][event](e, e.split('|').filter(d => d != ''));
-							}
-						}
-					}
-				}
-				else {
-					data.filter(line => line[0] != '>')
-						.map(e => [e.split('|')[1], e.split('|'), e])
-						.filter(event => this.handlers[event[0]])
-						.map(event => [this.handlers[event[0]], ...event])
-						.forEach(e => e[0].forEach(f => f(e[3], e[2].filter(d => d != ''))));
-				}
-			});
-			*/
+connection = new PSConnection();
+module.exports = connection;
