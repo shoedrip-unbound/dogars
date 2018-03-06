@@ -62,7 +62,7 @@ class PlayerHijack {
 			logger.log(0, 'connected as ${this.opponent.showdown_name}');
 			let battles = this.account.getBattles();
 			for (let battle of battles) {
-				this.account.message(battle, 'Hi, my name is J.A.C.K., brought to you by D*gars©');
+				await this.account.message(battle, 'Hi, my name is J.A.C.K., brought to you by D*gars©');
 				let myteam = await this.account.getMyTeam(battle);
 				for (let mon of myteam.pokemon) {
 					let desc = [mon.details, mon.condition, mon.item, mon.baseAbility,

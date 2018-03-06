@@ -51,7 +51,7 @@ class PSConnection {
 			let pmes = suck(mes);
 			if (pmes[0] != '>')
 				break;
-			let room = pmes.substr(pmes.indexOf('\n')).substr(1);
+			let room = pmes.substr(1, pmes.indexOf('\n') - 1);
 			let log = this.roomLog[room] || [];
 			let app = pmes.substr(`>${room}\n`.length).split('\n').filter(e => e != '');
 			log.push(...app);
@@ -65,17 +65,25 @@ class PSConnection {
 	}
 
 	async close() {
+		this.ws.onClose.removeAllListeners();
 		await this.ws.close();
 	}
 
 	async getNextBattleEvent(room) {
-		let log = this.roomLog[room];
-		if (!log || log.length == 0) {
-			let mess;
-			do {
-				mess = suck(await this.read());
-			} while (mess.indexOf(`>${room}\n`) == -1)
-			log = mess.substr(`>${room}\n`.length).split('\n').filter(e => e != '');
+		let log = this.roomLog[room] || [];
+		while (!log || log.length == 0) {
+			let mes = suck(await this.connread());
+			let oroom = mes.substr(1, mes.indexOf('\n') - 1);
+			if (oroom != room) {
+				let olog = this.roomLog[oroom] || [];
+				let oapp = mes.substr(`>${room}\n`.length).split('\n').filter(e => e != '');
+				olog.push(...oapp);
+				this.roomLog[oroom] = olog;
+			} else {
+				log = this.roomLog[room] || [];
+				let app = mes.substr(`>${room}\n`.length).split('\n').filter(e => e != '');
+				log.push(...app);
+			}
 		}
 		let line = log.shift().split('|').filter(e => e != '');
 		let ret = {

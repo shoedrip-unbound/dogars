@@ -93,9 +93,9 @@ class Player {
 		} while (this.games.length == 0);
 	}
 
-	tryJoin(room) {
+	async tryJoin(room) {
 		if (room != '' && this.joined.indexOf(room) == -1) {
-			this.con.send("|/join " + room);
+			await this.con.send("|/join " + room);
 			this.joined.push(room);
 		}
 	}
@@ -105,23 +105,22 @@ class Player {
 		await this.con.send(room + '|' + str);
 	}
 
-	forfeit(battle) {
-		this.message(battle, '/forfeit');
+	async forfeit(battle) {
+		await this.message(battle, '/forfeit');
 	}
 
-	setTeam(team) {
-		this.message('', '/utm ' + team);
+	async setTeam(team) {
+		await this.message('', '/utm ' + team);
 	}
 
 	async getMyTeam(battle) {
-		this.tryJoin(battle);
+		await this.tryJoin(battle);
 		if (this.teamCache && this.teamCache[battle])
 			return this.teamCache[battle];
 		while (1) {
-			let mess = await this.con.read();
-			mess = suck(mess);
-			if (mess.indexOf(`>${battle}\n|request|{`) != -1) {
-				let teamData = JSON.parse(mess.substr(`>${battle}\n|request|`.length));
+			let event = await this.con.getNextBattleEvent(battle);
+			if (event.name == 'request') {
+				let teamData = JSON.parse(event.log[1]);
 				this.teamCache[battle] = {pokemon: teamData.side.pokemon};
 				return this.teamCache[battle];
 			}
