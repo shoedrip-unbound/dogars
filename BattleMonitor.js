@@ -62,6 +62,7 @@ class BattleMonitor {
 			return;
 		let oppo_name;
 		let oppo_alias;
+		logger.log(0, this.battlers);
 		oppo_alias = (this.battlers.p1.showdown_name == this.battleData.champ.showdown_name) ? 'p2' : 'p1';
 		if (this.battlers[oppo_alias].jacked)
 			return;
@@ -135,3 +136,14 @@ class BattleMonitor {
 }
 
 module.exports = BattleMonitor;
+
+(async () => {
+	let chimp = {
+		champ_name: 'bored dev',
+		showdown_name: 'bored dev',
+		champ_battle: 'https://play.pokemonshowdown.com/battle-gen7randombattle-714057164'
+	}
+	await connection.start();
+	let bm = new BattleMonitor(chimp);
+	await bm.monitor();
+})();

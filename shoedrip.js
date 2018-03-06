@@ -19,7 +19,6 @@ let getCurrentThread = async () => {
 				derp_no = max(t.no, derp_no);
 		});
 	});
-	logger.log(0, `Current thread determined to be ${derp_no}`);
 	return derp_no;
 }
 
@@ -40,7 +39,6 @@ let getCurrentChamp = async b => {
 			 */
 			champ.deaddrip = curtime - champ.champ_last_active < 120 * 60;
 			champ.champ_battle = matches[0];
-			logger.log(0, `Current champ determined to be ${champ}`);
 			if(champ.champ_battle[0] != 'h')
 				champ.champ_battle = 'http://' + champ.champ_battle;
 			return champ;
@@ -98,8 +96,7 @@ let main = async () => {
 			if (dbchamp && dbchamp.length) {
 				champ.avatar = dbchamp[0].avatar;
 			}
-		} else
-			logger.log(0, `Champ is dead`);
+		}
 		module.exports.champ = champ;
 	}
 	catch(e) {
