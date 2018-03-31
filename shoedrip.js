@@ -25,7 +25,7 @@ let getCurrentThread = async () => {
 let getCurrentChamp = async b => {
 	let thread = JSON.parse(b);
 	let derp_no = 0;
-	for (var i = thread.posts.length - 1; i != 0; --i) {
+	for (let i = thread.posts.length - 1; i != 0; --i) {
 		if (!thread.posts[i].trip)
 			continue;
 		let content = thread.posts[i].com.replace(/<(?:.|\n)*?>/gm, '');
@@ -52,14 +52,14 @@ let oldbattle = null;
 // stolen from gist
 // but leven(((shtein))) is actually garbage at detecting similar nicknames
 let levenshtein = (a, b) => {
-	var tmp;
+	let tmp;
 	a = a || '';
 	b = b || '';
 	if (a.length === 0) { return b.length; }
 	if (b.length === 0) { return a.length; }
 	if (a.length > b.length) { tmp = a; a = b; b = tmp; }
 
-	var i, j, res, alen = a.length, blen = b.length, row = Array(alen);
+	let i, j, res, alen = a.length, blen = b.length, row = Array(alen);
 	for (i = 0; i <= alen; i++) { row[i] = i; }
 
 	for (i = 1; i <= blen; i++) {
@@ -67,8 +67,7 @@ let levenshtein = (a, b) => {
 		for (j = 1; j <= alen; j++) {
 			tmp = row[j - 1];
 			row[j - 1] = res;
-			res = b[i - 1] === a[j - 1] ? tmp : Math.min(tmp + 1,
-														 Math.min(res + 1, row[j] + 1));
+			res = b[i - 1] === a[j - 1] ? tmp : Math.min(tmp + 1, res + 1, row[j] + 1);
 		}
 	}
 	return res;
@@ -90,7 +89,6 @@ let main = async () => {
 			}
 		}
 		if (champ.champ_active) {
-			logger.log(0, `Champ is considered active`);
 			let dbchamp = await db.getChampFromTrip(champ.champ_trip);
 			champ.avatar = '166';
 			if (dbchamp && dbchamp.length) {

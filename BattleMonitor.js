@@ -136,14 +136,3 @@ class BattleMonitor {
 }
 
 module.exports = BattleMonitor;
-
-(async () => {
-	let chimp = {
-		champ_name: 'bored dev',
-		showdown_name: 'bored dev',
-		champ_battle: 'https://play.pokemonshowdown.com/battle-gen7randombattle-714057164'
-	}
-	await connection.start();
-	let bm = new BattleMonitor(chimp);
-	await bm.monitor();
-})();

@@ -97,12 +97,16 @@ router.post("/add", async (request, response) => {
 		response.end();
 	} catch(e) {
 		logger.log(0, "Rejecting new set...");
-		e = e || '';
-		e = e.replace(/\|\|/g, '\n');
-		e = e.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2');
-		response.set({'Refresh': '10; url=/import'});
-		if (e == '')
+		try {
+			e = e || '';
+			e = e.replace(/\|\|/g, '\n');
+			e = e.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2');
+			response.set({'Refresh': '10; url=/import'});
+			if (e == '')
+				e = 'Unknown reasons';
+		} catch(e) {
 			e = 'Unknown reasons';
+		}
 		utils.sendTemplate(request, response, 'reject', { reason: e });
 	}
 });

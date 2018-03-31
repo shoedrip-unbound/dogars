@@ -12,8 +12,8 @@ c.configure(settings.db);
 
 let total = 0;
 
-c.query('SELECT COUNT(*) FROM Sets').then(rows => {
-	total = rows[0]['COUNT(*)'];
+c.query('select count(*) from Sets').then(rows => {
+	total = rows[0]['count(*)'];
 	total = parseInt(total);
 	logger.log(0, total, "sets in database");
 	module.exports.total = total;
@@ -32,10 +32,8 @@ let addSetToReplay		= async (setid, rid)				=> await c.query('insert into memes.
 let updateChampAvatar	= async (trip, aid)					=> await c.query('update memes.champs set avatar = ? where trip = ?', [aid, trip]);
 let getSetById			= async id							=> await c.query('select * from Sets where id = ?', [id]);
 let getSetByNo			= async no							=> await c.query('select * from Sets limit 1 offset ?', [no]);
-let getRandomSet		= async ()							=> await c.query('SELECT * FROM Sets AS r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM Sets)) AS id) AS r2 WHERE r1.id >= r2.id LIMIT 1');
-let updateChampName		= async (trip, aid)					=> {
-	return await c.query('update memes.champs set name = ? where trip = ?', [aid, trip]);
-}
+let getRandomSet		= async ()							=> await c.query('select * from Sets as r1 join (select ceil(rand() * (select max(id) from Sets)) as id) as r2 where r1.id >= r2.id limit 1');
+let updateChampName		= async (trip, aid)					=> await c.query('update memes.champs set name = ? where trip = ?', [aid, trip]);
 
 let toId = text => {
 	// this is a duplicate of Dex.getId, for performance reasons
@@ -141,41 +139,31 @@ let createNewSet = async (request) => {
 	let row = {};
 	row.hash = tripcode(request.body.trip);
 	row.format = "gen7ou";
-	let formats = ["gen7ou", "gen7anythinggoes", "ubers", "uu", "ru",
-				   "nu", "pu", "lc", "cap"];
+	let formats = ["gen7ou", "gen7ubers", "gen7anythinggoes", "gen7uu", "gen7ru", "gen7nu", "gen7pu", "gen7lc", "gen7natureswap", "gen7balancedhackmons", "gen7mixandmega", "gen7almostanyability", "gen7camomons", "gen7stabmons", "gen7customgame"];
 	if (formats.includes(request.body.format))
 		row.format = request.body.format;
 	row.creator = request.body.creat.substr(0, 23);
 	row.description = request.body.desc.substr(0, 230);
 	row.date_added = +new Date();
-
 	let pok = poke.parseSet(request.body.set);
-	for(var i in pok)
+	pok.format = row.format;
+	let errors = await poke.checkSet(pok);
+	if (errors)
+		throw errors;
+	for(let i in pok)
 		row[i] = pok[i];
 	let data = ['date_added', 'format', 'creator', 'hash', 'name', 'species',
 				'gender', 'item', 'ability', 'shiny', 'level', 'happiness', 'nature',
-				'move_1', 'move_2', 'move_3', 'move_4', 'hp_ev', 'atk_ev', 'def_ev',
-				'spa_ev', 'spd_ev', 'spe_ev', 'hp_iv', 'atk_iv', 'def_iv', 'spa_iv',
-				'spd_iv', 'spe_iv', 'description'];
+				...[1, 2, 3, 4].map(id => `move_${id}`),
+				/// who else /high-iq/ here?
+				...['e', 'i'].map(t => ['hp', 'atk', 'def', 'spa', 'spd', 'spe'].map(s => `${s}_${t}v`)).reduce((a, b) => a.concat(b), []),
+				'description'];
 	let data_arr = [];
-	let querystr =
-		'INSERT INTO Sets (' + data.map(attr => '??').join(', ')
-		+ ') VALUES (' + data.map(attr => '?').join(', ') + ')';
-
+	let querystr = `insert into Sets (${data.map(attr => '??').join(', ')}) value (${data.map(attr => '?').join(', ')})`;
 	data_arr.push(...data, ...data.map(attr => row[attr]));
-
 	let rows = await c.query(querystr, data_arr);
 	module.exports.total++;
-	let set = await getSetById(rows.insertId);
-	set = poke.formatSetFromRow(set[0]);
-	let errors = await poke.checkSet(buildCheckableSet(set));
-	if (errors) {
-		deleteSet({params: {id: set.id},
-				   body: {trip: settings.admin_pass}});
-		throw errors;
-	} else {
-		return rows;
-	}
+	return rows;
 }
 
 let buildCheckableSet = set => {
@@ -183,7 +171,6 @@ let buildCheckableSet = set => {
 	[1, 2, 3, 4]
 		.map(d => 'move_' + d)
 		.forEach(mp => nset[mp] = nset[mp] ? nset[mp].split('/')[0].trim() : null);
-	// TODO: check if nset[mp] == null here
 	return nset;
 }
 
@@ -223,10 +210,7 @@ let updateSet = async (request) => {
 
 	let data_arr = [];
 
-	let querystr = 'UPDATE Sets SET ';
-
-	querystr += data.map(attr => '?? = ?').join(', ');
-	querystr += ' WHERE id = ?';
+	let querystr = `update Sets set ${data.map(attr => '?? = ?').join(', ')} WHERE id = ?`;
 
 	data.map(attr => data_arr.push(attr, row[attr]));
 	data_arr.push(request.params.id);
@@ -241,7 +225,7 @@ let deleteSet = async request => {
 		(request.body.trip != settings.admin_pass &&
 		 row.hash != tripcode(request.body.trip)))
 		throw 'Wrong tripcode';
-	let rows = await c.query('DELETE FROM Sets WHERE id = ?', [request.params.id]);
+	let rows = await c.query('delete from Sets where id = ?', [request.params.id]);
 	module.exports.total--;
 	return rows.info;
 }
