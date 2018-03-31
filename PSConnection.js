@@ -101,8 +101,11 @@ class PSConnection {
 			this.ws.onMessage.addListener(d => this.addCache(d));
 			this.ws.open();
 			let o = await this.read();
-			if (o != 'o')
+			if (o != 'o') {
+				logger.log(0, 'No o here');
+				console.log(o);
 				throw "No o";
+			}
 			// >We don't care actually
 			let formats = await this.read();
 			let rooms = await this.read();
@@ -121,6 +124,8 @@ class PSConnection {
 			});
 		} catch(e) {
 			console.log('Something horribly wrong happened, disabled websocket', e);
+			await this.close();
+			await this.start();
 		}
 	}
 };
