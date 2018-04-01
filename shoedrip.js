@@ -73,39 +73,41 @@ let levenshtein = (a, b) => {
 	return res;
 }
 
+let snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 let main = async () => {
-	try {
-		let thread = await getCurrentThread();
-		let threadjs = await request.get(`http://a.4cdn.org/vp/thread/${thread}.json`);
-		let champ = await getCurrentChamp(threadjs);
-		if (champ.champ_battle != oldbattle) {
-			oldbattle = champ.champ_battle;
-			if (champ.champ_name != undefined && champ.champ_name != '') {
-				logger.log(0, `Champ has a name so we can monitor battle`);
-				let bm = new BattleMonitor(champ);
-				bm.monitor();
-			} else {
-				logger.log(0, `Champ has no name so we can't monitor battle`);
+	while (true) {
+		try {
+			let thread = await getCurrentThread();
+			let threadjs = await request.get(`http://a.4cdn.org/vp/thread/${thread}.json`);
+			let champ = await getCurrentChamp(threadjs);
+			if (champ.champ_battle != oldbattle) {
+				oldbattle = champ.champ_battle;
+				if (champ.champ_name != undefined && champ.champ_name != '') {
+					logger.log(0, `Champ has a name so we can monitor battle`);
+					let bm = new BattleMonitor(champ);
+					bm.monitor();
+				} else {
+					logger.log(0, `Champ has no name so we can't monitor battle`);
+				}
 			}
-		}
-		if (champ.champ_active) {
-			let dbchamp = await db.getChampFromTrip(champ.champ_trip);
-			champ.avatar = '166';
-			if (dbchamp && dbchamp.length) {
-				champ.avatar = dbchamp[0].avatar;
+			if (champ.champ_active) {
+				let dbchamp = await db.getChampFromTrip(champ.champ_trip);
+				champ.avatar = '166';
+				if (dbchamp && dbchamp.length) {
+					champ.avatar = dbchamp[0].avatar;
+				}
 			}
+			module.exports.champ = champ;
 		}
-		module.exports.champ = champ;
-	}
-	catch(e) {
-		console.log('--------------------------------------------------------------------------------');
-		console.log('An error occured while retriving some data.\nSome features might now work properly');
-		console.log(e);
-		console.log('--------------------------------------------------------------------------------');
+		catch(e) {
+			console.log('--------------------------------------------------------------------------------');
+			console.log('An error occured while retriving some data.\nSome features might now work properly');
+			console.log(e);
+			console.log('--------------------------------------------------------------------------------');
+		}
+		await sneeze(1000 * 60);
 	}
 }
 
-logger.log(0, "Starting shoedrip watcher");
-main();
-
-setInterval(async () => {await main();}, 1000 * 60);
+module.exports.start = main;

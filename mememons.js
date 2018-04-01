@@ -44,10 +44,11 @@ github.on('push', () => {
 });
 
 (async () => {
-	console.log(0, 'listening');
+	console.log('listening');
 	await connection.start();
+	console.log('connection started');
 	app.listen(process.argv[2] || 1234);
-	console.log(0, 'not blocking');
+	console.log('not blocking');
 })();
 
 try {
