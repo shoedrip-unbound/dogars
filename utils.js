@@ -3,7 +3,7 @@ let mustache   = require('mustache');
 let db         = require('./db.js');
 let shoe       = require('./shoedrip.js');
 let poke       = require('./poke-utils');
-
+let connection = require('./PSConnection.js');
 
 let banners = fs.readdirSync('./public/ban');
 
@@ -68,10 +68,14 @@ let cookie2obj = (str) => {
 	return ret;
 }
 
-let ranset = db.getRandomSet();
+let a = new Date();
+let seed = (((a.getMonth() + 1) * (a.getDay() + 1) * (a.getFullYear()) + 1));
+let ranset = db.getRandomSet(seed);
 
 setInterval(() => {
-	ranset = db.getRandomSet();
+	let a = new Date();
+	let seed = (((a.getMonth() + 1) * (a.getDay() + 1) * (a.getFullYear()) + 1));
+	ranset = db.getRandomSet(seed);
 }, 1000 * 3600 * 24);
 
 let getSetOfTheDay = async cb => {
@@ -114,6 +118,7 @@ let genericData = (request, response) => {
 		banner: '/ban/' + rand_ban,
 		phone: false//isMobile(request.get('User-Agent'))
 	});
+	ret.connection_status = connection.usable;
 	return ret;
 }
 

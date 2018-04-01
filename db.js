@@ -32,7 +32,7 @@ let addSetToReplay		= async (setid, rid)				=> await c.query('insert into memes.
 let updateChampAvatar	= async (trip, aid)					=> await c.query('update memes.champs set avatar = ? where trip = ?', [aid, trip]);
 let getSetById			= async id							=> await c.query('select * from Sets where id = ?', [id]);
 let getSetByNo			= async no							=> await c.query('select * from Sets limit 1 offset ?', [no]);
-let getRandomSet		= async ()							=> await c.query('select * from Sets as r1 join (select ceil(rand() * (select max(id) from Sets)) as id) as r2 where r1.id >= r2.id limit 1');
+let getRandomSet		= async (seed)						=> await c.query('select * from Sets as r1 join (select ceil(rand(?) * (select max(id) from Sets)) as id) as r2 where r1.id >= r2.id limit 1', [seed ? seed : ~~(Math.random() * 9999)]);
 let updateChampName		= async (trip, aid)					=> await c.query('update memes.champs set name = ? where trip = ?', [aid, trip]);
 
 let toId = text => {

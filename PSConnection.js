@@ -10,7 +10,7 @@ let logger	 = require('./logger');
 let connection;
 
 class PSConnection {
-	constructor() {
+	clear() {
 		this.handlers = {};
 		this.battles = {};
 		this.monitors = {};
@@ -21,6 +21,11 @@ class PSConnection {
 		});
 		this.ws.cache = []
 		this.roomLog = {};
+		this.usable = false;
+	}
+
+	constructor() {
+		this.clear();
 	}
 
 	addCache(data) {
@@ -65,8 +70,13 @@ class PSConnection {
 	}
 
 	async close() {
+		console.log("Removing listeners");
+		clearInterval(this.iid);
 		this.ws.onClose.removeAllListeners();
+		console.log("Removed listeners, closing");
+		this.usable = false;
 		await this.ws.close();
+		console.log("Closed");
 	}
 
 	async getNextBattleEvent(room) {
@@ -95,15 +105,16 @@ class PSConnection {
 	}
 
 	async start() {
+		this.clear();
+		console.log("starting connection");
 		if (this.usable)
 			return;
 		try {
 			this.ws.onMessage.addListener(d => this.addCache(d));
-			this.ws.open();
+			await this.ws.open();
+			console.log("opened connection, waiting to read");
 			let o = await this.read();
 			if (o != 'o') {
-				logger.log(0, 'No o here');
-				console.log(o);
 				throw "No o";
 			}
 			// >We don't care actually
@@ -115,17 +126,16 @@ class PSConnection {
 			this.usable = true;
 
 			// heartbeat
-			setTimeout(() => this.send('/me dabs'), 1000 * 60);
+			this.iid = setInterval(() => this.send('/me dabs'), 1000 * 60);
 
 			this.ws.onClose.addOnceListener(async (code, reason) => {
 				logger.log(0, 'Socket was closed', code, reason);
-				this.usable = false;
+				await this.close();
 				await this.start();
 			});
 		} catch(e) {
 			console.log('Something horribly wrong happened, disabled websocket', e);
 			await this.close();
-			await this.start();
 		}
 	}
 };

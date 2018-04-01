@@ -305,7 +305,9 @@ let pack = set => {
 let checkSet = async set => {
 	await connection.send("|/utm " + pack(set));
 	await connection.send("|/vtm " + set.format);
-	let data = suck(await connection.read());
+	let readd = await connection.read();
+	let data = suck(readd);
+	console.log(data, readd);
 	if (data.indexOf('|popup|Your team was rejected') != -1)
 		return data.substr(60);
 	return null;
