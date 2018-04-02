@@ -3,6 +3,7 @@
 let fs       = require('fs');
 let settings = JSON.parse(fs.readFileSync('settings.json'));
 let connection = require('./PSConnection.js');
+let shoe       = require('./shoedrip.js');
 
 console.elog = function(level, ...args) {
 	if (settings.log_level && ~~settings.log_level > level)
@@ -47,6 +48,7 @@ github.on('push', () => {
 	console.log('listening');
 	await connection.start();
 	console.log('connection started');
+	shoe.start();
 	app.listen(process.argv[2] || 1234);
 	console.log('not blocking');
 })();
