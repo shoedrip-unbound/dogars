@@ -349,7 +349,7 @@ let spawn = require('child_process').spawnSync;
 router.post("/contact", async (request, response, next) => {
 	try {
 		let inputData = "Subject: " + request.body.sub + "\n";
-		inputData += 'Content-Type: text/plain; charset="utf-8"';
+		inputData += 'Content-Type: text/plain; charset="utf-8"\n';
 		inputData += request.body.com + '\n';
 
 		let child = spawn('sendmail', [settings.admin_mail], {
