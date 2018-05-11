@@ -5,15 +5,15 @@ let shoe       = require('./shoedrip.js');
 let poke       = require('./poke-utils');
 let connection = require('./PSConnection.js');
 
-let banners = fs.readdirSync('./public/ban');
+let banners = fs.readdirSync(__dirname + '/public/ban');
 
 let fileCache = {};
-let files = fs.readdirSync('./templates')
+let files = fs.readdirSync(__dirname + '/templates')
 	.filter(file => /\.mustache$/g.test(file))
 	.map(file => file.replace(/\.mustache$/g, ''));
 
 files.forEach(f => {
-	let file = 'templates/' + f + '.mustache';
+	let file = __dirname + '/templates/' + f + '.mustache';
 	fileCache[f] = fs.readFileSync(file, 'utf8');
 	fs.watch(file, {persistent: false }, (event, name) => {
 		if (event != 'change')
@@ -22,8 +22,8 @@ files.forEach(f => {
 	});
 });
 
-fs.watch('./public/ban', {persistent: false}, (e, n) => {
-	fs.readdir('./public/ban', (e, banfiles) => {
+fs.watch(__dirname + '/public/ban', {persistent: false}, (e, n) => {
+	fs.readdir(__dirname + '/public/ban', (e, banfiles) => {
 		banners = banfiles;
 	});
 })

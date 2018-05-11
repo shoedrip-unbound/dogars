@@ -1,6 +1,6 @@
 let fs         = require('fs');
 let connection = require('./PSConnection.js');
-let settings   = JSON.parse(fs.readFileSync('settings.json'));
+let settings = require('./settings');
 let snooze     = ms => new Promise(resolve => setTimeout(resolve, ms));
 let request    = require('request-promise-native');
 let p          = require('util').promisify;

@@ -1,5 +1,5 @@
 let fs         = require('fs');
-let settings   = JSON.parse(fs.readFileSync('settings.json'));
+let settings = require('./settings');
 let snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 let Player = require('./Player.js');
 let p        = require('util').promisify;

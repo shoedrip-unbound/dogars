@@ -11,7 +11,7 @@ let db         = require('./db.js');
 let shoe       = require('./shoedrip.js');
 let notes      = require('./git-notes.js');
 let emotionmap = require('./emotions.js');
-let settings   = JSON.parse(fs.readFileSync('settings.json'));
+let settings = require('./settings');
 let utils	   = require('./utils.js');
 let logger	   = require('./logger');
 
@@ -31,7 +31,7 @@ router.use(bodyParser.urlencoded({ extended: true }));
 router.use(cookieParser());
 router.use(compression());
 
-router.use(express.static('./public', {lastModified: true}));
+router.use(express.static(__dirname + '/public', {lastModified: true}));
 
 router.get("/", async (request, response) => {
 	try {
