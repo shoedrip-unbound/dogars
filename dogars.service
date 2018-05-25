@@ -1,0 +1,17 @@
+[Unit]
+
+Description=Dogars Website
+After=network-online.target
+
+[Service]
+Type=simple
+
+User=root
+Group=root
+
+ExecStart=/usr/bin/node /www/dogars/mememons.js 1234
+ExecReload=/bin/kill $MAINPID && /usr/bin/node /www/dogars/mememons.js 1234
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

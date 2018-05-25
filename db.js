@@ -5,7 +5,7 @@ let fs       = require('fs');
 let poke     = require('./poke-utils');
 let request  = require('request-promise-native');
 let tripcode = require('tripcode');
-let settings = JSON.parse(fs.readFileSync('settings.json'));
+let settings = require('./settings');
 let logger	 = require('./logger');
 
 c.configure(settings.db);

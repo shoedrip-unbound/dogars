@@ -1,7 +1,7 @@
 #!/bin/node
 
 let fs       = require('fs');
-let settings = JSON.parse(fs.readFileSync('settings.json'));
+let settings = require('./settings');
 let connection = require('./PSConnection.js');
 let shoe       = require('./shoedrip.js');
 
@@ -20,13 +20,13 @@ let app = require('./routes.js');
 
 setInterval(() => {
 	console.elog(0, 'starting backup...');
-	fs.renameSync('./public/backup.sql', './public/backup' + (+ new Date()) + '.sql');
+	fs.renameSync(__dirname + '/public/backup.sql', __dirname + '/public/backup' + (+ new Date()) + '.sql');
 	let proc = cp.spawn('mysqldump', [
 		'-u', settings.db.user,
 		'-p' + settings.db.password,
 		'memes'
 	], {stdio: ['ignore',
-				fs.openSync('./public/backup.sql', 'w+'),
+				fs.openSync(__dirname + '/public/backup.sql', 'w+'),
 				'ignore']});
 	proc.on('exit', () => {
 		console.elog(0, 'backup finished...');
