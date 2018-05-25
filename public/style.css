@@ -96,9 +96,16 @@ form.search input[type="submit"] {
 
 #waifu {
 	left:         0;
-	bottom:    35px;
+	bottom:    34px;
 	z-index:     -1;
 	position: fixed;
+}
+
+#ph {
+	left: 50px;
+    bottom: 220px;
+    z-index: -1;
+    position: fixed;
 }
 
 .content {
