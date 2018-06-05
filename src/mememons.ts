@@ -7,14 +7,14 @@ import {router} from './routes';
 import { settings } from './settings';
 
 setInterval(() => {
-    fs.renameSync('./public/backup.sql', './public/backup' + (+ new Date()) + '.sql');
+    fs.renameSync(__dirname + '/public/backup.sql', __dirname + '/public/backup' + (+ new Date()) + '.sql');
     let proc = cp.spawn('mysqldump', [
         '-u', settings.db.user,
         '-p' + settings.db.password,
         'memes'
     ], {
             stdio: ['ignore',
-                fs.openSync('./public/backup.sql', 'w+'),
+                fs.openSync(__dirname + '/public/backup.sql', 'w+'),
                 'ignore']
         });
     proc.on('exit', () => {

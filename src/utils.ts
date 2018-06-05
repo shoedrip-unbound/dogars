@@ -10,7 +10,7 @@ import { request } from 'websocket';
 import { Request } from './dogars-request';
 import { Sets } from './Memes';
 
-let banners = fs.readdirSync(__dirname + './public/ban');
+let banners = fs.readdirSync(__dirname + '/public/ban');
 
 let ranset: Promise<Sets[]>;
 
@@ -19,12 +19,12 @@ export module utils {
     export let match = (base: any, pattern: any): boolean => Object.keys(pattern).every(p => (base[p] !== undefined) && (base[p] === pattern[p]));
 
     export const fileCache: {[idx:string]:string} = {};
-    let files = fs.readdirSync(__dirname + './templates')
+    let files = fs.readdirSync(__dirname + '/templates')
         .filter(file => /\.mustache$/g.test(file))
         .map(file => file.replace(/\.mustache$/g, ''));
 
     files.forEach(f => {
-        let file = __dirname + 'templates/' + f + '.mustache';
+        let file = __dirname + '/templates/' + f + '.mustache';
         fileCache[f] = fs.readFileSync(file, 'utf8');
         fs.watch(file, { persistent: false }, (event, name) => {
             if (event != 'change')
@@ -33,8 +33,8 @@ export module utils {
         });
     });
 
-    fs.watch(__dirname + './public/ban', { persistent: false }, (e, n) => {
-        fs.readdir(__dirname + './public/ban', (e, banfiles) => {
+    fs.watch(__dirname + '/public/ban', { persistent: false }, (e, n) => {
+        fs.readdir(__dirname + '/public/ban', (e, banfiles) => {
             banners = banfiles;
         });
     })

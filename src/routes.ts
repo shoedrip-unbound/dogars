@@ -35,7 +35,7 @@ router.use(bodyParser.urlencoded({ extended: true }));
 router.use(cookieParser());
 router.use(compression());
 
-router.use(express.static(__dirname + './public', { lastModified: true }));
+router.use(express.static(__dirname + '/public', { lastModified: true }));
 
 let redirect = (res: express.Response, url: string, timeout = 0) => {
     if (timeout === 0) {
