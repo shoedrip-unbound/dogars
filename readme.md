@@ -1,7 +1,8 @@
 Dogars
 =======
 
-Install with ```npm install```.
+Install with ```npm install```. Build with gulp. Edit the service file to use your path if you use 
+systemd.
 
 Edit ```settings.json``` as you see fit. There's supposed to be a table named ```Sets``` in your database.
 You could infer the proper schema from the code, or get a database dump from dogars.ml.
