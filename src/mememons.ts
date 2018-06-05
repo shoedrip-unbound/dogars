@@ -4,7 +4,7 @@ import {connection} from './PSConnection';
 import {shoestart} from './shoedrip';
 import {router} from './routes';
 
-let settings = JSON.parse(fs.readFileSync('settings.json').toString());
+import { settings } from './settings';
 
 setInterval(() => {
     fs.renameSync('./public/backup.sql', './public/backup' + (+ new Date()) + '.sql');

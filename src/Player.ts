@@ -7,7 +7,7 @@ import { connection, PSConnection } from './PSConnection';
 import { ShowdownMon } from './ShowdownMon';
 import { PSMessage, UpdateSearchMessage, PSRequestMessage, PSRequest } from './PSMessage';
 
-let settings = JSON.parse(fs.readFileSync('settings.json').toString());
+import { settings } from './settings';
 let snooze = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 let suck = (d: string) => JSON.parse(d.substr(1))[0];
 

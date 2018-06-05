@@ -6,7 +6,7 @@ import { Champ } from './Champ';
 import { PSConnection } from './PSConnection';
 import { BattleData } from './BattleData';
 
-let settings   = JSON.parse(fs.readFileSync('settings.json').toString());
+import { settings } from './settings';
 let snooze = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 let checkpass = async (user: string, pass: string) => {

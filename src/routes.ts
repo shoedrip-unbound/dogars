@@ -26,7 +26,7 @@ let upload = multer({ dest: '/tmp' });
 export let router = express();
 let apiai = require('apiai');
 
-let settings = JSON.parse(fs.readFileSync('settings.json').toString());
+import { settings } from './settings';
 let bot = apiai(settings.botkey);
 
 router.set('env', 'production');
@@ -35,7 +35,7 @@ router.use(bodyParser.urlencoded({ extended: true }));
 router.use(cookieParser());
 router.use(compression());
 
-router.use(express.static('./public', { lastModified: true }));
+router.use(express.static(__dirname + './public', { lastModified: true }));
 
 let redirect = (res: express.Response, url: string, timeout = 0) => {
     if (timeout === 0) {

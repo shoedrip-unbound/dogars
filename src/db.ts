@@ -11,9 +11,9 @@ import { BattleData } from './BattleData';
 import { Sets, champs, replays, sets_in_replays } from './Memes';
 import { ShowdownStat } from './ShowdownStats';
 import { SuperSet } from './SuperSet';
+import { settings } from './settings';
 
 let c = mysqlp();
-let settings = JSON.parse(fs.readFileSync('settings.json').toString());
 c.configure(settings.db);
 
 let toId = (text: any) => {
