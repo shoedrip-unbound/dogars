@@ -127,8 +127,9 @@ export class BattleMonitor {
 		this.battleData.memes = this.battlers.get(this.battleData.champ_alias!)!.team!;
 		logger.log(0, `${winner.username} won the battle`);
 		if (this.reg)
-			db.registerChampResult(this.battleData, this.battleData.champ!.showdown_name == winner.username);
+			await db.registerChampResult(this.battleData, this.battleData.champ!.showdown_name == winner.username);
 		this.stopped = true;
+		//this.con.tryLeave(this.room.room);
 	}
 
 	async player(pl: PSPlayerDecl) {
