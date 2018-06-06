@@ -129,7 +129,7 @@ export module pokeUtils {
         const exts = ['png', 'jpg', 'gif'];
 
         exts.map(e => '/sets/' + rich.id + '.' + e)
-            .filter(url => fs.existsSync('./public' + url))
+            .filter(url => fs.existsSync(__dirname + '/public' + url))
             .forEach(url => {
                 rich.img_url = url;
                 rich.cust = true;
