@@ -176,12 +176,12 @@ let messageToPSBattleMessage = (d: string): PSBattleMessage => {
             break;
         case 'win':
             let u = new PSWinMessage();
-            u.username = s[1];
+            u.username = s[1].trim();
             ret = u;
             break; 
         case 'c': // chat
             let c = new PSChatMessage();
-            c.username = s[1];
+            c.username = s[1].trim();
             c.content = s[2];
             ret = c;
             break;
@@ -197,7 +197,7 @@ let messageToPSBattleMessage = (d: string): PSBattleMessage => {
         case 'j': // chat
         default:
             let l = new PSLeaveMessage();            
-            l.username = s[1];
+            l.username = s[1].trim();
             ret = l;
     }
     ret.name = s[0];

@@ -82,7 +82,7 @@ export class BattleMonitor {
 	}
 
 	async j(mes: PSJoinMessage) {
-		if (mes.username == 'Roxle')
+		if (mes.username.indexOf('Roxle') > -1)
 			this.con.message(this.room.room, `Hi ${mes.username}!`);
 	}
 

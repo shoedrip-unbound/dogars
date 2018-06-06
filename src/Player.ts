@@ -93,6 +93,10 @@ export class Player {
 		return this.con.joinRoom(room);
 	}
 
+	tryLeave(room: string) {
+		return this.con.leaveRoom(room);
+	}
+
 	message(room: string, str: string) {
 		this.tryJoin(room);
 		this.con.send(room + '|' + str);

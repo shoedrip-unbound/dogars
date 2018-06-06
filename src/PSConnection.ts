@@ -105,6 +105,15 @@ export class PSConnection {
 		return ret;
 	}
 
+	leaveRoom(room: string) {
+		if(!this.rooms.has(room))
+			return; 
+		let ret: PSRoom = this.rooms.get(room)!;
+		ret.send('/leave');
+		this.rooms.delete(room);
+		return ret;
+	}
+
 	read(filter?: any): Promise<PSMessage> {
 		return new Promise<PSMessage>((res, rej) => {
             if(this.eventqueue.length >= 1) {

@@ -2,3 +2,7 @@ node_modules/
 ignore/
 settings.json
 *~
+dist/*
+built/*
+.vscode/*
+dogars.code-workspace
