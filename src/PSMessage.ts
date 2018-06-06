@@ -195,10 +195,12 @@ let messageToPSBattleMessage = (d: string): PSBattleMessage => {
             break;
         case 'l': // chat
         case 'j': // chat
-        default:
             let l = new PSLeaveMessage();            
             l.username = s[1].trim();
             ret = l;
+            break;
+        default:
+            ret = new PSBattleMessage();
     }
     ret.name = s[0];
     return ret;
