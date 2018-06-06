@@ -4,6 +4,7 @@ import { PSRoom } from './PSRoom';
 import * as SockJS from 'sockjs-client';
 import { utils } from './utils';
 import { Player } from './Player';
+import { settings } from './settings';
 
 let suck = (d: string) => JSON.parse(d.substr(1))[0];
 
@@ -175,7 +176,7 @@ let connection: Player;
 // connection = new PSConnection();
 
 // Named
-connection = new Player("dogars-chan", "486759123");
+connection = new Player(settings.showdown.user, settings.showdown.pass);
 //connection.connect();
 
 export { connection };
