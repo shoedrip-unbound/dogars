@@ -119,7 +119,7 @@ export let shoestart = async () => {
             champ = await getCurrentChamp(thread);
             console.log('Current Thread is ', thread.id);
             console.log('Last champ is ', champ.champ_trip);
-            champ.champ_active = true;
+
             if (champ.champ_battle != oldbattle && champ.champ_active) {
                 oldbattle = champ.champ_battle;
                 if (champ.champ_name != undefined && champ.champ_name != '') {
