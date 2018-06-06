@@ -129,7 +129,7 @@ export class BattleMonitor {
 		if (this.reg)
 			await db.registerChampResult(this.battleData, this.battleData.champ!.showdown_name == winner.username);
 		this.stopped = true;
-		//this.con.tryLeave(this.room.room);
+		this.con.tryLeave(this.room.room);
 	}
 
 	async player(pl: PSPlayerDecl) {
