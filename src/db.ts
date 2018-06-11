@@ -160,14 +160,14 @@ export module db {
             row.format = request.body.format;
         row.creator = request.body.creat.substr(0, 23);
         row.description = request.body.desc.substr(0, 230);
-        row.date_added = +new Date();
         let pok = pokeUtils.parseSet(request.body.set);
         pok.format = row.format;
         let errors = await pokeUtils.checkSet(pok);
         if (errors)
-            throw errors;
+        throw errors;
         for (let i in pok)
-            row[i] = pok[i];
+        row[i] = pok[i];
+        row.date_added = +new Date();
         let data = ['date_added', 'format', 'creator', 'hash', 'name', 'species',
             'gender', 'item', 'ability', 'shiny', 'level', 'happiness', 'nature',
             ...[1, 2, 3, 4].map(id => `move_${id}`),
