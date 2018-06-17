@@ -45,7 +45,7 @@ export module db {
     }
 
     export const createChampFromTrip = async (name: string, trip: string) => await c.query('insert into memes.champs (name, trip) values (?, ?) ', [name || '', trip]);
-    export const addReplay = async (data: ReplayData) => await c.query('insert into memes.replays (link, description, champ, trip, manual) values (?, ?, ?, ?, ?);', [data.link, data.description, data.champ, data.trip, data.manual]);
+    export const addReplay = async (data: ReplayData) => await c.query('insert into memes.replays (link, description, champ, trip, manual) values (?, ?, ?, ?, ?);', [data.link, data.description || '', data.champ || '', data.trip || '', data.manual || 1]);
     export const addSetToReplay = async (setid: number, rid: number) => await c.query('insert into memes.sets_in_replays (idreplay, idset) values (?, ?)', [rid, setid]);
     export const updateChampName = async (trip: string, name: string) => await c.query('update memes.champs set name = ? where trip = ?', [name, trip]);
     export const updateChampAvatar = async (trip: string, aid: string) => await c.query('update memes.champs set avatar = ? where trip = ?', [aid, trip]);
