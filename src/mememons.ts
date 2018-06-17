@@ -21,11 +21,7 @@ setInterval(() => {
     });
 }, 3600 * 1000);
 
-(async () => {
+router.listen(process.argv[2] || 1234, async() => {
     await connection.connect();
     shoestart();
-    console.log('SHOE STARTED');
-    router.listen(process.argv[2] || 1234, () => {
-        console.log("started listening");
-    });
-})();
+});
