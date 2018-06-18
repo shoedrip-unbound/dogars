@@ -21,7 +21,6 @@ setInterval(() => {
     });
 }, 3600 * 1000);
 
-router.listen(process.argv[2] || 1234, async() => {
-    await connection.connect();
-    shoestart();
+router.listen(process.argv[2] || 1234, () => {
+    connection.connect().then(shoestart);
 });

@@ -45,7 +45,7 @@ export module db {
     }
 
     export const createChampFromTrip = async (name: string, trip: string) => await c.query('insert into memes.champs (name, trip) values (?, ?) ', [name || '', trip]);
-    export const addReplay = async (data: ReplayData) => await c.query('insert into memes.replays (link, description, champ, trip, manual) values (?, ?, ?, ?, ?);', [data.link, data.description || '', data.champ || '', data.trip || '', data.manual || 1]);
+    export const addReplay = async (data: ReplayData) => await c.query('insert into memes.replays (link, description, champ, trip, manual) values (?, ?, ?, ?, ?);', [data.link, data.description || '', data.champ || '', data.trip || '', data.manual || 0]);
     export const addSetToReplay = async (setid: number, rid: number) => await c.query('insert into memes.sets_in_replays (idreplay, idset) values (?, ?)', [rid, setid]);
     export const updateChampName = async (trip: string, name: string) => await c.query('update memes.champs set name = ? where trip = ?', [name, trip]);
     export const updateChampAvatar = async (trip: string, aid: string) => await c.query('update memes.champs set avatar = ? where trip = ?', [aid, trip]);
@@ -65,8 +65,8 @@ export module db {
         let replayurl: string;
         try {
             logger.log(0, `Checking elo of ${toId(battleData.champ.showdown_name)}`);
-            let b : string = await request.get(`https://play.pokemonshowdown.com/~~showdown/action.php?act=ladderget&user=${toId(battleData.champ.showdown_name)}`);
-            let stats : ShowdownStat[] = JSON.parse(b.substr(1));
+            let b: string = await request.get(`https://play.pokemonshowdown.com/~~showdown/action.php?act=ladderget&user=${toId(battleData.champ.showdown_name)}`);
+            let stats: ShowdownStat[] = JSON.parse(b.substr(1));
             if (stats.length == 0)
                 throw "Unregistered or never played";
             let oustat = stats.filter(e => e.formatid == 'gen7ou')[0];
@@ -164,9 +164,9 @@ export module db {
         pok.format = row.format;
         let errors = await pokeUtils.checkSet(pok);
         if (errors)
-        throw errors;
+            throw errors;
         for (let i in pok)
-        row[i] = pok[i];
+            row[i] = pok[i];
         row.date_added = +new Date();
         let data = ['date_added', 'format', 'creator', 'hash', 'name', 'species',
             'gender', 'item', 'ability', 'shiny', 'level', 'happiness', 'nature',
@@ -205,10 +205,11 @@ export module db {
 
         try {
             let pok = pokeUtils.parseSet(request.body.set);
+            pok.format = row.format;
             for (let i in pok)
-                row[i] = pok[i];
-            let set = pokeUtils.formatSetFromRow(row);
-            let errors = await pokeUtils.checkSet(set);
+            row[i] = pok[i];
+            row.date_added = +new Date();
+            let errors = await pokeUtils.checkSet(pok);
             if (errors) {
                 throw errors;
             }

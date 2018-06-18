@@ -166,15 +166,15 @@ router.post("/search", async (request, response) => {
             }
         }
     } catch (e) {
-        console.log(e);
+        //console.log(e);
     }
 });
 
-router.get("/search", async (request, response, n) => {
+router.get("/search", async (request: Request, response, n) => {
+    request["defaultTemplate"] = 'all';
     if (request.query.q) {
         let sets = await db.getSetsByName(request.query.q);
         sets = sets.map(pokeUtils.formatSetFromRow);
-        utils.sendTemplate(request, response, 'all', { sets: sets });
     }
     n();
 });
