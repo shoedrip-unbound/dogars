@@ -171,11 +171,14 @@ router.post("/search", async (request, response) => {
 });
 
 router.get("/search", async (request: Request, response, n) => {
-    request["defaultTemplate"] = 'all';
     if (request.query.q) {
         let sets = await db.getSetsByName(request.query.q);
         sets = sets.map(pokeUtils.formatSetFromRow);
+        request['data'] = { sets: sets }
+        request["defaultTemplate"] = 'all';
     }
+    else
+        request["defaultTemplate"] = 'search';
     n();
 });
 
@@ -187,7 +190,7 @@ let repl = async (request: express.Request, response: express.Response, manual: 
     for (let i = 0; i < replays.length; ++i)
         while (idx < sets.length && sets[idx].idreplay == replays[i].id)
             memes.push(sets[idx++]);
-    replays = replays.map((r, i) => utils.extend(r, { 
+    replays = replays.map((r, i) => utils.extend(r, {
         memes: memes.filter(m => r.id == m.idreplay).map(pokeUtils.formatSetFromRow)
     }));
     let data = {
@@ -232,7 +235,7 @@ router.post("/replays", async (request, response) => {
 
 router.get("/fame", async (request: Request, response: express.Response, n) => {
     request["data"] = await db.getSetsByProperty({ has_custom: 1 })
-    request["data"] = {sets: request["data"].map(pokeUtils.formatSetFromRow)};
+    request["data"] = { sets: request["data"].map(pokeUtils.formatSetFromRow) };
     n();
 });
 
@@ -300,7 +303,7 @@ router.post("/suggest", upload.single('sugg'), (request, response, next) => {
             fs.readdir(dir, (e, f) => {
                 if (e)
                     throw e;
-                mv(request.file.path, dir + '/' + f.length + '-' + request.file.originalname, { mkdirp: true }, () => {});
+                mv(request.file.path, dir + '/' + f.length + '-' + request.file.originalname, { mkdirp: true }, () => { });
             });
         });
     }
