@@ -8,8 +8,6 @@ import { ShowdownMon } from './ShowdownMon';
 import { PSMessage, UpdateSearchMessage, PSRequestMessage, PSRequest } from './PSMessage';
 
 import { settings } from './settings';
-let snooze = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-let suck = (d: string) => JSON.parse(d.substr(1))[0];
 
 let headers = {
 	'accept': '*/*',

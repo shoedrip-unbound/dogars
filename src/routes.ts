@@ -1,3 +1,4 @@
+import "reflect-metadata"
 import fs = require('fs');
 import cp = require('child_process');
 import tripcode = require('tripcode');
@@ -5,10 +6,10 @@ import mustache = require('mustache');
 import mkdirp = require('mkdirp');
 import mv = require('mv');
 import { pokeUtils } from './poke-utils';
-import { db } from './db';
-import { Notes } from './git-notes';
+import * as db from './mongo';
+import { getSetOfTheDay, extend, sendTemplate, getCookieData, render, genericData, toId } from './utils';
+import * as Notes from './git-notes';
 import { emotionmap } from './emotions';
-import { utils } from './utils';
 import { logger } from './logger';
 
 import cookieParser = require('cookie-parser');
@@ -19,7 +20,6 @@ import compression = require('compression');
 import url = require('url');
 import { NextFunction, RequestHandlerParams } from 'express-serve-static-core';
 import { request } from 'websocket';
-import { replays, sets_in_replays, Sets } from './Memes';
 import { Request } from './dogars-request';
 
 let upload = multer({ dest: '/tmp' });
@@ -27,6 +27,8 @@ export let router = express();
 let apiai = require('apiai');
 
 import { settings } from './settings';
+import { Replay } from './entities/Replay';
+import { Sets } from './entities/Sets';
 let bot = apiai(settings.botkey);
 
 router.set('env', 'production');
@@ -35,7 +37,7 @@ router.use(bodyParser.urlencoded({ extended: true }));
 router.use(cookieParser());
 router.use(compression());
 
-router.use(express.static(__dirname + '/public', { lastModified: true }));
+router.use(express.static(settings.ressources + '/public', { lastModified: true }));
 
 let redirect = (res: express.Response, url: string, timeout = 0) => {
     if (timeout === 0) {
@@ -55,7 +57,7 @@ router.use((req: Request, res: express.Response, n: NextFunction) => {
 
 router.get("/", async (request: Request, response: express.Response, n: NextFunction) => {
     try {
-        request["data"] = await utils.getSetOfTheDay();
+        request["data"] = await getSetOfTheDay();
         n();
     } catch (e) {
         console.log(e);
@@ -64,12 +66,12 @@ router.get("/", async (request: Request, response: express.Response, n: NextFunc
 
 router.get("/all", async (request: Request, response: express.Response, n: NextFunction) => {
     let spp = 15; //request.query.spp || 10;
-    let npages = ~~(db.total / spp) + (db.total % ~~(spp != 0));
+    let npages = ~~(db.total / spp) + +((db.total % spp) != 0);
     let page = request.query.page || 0;
     page = ~~page;
-    let sets = await db.getSetsPage(spp, page);
-    sets = sets.map(pokeUtils.formatSetFromRow);
-    let data = utils.extend({ sets: sets }, { display_pages: true, current_page: ~~page + 1, npages: npages, lastpage: npages - 1 });
+    let setsc = await db.SetsCollection.find().sort({id: -1}).skip(spp * page).limit(spp);
+    let sets = await setsc.map(pokeUtils.formatSetFromRow).toArray();
+    let data = extend({ sets: sets }, { display_pages: true, current_page: ~~page + 1, npages: npages, lastpage: npages - 1 });
     if (page > 0) {
         data.prev = ~~page - 1;
         data.has_prev = true;
@@ -91,28 +93,23 @@ router.get("/thanks", (request, response) => {
 
 router.post("/update/:id", async (request, response, next) => {
     try {
-        if (request.body.action == "Update") {
-            logger.log(0, "Updating set", request.params.id);
-            await db.updateSet(request);
-        } else if (request.body.action == "Delete") {
-            logger.log(0, "Deleting set", request.params.id);
-            await db.deleteSet(request);
-        }
+        let fun = request.body.action == "Delete" ? db.deleteSet : db.updateSet;
+        await fun(request.params.id, request.params.trip, request.body);
         redirect(response, '/set/' + request.params.id);
     } catch (e) {
         logger.log(0, "Rejecting modifications to set", request.params.id);
         e = e.replace(/\|\|/g, '\n');
         e = e.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2');
         redirect(response, '/import', 10);
-        utils.sendTemplate(request, response, 'reject', { reason: e });
+        sendTemplate(request, response, 'reject', { reason: e });
     }
 });
 
 router.post("/add", async (request, response) => {
     try {
-        let info = await db.createNewSet(request);
+        let info = await db.createNewSet(request.body);
         logger.log(0, "Added a new set...");
-        redirect(response, '/set/' + info[0].insertId);
+        redirect(response, '/set/' + info.id);
     } catch (e) {
         logger.log(0, "Rejecting new set...");
         try {
@@ -125,7 +122,7 @@ router.post("/add", async (request, response) => {
         } catch (e) {
             e = 'Unknown reasons';
         }
-        utils.sendTemplate(request, response, 'reject', { reason: e });
+        sendTemplate(request, response, 'reject', { reason: e });
     }
 });
 
@@ -145,9 +142,14 @@ router.post("/search", async (request, response) => {
             .filter(attr => request.body[attr] === '')
             .forEach(attr => { delete request.body[attr] });
         if (request.body.q) {
-            let sets = await db.getSetsByName(request.body.q)
-            sets = sets.map(pokeUtils.formatSetFromRow);
-            utils.sendTemplate(request, response, 'all', { sets: sets });
+            let pattern = { $regex: `/${toId(request.body.q)}/` };
+            let matching = ['name', 'item', 'species', ...[1, 2, 3, 4].map(e => `move_${e}`)]
+            let csets = await db.SetsCollection.find(matching.reduce((a: any, b: string) => {
+                a[b] = pattern;
+                return a;
+            }, {}));
+            let sets = await csets.map(pokeUtils.formatSetFromRow).toArray();
+            sendTemplate(request, response, 'all', { sets });
         } else { // Advanced search
             let data = ['date_added', 'format', 'creator', 'hash', 'name', 'species',
                 'gender', 'item', 'ability', 'shiny', 'level', 'happiness', 'nature',
@@ -158,11 +160,11 @@ router.post("/search", async (request, response) => {
                 .filter(v => !data.includes(v))
                 .forEach(attr => { delete request.body[attr] });
             if (request.body == {}) {
-                utils.sendTemplate(request, response, 'all', { sets: [] });
+                sendTemplate(request, response, 'all', { sets: [] });
             } else {
-                let sets = await db.getSetsByProperty(request.body);
-                sets = sets.map(e => { return pokeUtils.formatSetFromRow(e) });
-                utils.sendTemplate(request, response, 'all', { sets: sets });
+                let csets = await db.SetsCollection.find(request.body);
+                let sets = csets.map(pokeUtils.formatSetFromRow).toArray();
+                sendTemplate(request, response, 'all', { sets });
             }
         }
     } catch (e) {
@@ -172,9 +174,14 @@ router.post("/search", async (request, response) => {
 
 router.get("/search", async (request: Request, response, n) => {
     if (request.query.q) {
-        let sets = await db.getSetsByName(request.query.q);
-        sets = sets.map(pokeUtils.formatSetFromRow);
-        request['data'] = { sets: sets }
+        let pattern = { $regex: `/${toId(request.body.q)}/` };
+        let matching = ['name', 'item', 'species', ...[1, 2, 3, 4].map(e => `move_${e}`)]
+        let csets = await db.SetsCollection.find(matching.reduce((a: any, b: string) => {
+            a[b] = pattern;
+            return a;
+        }, {}));
+        let sets = await csets.map(pokeUtils.formatSetFromRow).toArray();
+        request['data'] = { sets }
         request["defaultTemplate"] = 'all';
     }
     else
@@ -183,21 +190,12 @@ router.get("/search", async (request: Request, response, n) => {
 });
 
 let repl = async (request: express.Request, response: express.Response, manual: boolean, template: string, aname: string) => {
-    let replays = await db.getReplays(manual);
-    let sets = await db.getReplaysSets(manual);
-    let memes: (replays & sets_in_replays & Sets)[] = [];
-    let idx = 0;
-    for (let i = 0; i < replays.length; ++i)
-        while (idx < sets.length && sets[idx].idreplay == replays[i].id)
-            memes.push(sets[idx++]);
-    replays = replays.map((r, i) => utils.extend(r, {
-        memes: memes.filter(m => r.id == m.idreplay).map(pokeUtils.formatSetFromRow)
-    }));
+    let replays = await db.ReplaysCollection.find({ manual: +manual }).sort({id: -1}).toArray();
     let data = {
         [aname]: replays,
         'error': request.query.fail
     }
-    utils.sendTemplate(request, response, template, data);
+    sendTemplate(request, response, template, data);
 }
 
 router.get("/replays", async (request, response, n) => {
@@ -210,23 +208,33 @@ router.get("/replays/auto", async (request, response, n) => {
 
 router.get("/replays/add/:id", (request, response) => {
     let data = { id: request.params.id };
-    utils.sendTemplate(request, response, 'addrset', data);
+    sendTemplate(request, response, 'addrset', data);
 });
 
 router.post("/replays/add/:id", async (request, response) => {
     let id = request.body.set.match(/https?:\/\/dogars\.ml\/set\/([0-9]+)/)[1];
     if (!id) {
         redirect(response, '/replays', 5);
-        utils.sendTemplate(request, response, 'genreject', { reason: 'Your submission was rejected because the URL was wrong' });
+        sendTemplate(request, response, 'genreject', { reason: 'Your submission was rejected because the URL was wrong' });
         return;
     }
-    await db.addSetToReplay(id, request.params.id);
+    let set = await db.SetsCollection.findOne({ id });
+    if (!set) {
+        redirect(response, '/replays', 5);
+        sendTemplate(request, response, 'genreject', { reason: 'Your submission was rejected because the URL was wrong' });
+        return;
+    }
+    await db.ReplaysCollection.updateOne({id: request.params.id}, {
+        $push: {sets: set}
+    });
     redirect(response, '/replays');
 });
 
 router.post("/replays", async (request, response) => {
     if (/https?:\/\/replay.pokemonshowdown.com\/(.*)-[0-9]*/.test(request.body.link)) {
-        await db.addReplay(utils.extend(request.body, { manual: true }));
+        let repl = new Replay(request.body.link,
+            request.body.description, '', '', true);
+        await db.ReplaysCollection.insertOne(repl);
         redirect(response, '/replays');
     } else {
         redirect(response, '/replays?fail=true');
@@ -234,7 +242,7 @@ router.post("/replays", async (request, response) => {
 });
 
 router.get("/fame", async (request: Request, response: express.Response, n) => {
-    request["data"] = await db.getSetsByProperty({ has_custom: 1 })
+    request["data"] = await db.SetsCollection.find({ has_custom: 1 }).toArray();
     request["data"] = { sets: request["data"].map(pokeUtils.formatSetFromRow) };
     n();
 });
@@ -243,7 +251,7 @@ router.post("/lillie", async (request, response, n) => {
     try {
         //hack
         request.headers.cookie = request.body.cook;
-        let data = utils.getCookieData(request, response);
+        let data = getCookieData(request, response);
         if (!data.talkSession || !request.body.message) {
             response.send(JSON.stringify({}));
             response.end();
@@ -253,7 +261,7 @@ router.post("/lillie", async (request, response, n) => {
             sessionId: data.talkSession
         });
         req.on('response', (r: any) => {
-            let output = utils.extend(r.result, {
+            let output = extend(r.result, {
                 emotion: emotionmap[r.result.action] || ''
             });
             response.send(JSON.stringify(output));
@@ -273,23 +281,23 @@ router.post("/lillie", async (request, response, n) => {
 });
 
 router.get("/champs", async (request: Request, response: express.Response, n) => {
-    let champs = await db.getChamps();
-    request["data"] = { champs: champs };
+    let champs = await db.ChampsCollection.find().toArray();
+    request["data"] = { champs };
     n();
 });
 
 router.get("/suggest/:type", async (request, response) => {
     let data = {};
     if (request.params.type == 'banner') {
-        utils.sendTemplate(request, response, 'suggest-banner');
+        sendTemplate(request, response, 'suggest-banner');
     } else if (/^\d+$/.test(request.params.type)) {
-        let set = (await db.getSetById(request.params.type))[0];
+        let set = await db.SetsCollection.findOne(request.params.type);
         if (!set) {
             redirect(response, '/');
             return;
         }
         set = pokeUtils.formatSetFromRow(set);
-        utils.sendTemplate(request, response, 'suggest-set', set);
+        sendTemplate(request, response, 'suggest-set', set);
     }
 });
 
@@ -319,7 +327,7 @@ router.post("/suggest", upload.single('sugg'), (request, response, next) => {
 });
 
 router.get("/set/:id", async (request: Request, response: express.Response, n) => {
-    let set = (await db.getSetById(request.params.id))[0];
+    let set = await db.SetsCollection.findOne({ id: +request.params.id });
     if (!set) {
         redirect(response, '/');
         return;
@@ -335,7 +343,7 @@ router.get("/changelog", async (request: Request, response: express.Response, n)
         if (!mynotes) {
             mynotes = await Notes.get(); // [{commit:, msg:}, ...]
             mynotes = mynotes.filter(item => item.type)
-                .map(item => utils.extend(item, { type: item.type.indexOf('bug') == 0 ? 'bug' : 'plus-square', commit: item.commit.substr(0, 6) }));
+                .map(item => extend(item, { type: item.type.indexOf('bug') == 0 ? 'bug' : 'plus-square', commit: item.commit.substr(0, 6) }));
         }
         request['data'] = { notes: mynotes };
     } catch (e) {
@@ -362,24 +370,24 @@ router.post("/contact", async (request, response, next) => {
         redirect(response, '/thanks');
     } catch (e) {
         response.status(500);
-        response.send(utils.render('404', utils.genericData(request, response)));
+        response.send(render('404', genericData(request, response)));
         response.end();
     }
 });
 
 router.use(async (req: Request, res: express.Response, n: NextFunction) => {
-    utils.sendTemplate(req, res, req["defaultTemplate"]);
+    sendTemplate(req, res, req["defaultTemplate"]);
 });
 
 router.use(function (request, response) {
     response.status(404);
-    response.send(utils.render('404', utils.genericData(request, response)));
+    response.send(render('404', genericData(request, response)));
     response.end();
 });
 
 router.use(function (error: string, request: express.Request, response: express.Response, next: NextFunction) {
     console.log(error);
     response.status(500);
-    response.send(utils.render('500', utils.genericData(request, response)));
+    response.send(render('500', genericData(request, response)));
     response.end();
 });

@@ -1,4 +1,4 @@
-import { db } from './db';
+import { registerChampResult } from './mongo';
 import { connection, PSConnection } from './PSConnection';
 import { PlayerHijack } from './PlayerHijack';
 import { Champ } from './Champ'
@@ -9,30 +9,7 @@ import { PSRoom } from './PSRoom';
 import { PSBattleMessage, PSLeaveMessage, PSWinMessage, PSChatMessage, PSJoinMessage, PSPlayerDecl, PSSwitchMessage, PSFaintMessage } from './PSMessage';
 import { Player } from './Player';
 import { Game } from './Game';
-
-// stolen from gist
-let levenshtein = (a: string, b: string) => {
-	var tmp;
-	a = a || '';
-	b = b || '';
-	if (a.length === 0) { return b.length; }
-	if (b.length === 0) { return a.length; }
-	if (a.length > b.length) { tmp = a; a = b; b = tmp; }
-
-	var i, j, res, alen = a.length, blen = b.length, row = Array(alen);
-	for (i = 0; i <= alen; i++) { row[i] = i; }
-
-	for (i = 1; i <= blen; i++) {
-		res = i;
-		for (j = 1; j <= alen; j++) {
-			tmp = row[j - 1];
-			row[j - 1] = res;
-			res = b[i - 1] === a[j - 1] ? tmp : Math.min(tmp + 1,
-				Math.min(res + 1, row[j] + 1));
-		}
-	}
-	return res;
-}
+import { levenshtein } from './utils';
 
 class BattleEvent {
 	name: string = '';
@@ -64,7 +41,7 @@ export class BattleMonitor {
 		this.battleData.dist = 100;
 		this.battleData.roomid = this.champ.champ_battle.match(/battle-(.*)\/?/)![0];
 		this.room = this.con.tryJoin(this.champ.champ_battle.match(/(battle-.*)\/?/)![0]);
-	//		this.room = this.con.joinRoom();
+		//		this.room = this.con.joinRoom();
 
 		this.events = {
 			l: this.l,
@@ -127,7 +104,7 @@ export class BattleMonitor {
 		this.battleData.memes = this.battlers.get(this.battleData.champ_alias!)!.team!;
 		logger.log(0, `${winner.username} won the battle`);
 		if (this.reg)
-			await db.registerChampResult(this.battleData, this.battleData.champ!.showdown_name == winner.username);
+			await registerChampResult(this.battleData, this.battleData.champ!.showdown_name == winner.username);
 		this.stopped = true;
 		this.con.tryLeave(this.room.room);
 	}

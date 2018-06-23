@@ -1,14 +1,13 @@
 import { PSConnection } from "./PSConnection";
 import { PSRoom } from "./PSRoom";
 import { Player } from "./Player";
-import { Sets } from "./Memes";
 
 export class Game {
     room: string = '';
     con: PSConnection;
     p1?: Player;
     p2?: Player;
-    myTeam?: Property<any[]>;
+    myTeam?: any[];
 
     constructor(con : PSConnection, room: string) {
         this.room = room;
@@ -16,7 +15,7 @@ export class Game {
     }
 
     getTeam() {
-        return this.myTeam!.value;
+        return this.myTeam!;
     }
 
     toString() {

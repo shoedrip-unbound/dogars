@@ -1,24 +1,14 @@
 import * as request from 'request-promise-native';
 import { BattleMonitor } from './BattleMonitor';
-import { db } from './db';
+import * as mongo from './mongo';
 import { logger } from './logger';
 import { Champ } from './Champ';
 import { fchan } from './fchan';
+import { snooze } from './utils';
 
 export let champ: Champ = new Champ();
 
 let max = (a: number, b: number) => a < b ? b : a;
-
-let timeout = (prom: Promise<any>, timeout: number) => new Promise((res, rej) => {
-    let id = setTimeout(rej, timeout);
-    prom.then((x) => {
-        clearTimeout(id);
-        res(x);
-    }).catch(() => {
-        clearTimeout(id);
-        rej();
-    });
-});
 
 let getCurrentThread = async () => {
     let catalog = await fchan.getBoard('vp');
@@ -86,55 +76,23 @@ let getCurrentChamp = async (thread: fchan.Thread) => {
 
 let oldbattle: string = '';
 
-// stolen from gist
-// but leven(((shtein))) is actually garbage at detecting similar nicknames
-let levenshtein = (a: string, b: string) => {
-    let tmp;
-    a = a || '';
-    b = b || '';
-    if (a.length === 0) { return b.length; }
-    if (b.length === 0) { return a.length; }
-    if (a.length > b.length) { tmp = a; a = b; b = tmp; }
-
-    let i, j, res, alen = a.length, blen = b.length, row = Array(alen);
-    for (i = 0; i <= alen; i++) { row[i] = i; }
-
-    for (i = 1; i <= blen; i++) {
-        res = i;
-        for (j = 1; j <= alen; j++) {
-            tmp = row[j - 1];
-            row[j - 1] = res;
-            res = b[i - 1] === a[j - 1] ? tmp : Math.min(tmp + 1, res + 1, row[j] + 1);
-        }
-    }
-    return res;
-}
-
-let snooze = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
 export let shoestart = async () => {
     while (true) {
         try {
             let thread = await getCurrentThread();
             champ = await getCurrentChamp(thread);
-            console.log('Current Thread is ', thread.id);
-            console.log('Last champ is ', champ.champ_trip);
 
             if (champ.champ_battle != oldbattle && champ.champ_active) {
                 oldbattle = champ.champ_battle;
-                if (champ.champ_name != undefined && champ.champ_name != '') {
-                    logger.log(0, `Champ has a name so we can monitor battle`);
-                    let bm = new BattleMonitor(champ);
-                    bm.monitor();
-                } else {
-                    logger.log(0, `Champ has no name so we can't monitor battle`);
-                }
+                logger.log(0, `Champ has a name so we can monitor battle`);
+                let bm = new BattleMonitor(champ, !!champ.champ_name);
+                bm.monitor();
             }
             if (champ.champ_active) {
-                let dbchamp = await db.getChampFromTrip(champ.champ_trip);
+                let dbchamp = await mongo.ChampsCollection.findOne({trip: champ.champ_trip});
                 champ.avatar = '166';
-                if (dbchamp && dbchamp.length) {
-                    champ.avatar = dbchamp[0].avatar!;
+                if (dbchamp) {
+                    champ.avatar = dbchamp.avatar!;
                 }
             }
         }

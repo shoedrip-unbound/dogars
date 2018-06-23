@@ -7,7 +7,8 @@ import { PSConnection } from './PSConnection';
 import { BattleData } from './BattleData';
 
 import { settings } from './settings';
-let snooze = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+import { snooze } from './utils';
+
 
 let checkpass = async (user: string, pass: string) => {
 	let fakechal = '4|034a2f187c98af6da8790273cb5314157d922e1c932aeb6538f5b4c3acdb88809ffdb03f053014e7795a8725d27de1ebdd782ff612484918d0aa43caeab7c66586c83b95f456ccb996b6a94e9aeaa66f18773d401915da8f3899d2715d1dae309ff49c6ff9306ad4ae109be871efd078b69bf19a1b7cccff14976282996668a6';

@@ -3,31 +3,16 @@ import mustache = require('mustache');
 import request = require('request-promise-native');
 import pokedexd = require('./pokedex.js');
 import { connection } from './PSConnection';
-import { Sets } from './Memes.js';
 import { SuperSet } from './SuperSet';
-import { SetTextForm } from './SetTextForm';
 import { PSCheckTeamRequest, PSSaveBattleRequest } from './PSMessage';
+import { suck, toId, clamp, inverse } from './utils';
+import { settings } from './settings';
+import { Sets } from './entities/Sets';
+import { buildCheckableSet } from './mongo';
 let pokedex = pokedexd.BattlePokedex;
 
-let suck = (d:string) => JSON.parse(d.substr(1))[0]
-
-let clamp = (min: number, val: number, max: number) => {
-    if (val < min)
-        return min;
-    if (val > max)
-        return max;
-    return val;
-}
-
-let inverse = (o: any) => {
-    let r: any = {};
-    for (var k in o)
-        r[o[k]] = k;
-    return r;
-}
-
 // Shamelessly stolen and adapted from showdown-client
-let BattleStatIDs : {[idx:string]: string} = {
+let BattleStatIDs: { [idx: string]: string } = {
     HP: 'hp',
     hp: 'hp',
     Atk: 'atk',
@@ -46,17 +31,6 @@ let BattleStatIDs : {[idx:string]: string} = {
     Spd: 'spe',
     spe: 'spe'
 };
-
-let toId = (text: any) => {
-    // this is a duplicate of Dex.getId, for performance reasons
-    if (text && text.id) {
-        text = text.id;
-    } else if (text && text.userid) {
-        text = text.userid;
-    }
-    if (typeof text !== 'string' && typeof text !== 'number') return '';
-    return ('' + text).toLowerCase().replace(/[^a-z0-9]+/g, '');
-}
 
 let getTemplate = (name: string) => {
     name = toId(name);
@@ -129,7 +103,7 @@ export module pokeUtils {
         const exts = ['png', 'jpg', 'gif'];
 
         exts.map(e => '/sets/' + rich.id + '.' + e)
-            .filter(url => fs.existsSync(__dirname + '/public' + url))
+            .filter(url => fs.existsSync(settings.ressources + '/public' + url))
             .forEach(url => {
                 rich.img_url = url;
                 rich.cust = true;
@@ -170,7 +144,7 @@ export module pokeUtils {
         return rich;
     }
 
-    export let parseSet = (text: SetTextForm) => {
+    export let parseSet = (text: string) => {
         let stext = text.split("\n");
         var team = [];
         var curSet = new SuperSet();
@@ -308,7 +282,8 @@ export module pokeUtils {
     }
 
     export let checkSet = async (set: Sets) => {
-        await connection.setTeam(pack(set));
+        let cset = buildCheckableSet(set);
+        await connection.setTeam(pack(cset));
         let req = new PSCheckTeamRequest(set.format!);
         let res = await connection.request(req);
         if (res.failed)

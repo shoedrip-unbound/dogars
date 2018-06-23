@@ -1,7 +1,7 @@
 import { PSConnection } from "./PSConnection";
 import { EventEmitter } from "events";
 import { PSMessage, PSBattleMessage } from "./PSMessage";
-import { utils } from "./utils";
+import { match } from "./utils";
 
 export class PSRoom {
     con: PSConnection;
@@ -16,7 +16,7 @@ export class PSRoom {
     }
 
     recv(ev: PSBattleMessage) {
-        if(this.res && (this.res.filter === undefined || utils.match(ev, this.res.filter))) {
+        if(this.res && (this.res.filter === undefined || match(ev, this.res.filter))) {
             this.res.res(ev);
             this.res = undefined;
         }
@@ -27,7 +27,7 @@ export class PSRoom {
     async read(filter?: any) : Promise<PSBattleMessage> {
         return new Promise<PSBattleMessage>((res, rej) => {
             if(this.messqueu.length >= 1) {
-                let idx = this.messqueu.findIndex(m => filter === undefined || utils.match(m, filter));
+                let idx = this.messqueu.findIndex(m => filter === undefined || match(m, filter));
                 return res(this.messqueu.splice(idx, 1)[0]!);
             }
             this.res = {filter, res};

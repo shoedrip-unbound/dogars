@@ -2,11 +2,11 @@
 declare let mysql: () => MySqlClient;
 
 declare class MySqlDBOptions {
-    host: "127.0.0.1";
-    user: "";
-    database: "";
-    password: "";
-    charset: "utf8mb4";
+    host: string;
+    user: string;
+    database: string;
+    password: string;
+    charset: string;
 }
 
 declare interface MySqlClient {

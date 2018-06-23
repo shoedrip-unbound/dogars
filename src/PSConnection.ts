@@ -2,11 +2,9 @@ import { logger } from './logger';
 import { eventToPSMessages, PSMessage, Challstr, eventToPSBattleMessage, PSRequest, PSRoomRequest, QueryResponse, Formats, UpdateUser } from './PSMessage';
 import { PSRoom } from './PSRoom';
 import * as SockJS from 'sockjs-client';
-import { utils } from './utils';
+import { match } from './utils';
 import { Player } from './Player';
 import { settings } from './settings';
-
-let suck = (d: string) => JSON.parse(d.substr(1))[0];
 
 export class PSConnection {
 	usable: boolean = false;
@@ -65,7 +63,7 @@ export class PSConnection {
 					let remove = mesgs.some(e => r.req.isResponse(e));
 					return !handled;
 				});
-				if(this.readprom && (this.readprom.filter === undefined || utils.match(mesgs[0], this.readprom.filter))) {
+				if(this.readprom && (this.readprom.filter === undefined || match(mesgs[0], this.readprom.filter))) {
 					this.readprom.res(mesgs.shift()!);
 					this.readprom = undefined;
 				}
@@ -117,7 +115,7 @@ export class PSConnection {
 	read(filter?: any): Promise<PSMessage> {
 		return new Promise<PSMessage>((res, rej) => {
             if(this.eventqueue.length >= 1) {
-                let idx = this.eventqueue.findIndex(m => utils.match(m, filter));
+                let idx = this.eventqueue.findIndex(m => match(m, filter));
                 return res(this.eventqueue.splice(idx, 1)[0]!);
             }
             this.readprom = {filter, res};
