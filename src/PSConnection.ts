@@ -8,7 +8,7 @@ import { settings } from './settings';
 
 export class PSConnection {
 	usable: boolean = false;
-	ws : WebSocket;
+	ws: WebSocket;
 	wscache: string[] = [];
 	iid?: NodeJS.Timer;
 	challstrraw: string = '';
@@ -18,13 +18,13 @@ export class PSConnection {
 	openprom?: () => void;
 	openrej?: () => void;
 	opened = false;
-	readprom?: {filter: any, res: (ev: PSMessage) => void};
+	readprom?: { filter: any, res: (ev: PSMessage) => void };
 	requests: ({ req: PSRequest<any>; res: (value?: any) => void; })[] = [];
 	roomrequests: ({ req: PSRoomRequest<any>; res: (value?: any) => void; })[] = [];
 
 	clear() {
 		this.usable = false;
-			this.ws.close();
+		this.ws.close();
 		this.ws = new SockJS('https://sim2.psim.us/showdown');
 	}
 
@@ -63,7 +63,7 @@ export class PSConnection {
 					let remove = mesgs.some(e => r.req.isResponse(e));
 					return !handled;
 				});
-				if(this.readprom && (this.readprom.filter === undefined || match(mesgs[0], this.readprom.filter))) {
+				if (this.readprom && (this.readprom.filter === undefined || match(mesgs[0], this.readprom.filter))) {
 					this.readprom.res(mesgs.shift()!);
 					this.readprom = undefined;
 				}
@@ -87,7 +87,7 @@ export class PSConnection {
 			this.usable = false;
 			this.openrej && this.openrej();
 		}
-		
+
 	}
 
 	send(data: string | ArrayBufferLike | Blob | ArrayBufferView) {
@@ -95,8 +95,8 @@ export class PSConnection {
 	}
 
 	joinRoom(room: string): PSRoom {
-		if(this.rooms.has(room))
-			return this.rooms.get(room)!; 
+		if (this.rooms.has(room))
+			return this.rooms.get(room)!;
 		let ret: PSRoom = new PSRoom(this, room);
 		this.ws.send('|/join ' + room);
 		this.rooms.set(room, ret);
@@ -104,8 +104,8 @@ export class PSConnection {
 	}
 
 	leaveRoom(room: string) {
-		if(!this.rooms.has(room))
-			return; 
+		if (!this.rooms.has(room))
+			return;
 		let ret: PSRoom = this.rooms.get(room)!;
 		ret.send('/leave');
 		this.rooms.delete(room);
@@ -114,12 +114,12 @@ export class PSConnection {
 
 	read(filter?: any): Promise<PSMessage> {
 		return new Promise<PSMessage>((res, rej) => {
-            if(this.eventqueue.length >= 1) {
-                let idx = this.eventqueue.findIndex(m => match(m, filter));
-                return res(this.eventqueue.splice(idx, 1)[0]!);
-            }
-            this.readprom = {filter, res};
-        });
+			if (this.eventqueue.length >= 1) {
+				let idx = this.eventqueue.findIndex(m => match(m, filter));
+				return res(this.eventqueue.splice(idx, 1)[0]!);
+			}
+			this.readprom = { filter, res };
+		});
 	}
 
 	close() {
@@ -130,9 +130,9 @@ export class PSConnection {
 	request(req: PSRequest<any>): Promise<any> {
 		return new Promise<any>((res, rej) => {
 			this.send(req.toString());
-			this.requests.push({req, res});
+			this.requests.push({ req, res });
 		})
-    }
+	}
 
 	open() {
 		console.log(this.opened);
@@ -142,6 +142,7 @@ export class PSConnection {
 			console.log("stating promise resolve");
 			this.openprom = res;
 			this.openrej = rej;
+			this.ws = new SockJS('https://sim2.psim.us/showdown');
 		});
 	}
 
@@ -151,8 +152,8 @@ export class PSConnection {
 		}
 		try {
 			await this.open();
-			
-			let user = await this.read({event_name: 'updateuser'}) as UpdateUser;
+
+			let user = await this.read({ event_name: 'updateuser' }) as UpdateUser;
 			let formats = await this.read({
 				event_name: 'formats'
 			}) as Formats;
@@ -160,7 +161,7 @@ export class PSConnection {
 				event_name: 'queryresponse'
 			}) as QueryResponse;
 			// don't care yet
-			this.challstrraw = (await this.read({event_name: 'challstr'}) as Challstr).challstr;
+			this.challstrraw = (await this.read({ event_name: 'challstr' }) as Challstr).challstr;
 			this.usable = true;
 
 			// heartbeat
