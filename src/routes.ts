@@ -145,7 +145,7 @@ router.post("/search", async (request, response) => {
             let matching = ['name', 'item', 'species', ...[1, 2, 3, 4].map(e => `move_${e}`)]
             let csets = await db.SetsCollection.find({
                 $or: matching.map(k => {
-                    return { [k]: new RegExp(toId(request.query.q), 'i') };
+                    return { [k]: new RegExp(request.query.q, 'i') };
             })});
             let sets = await csets.map(pokeUtils.formatSetFromRow).toArray();
             sendTemplate(request, response, 'all', { sets });
@@ -164,7 +164,7 @@ router.post("/search", async (request, response) => {
                 let csets = await db.SetsCollection.find({
                     $and: decompose(request.body).map(k => {
                         let prop = Object.keys(k)[0];
-                        k[prop] = new RegExp(toId(k[prop]), 'i');
+                        k[prop] = new RegExp(k[prop], 'i');
                         return k;
                     })});
                 let sets = await csets.map(pokeUtils.formatSetFromRow).toArray();
@@ -181,7 +181,7 @@ router.get("/search", async (request: Request, response, n) => {
         let matching = ['name', 'item', 'species', ...[1, 2, 3, 4].map(e => `move_${e}`)]
         let csets = await db.SetsCollection.find({
             $or: matching.map(k => {
-                return { [k]: new RegExp(toId(request.query.q), 'i') };
+                return { [k]: new RegExp(request.query.q, 'i') };
         })});
         let sets = await csets.map(pokeUtils.formatSetFromRow).toArray();
         request['data'] = { sets }

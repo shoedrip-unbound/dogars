@@ -165,7 +165,7 @@ export const updateSet = async (id: number, trip: string, info: { format: string
         throw 'No such set';
     if (trip != settings.admin_pass && (!uset.hash || !trip))
         throw 'No tripcode associated with this set or no tripcode given';
-    if (!(trip == settings.admin_pass || row.hash == tripcode(trip)))
+    if (!(trip == settings.admin_pass || uset.hash == tripcode(trip)))
         throw 'Wrong tripcode';
     uset.format = "gen7ou";
     let formats = ["gen7ou", "gen7anythinggoes", "ubers", "uu", "ru",
