@@ -146,11 +146,6 @@ let convert = async () => {
     console.log("Finished copying replays");
 }
 
-(async () => {
-    await init();
-})();
-
-
 export const deleteSet = async (id: number, trip: string, ignored?: any) => {
     let row = await SetsCollection.findOne({ id });
     if (!row)
