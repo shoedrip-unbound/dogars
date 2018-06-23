@@ -7,7 +7,7 @@ import mkdirp = require('mkdirp');
 import mv = require('mv');
 import { pokeUtils } from './poke-utils';
 import * as db from './mongo';
-import { getSetOfTheDay, extend, sendTemplate, getCookieData, render, genericData, toId } from './utils';
+import { getSetOfTheDay, extend, sendTemplate, getCookieData, render, genericData, toId, decompose } from './utils';
 import * as Notes from './git-notes';
 import { emotionmap } from './emotions';
 import { logger } from './logger';
@@ -94,7 +94,7 @@ router.get("/thanks", (request, response) => {
 router.post("/update/:id", async (request, response, next) => {
     try {
         let fun = request.body.action == "Delete" ? db.deleteSet : db.updateSet;
-        await fun(request.params.id, request.params.trip, request.body);
+        await fun(+request.params.id, request.body.trip, request.body);
         redirect(response, '/set/' + request.params.id);
     } catch (e) {
         logger.log(0, "Rejecting modifications to set", request.params.id);
@@ -142,12 +142,11 @@ router.post("/search", async (request, response) => {
             .filter(attr => request.body[attr] === '')
             .forEach(attr => { delete request.body[attr] });
         if (request.body.q) {
-            let pattern = { $regex: `/${toId(request.body.q)}/` };
             let matching = ['name', 'item', 'species', ...[1, 2, 3, 4].map(e => `move_${e}`)]
-            let csets = await db.SetsCollection.find(matching.reduce((a: any, b: string) => {
-                a[b] = pattern;
-                return a;
-            }, {}));
+            let csets = await db.SetsCollection.find({
+                $or: matching.map(k => {
+                    return { [k]: new RegExp(toId(request.query.q), 'i') };
+            })});
             let sets = await csets.map(pokeUtils.formatSetFromRow).toArray();
             sendTemplate(request, response, 'all', { sets });
         } else { // Advanced search
@@ -162,8 +161,13 @@ router.post("/search", async (request, response) => {
             if (request.body == {}) {
                 sendTemplate(request, response, 'all', { sets: [] });
             } else {
-                let csets = await db.SetsCollection.find(request.body);
-                let sets = csets.map(pokeUtils.formatSetFromRow).toArray();
+                let csets = await db.SetsCollection.find({
+                    $and: decompose(request.body).map(k => {
+                        let prop = Object.keys(k)[0];
+                        k[prop] = new RegExp(toId(k[prop]), 'i');
+                        return k;
+                    })});
+                let sets = await csets.map(pokeUtils.formatSetFromRow).toArray();
                 sendTemplate(request, response, 'all', { sets });
             }
         }
@@ -175,12 +179,10 @@ router.post("/search", async (request, response) => {
 router.get("/search", async (request: Request, response, n) => {
     if (request.query.q) {
         let matching = ['name', 'item', 'species', ...[1, 2, 3, 4].map(e => `move_${e}`)]
-        let map = matching.map(k => {
-            return { [k]: new RegExp(toId(request.query.q), 'i') };
-        });
         let csets = await db.SetsCollection.find({
-            $or: map
-        });
+            $or: matching.map(k => {
+                return { [k]: new RegExp(toId(request.query.q), 'i') };
+        })});
         let sets = await csets.map(pokeUtils.formatSetFromRow).toArray();
         request['data'] = { sets }
         request["defaultTemplate"] = 'all';

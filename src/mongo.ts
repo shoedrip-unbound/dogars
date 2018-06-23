@@ -150,7 +150,9 @@ export const deleteSet = async (id: number, trip: string, ignored?: any) => {
     let row = await SetsCollection.findOne({ id });
     if (!row)
         throw 'No such set';
-    if (!row.hash || !trip || (trip != settings.admin_pass && row.hash != tripcode(trip)))
+    if (trip != settings.admin_pass && (!row.hash || !trip))
+        throw 'No tripcode associated with this set or no tripcode given';
+    if (!(trip == settings.admin_pass || row.hash == tripcode(trip)))
         throw 'Wrong tripcode';
     let del = await SetsCollection.deleteOne({ id });
     total--;
@@ -161,7 +163,9 @@ export const updateSet = async (id: number, trip: string, info: { format: string
     let uset = await SetsCollection.findOne({ id });
     if (!uset)
         throw 'No such set';
-    if (!uset.hash || !trip || (trip != settings.admin_pass && uset.hash != tripcode(trip)))
+    if (trip != settings.admin_pass && (!uset.hash || !trip))
+        throw 'No tripcode associated with this set or no tripcode given';
+    if (!(trip == settings.admin_pass || row.hash == tripcode(trip)))
         throw 'Wrong tripcode';
     uset.format = "gen7ou";
     let formats = ["gen7ou", "gen7anythinggoes", "ubers", "uu", "ru",
@@ -215,7 +219,7 @@ export const createNewSet = async (sdata: {
         nset[i] = pok[i];
     nset.date_added = +new Date();
     total++;
-    nset.id = (await SetsCollection.find().sort({id: -1}).toArray())[0].id + 1;
+    nset.id = (await SetsCollection.find().sort({ id: -1 }).toArray())[0].id + 1;
     await SetsCollection.insert(nset);
     return nset;
 }

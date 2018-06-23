@@ -150,6 +150,13 @@ export let levenshtein = (a: string, b: string) => {
     return res;
 }
 
+export let decompose = (obj: { [k: string]: any }): { [k: string]: any }[] => {
+    let ret = [];
+    for (let i in obj)
+        ret.push({ [i]: obj[i] });
+    return ret;
+}
+
 export let toId = (text: any) => {
     // this is a duplicate of Dex.getId, for performance reasons
     if (text && text.id) {
