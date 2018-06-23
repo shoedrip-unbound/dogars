@@ -1,7 +1,13 @@
 import { Index, Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, ManyToMany, JoinColumn, JoinTable, RelationId, PrimaryGeneratedColumn } from "typeorm";
-import { Sets } from './Sets';
+import { Sets } from "./Sets";
 
-export class Replay {    
+
+@Entity("replays", { schema: "memes" })
+export class Replay {
+
+    @PrimaryGeneratedColumn()
+    id!: number;
+
     constructor(link: string, description: string, champ: string, trip: string, manual: boolean) {
         this.link = link;
         this.description = description;
@@ -10,31 +16,53 @@ export class Replay {
         this.trip = trip;
         this.date = new Date();
     }
-    
-    @Reflect.metadata('type', 'number')
-    id!: number;
-    @Reflect.metadata('type', 'string')
+
+    @Column("varchar", {
+        nullable: false,
+        length: 70,
+        name: "link"
+    })
     link!: string;
 
-    @Reflect.metadata('type', 'object')
+
+    @Column("datetime", {
+        nullable: false,
+        default: "CURRENT_TIMESTAMP",
+        name: "date"
+    })
     date!: Date;
 
 
-    @Reflect.metadata('type', 'string')
+    @Column("varchar", {
+        nullable: false,
+        length: 250,
+        name: "description"
+    })
     description!: string;
 
 
-    @Reflect.metadata('type', 'string')
+    @Column("varchar", {
+        nullable: false,
+        length: 45,
+        name: "champ"
+    })
     champ!: string;
 
 
-    @Reflect.metadata('type', 'string')
+    @Column("varchar", {
+        nullable: false,
+        length: 45,
+        name: "trip"
+    })
     trip!: string;
 
 
-    @Reflect.metadata('type', 'number')
+    @Column("tinyint", {
+        nullable: false,
+        name: "manual"
+    })
     manual!: number;
 
-    @Reflect.metadata('type', 'array')
+
     sets!: Sets[];
 }
