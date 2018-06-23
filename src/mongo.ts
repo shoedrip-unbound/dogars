@@ -173,7 +173,7 @@ export const updateSet = async (id: number, trip: string, info: { format: string
     pok.format = uset.format;
     for (let i in pok)
         uset[i] = pok[i];
-    uset.date_added = new Date().toString();
+    uset.date_added = +new Date();
     let errors = await pokeUtils.checkSet(pok);
     if (errors) {
         throw errors;
@@ -213,7 +213,7 @@ export const createNewSet = async (sdata: {
         throw errors;
     for (let i in pok)
         nset[i] = pok[i];
-    nset.date_added = new Date().toDateString();
+    nset.date_added = +new Date();
     total++;
     nset.id = (await SetsCollection.find().sort({id: -1}).toArray())[0].id + 1;
     await SetsCollection.insert(nset);

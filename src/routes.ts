@@ -69,7 +69,7 @@ router.get("/all", async (request: Request, response: express.Response, n: NextF
     let npages = ~~(db.total / spp) + +((db.total % spp) != 0);
     let page = request.query.page || 0;
     page = ~~page;
-    let setsc = await db.SetsCollection.find().sort({id: -1}).skip(spp * page).limit(spp);
+    let setsc = await db.SetsCollection.find().sort({ id: -1 }).skip(spp * page).limit(spp);
     let sets = await setsc.map(pokeUtils.formatSetFromRow).toArray();
     let data = extend({ sets: sets }, { display_pages: true, current_page: ~~page + 1, npages: npages, lastpage: npages - 1 });
     if (page > 0) {
@@ -174,12 +174,13 @@ router.post("/search", async (request, response) => {
 
 router.get("/search", async (request: Request, response, n) => {
     if (request.query.q) {
-        let pattern = { $regex: `/${toId(request.body.q)}/` };
         let matching = ['name', 'item', 'species', ...[1, 2, 3, 4].map(e => `move_${e}`)]
-        let csets = await db.SetsCollection.find(matching.reduce((a: any, b: string) => {
-            a[b] = pattern;
-            return a;
-        }, {}));
+        let map = matching.map(k => {
+            return { [k]: new RegExp(toId(request.query.q), 'i') };
+        });
+        let csets = await db.SetsCollection.find({
+            $or: map
+        });
         let sets = await csets.map(pokeUtils.formatSetFromRow).toArray();
         request['data'] = { sets }
         request["defaultTemplate"] = 'all';
@@ -190,7 +191,7 @@ router.get("/search", async (request: Request, response, n) => {
 });
 
 let repl = async (request: express.Request, response: express.Response, manual: boolean, template: string, aname: string) => {
-    let replays = await db.ReplaysCollection.find({ manual: +manual }).sort({id: -1}).toArray();
+    let replays = await db.ReplaysCollection.find({ manual: +manual }).sort({ id: -1 }).toArray();
     let data = {
         [aname]: replays,
         'error': request.query.fail
@@ -224,8 +225,8 @@ router.post("/replays/add/:id", async (request, response) => {
         sendTemplate(request, response, 'genreject', { reason: 'Your submission was rejected because the URL was wrong' });
         return;
     }
-    await db.ReplaysCollection.updateOne({id: request.params.id}, {
-        $push: {sets: set}
+    await db.ReplaysCollection.updateOne({ id: request.params.id }, {
+        $push: { sets: set }
     });
     redirect(response, '/replays');
 });

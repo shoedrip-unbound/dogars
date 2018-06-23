@@ -72,7 +72,7 @@ let getSpecies = (template: any, spec: string) => {
 export module pokeUtils {
     export let formatSetFromRow = (set: Sets) => {
         let rich: SuperSet = <SuperSet>set;
-        let date = new Date(set.date_added!);
+        let date = new Date(+set.date_added!);
         rich.date = date.toLocaleDateString();
         let template = getTemplate(rich.species!);
 

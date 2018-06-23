@@ -10,7 +10,7 @@ export class Sets {
         nullable: true,
         name: "date_added"
     })
-    date_added!: string | null;
+    date_added!: number | null;
 
 
     @Column("text", {
