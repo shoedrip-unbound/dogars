@@ -8,7 +8,7 @@ import { settings } from './settings';
 
 export class PSConnection {
 	usable: boolean = false;
-	ws: WebSocket;
+	ws?: WebSocket;
 	wscache: string[] = [];
 	iid?: NodeJS.Timer;
 	challstrraw: string = '';
@@ -23,14 +23,13 @@ export class PSConnection {
 	roomrequests: ({ req: PSRoomRequest<any>; res: (value?: any) => void; })[] = [];
 
 	clear() {
+		this.iid && clearTimeout(this.iid);
 		this.usable = false;
-		this.ws.close();
-		this.ws = new SockJS('https://sim2.psim.us/showdown');
-	}
-
-	constructor() {
+		this.opened = false;
+		this.ws && this.ws.close();
 		this.ws = new SockJS('https://sim2.psim.us/showdown');
 		this.ws.onmessage = ev => {
+			console.log(ev);
 			if (ev.data[0] == '>') {
 				let { room, events } = eventToPSBattleMessage(ev);
 				this.roomrequests = this.roomrequests.filter(r => {
@@ -71,26 +70,35 @@ export class PSConnection {
 			}
 		};
 		this.ws.onopen = () => {
+			console.log("CONNECTION OPENED")
 			this.opened = true;
 			this.openprom && this.openprom();
 			this.openrej = undefined;
 		}
 
 		this.ws.onclose = (e: Event) => {
+			console.log("CONNECTION CLOSED");
 			this.opened = false;
 			this.usable = false;
 			this.openrej && this.openrej();
 		}
 
 		this.ws.onerror = (e: Event) => {
+			console.log("CONNECTION ERRORED");
 			this.opened = false;
 			this.usable = false;
 			this.openrej && this.openrej();
 		}
+	}
 
+	constructor() {
+		//this.clear();
 	}
 
 	send(data: string | ArrayBufferLike | Blob | ArrayBufferView) {
+		if (!this.ws)
+			throw 'Attempted to send without initialized socket';
+		console.log(data);
 		this.ws.send(data);
 	}
 
@@ -98,7 +106,9 @@ export class PSConnection {
 		if (this.rooms.has(room))
 			return this.rooms.get(room)!;
 		let ret: PSRoom = new PSRoom(this, room);
-		this.ws.send('|/join ' + room);
+		if (!this.ws)
+			throw 'Attempted to send without initialized socket';
+		this.send('|/join ' + room);
 		this.rooms.set(room, ret);
 		return ret;
 	}
@@ -124,6 +134,9 @@ export class PSConnection {
 
 	close() {
 		this.usable = false;
+		this.opened = false;
+		if (!this.ws)
+			throw 'Attempted to close without initialized socket';
 		this.ws.close();
 	}
 
@@ -142,11 +155,11 @@ export class PSConnection {
 			console.log("stating promise resolve");
 			this.openprom = res;
 			this.openrej = rej;
-			this.ws = new SockJS('https://sim2.psim.us/showdown');
 		});
 	}
 
 	async start() {
+		this.clear();
 		if (this.usable) {
 			return new Promise<void>(e => e());
 		}
@@ -166,6 +179,8 @@ export class PSConnection {
 
 			// heartbeat
 			this.iid = setInterval(() => this.send('/me dabs'), 1000 * 60);
+			if (!this.ws)
+				throw 'Socket not initialized';
 			this.ws.addEventListener('close', async (ev) => {
 				logger.log(0, 'Socket was closed', ev.code, ev.reason);
 				this.close();
@@ -174,6 +189,7 @@ export class PSConnection {
 		} catch (e) {
 			console.log('Something horribly wrong happened, disabled websocket', e);
 			this.close();
+			await this.start();
 		}
 	}
 };

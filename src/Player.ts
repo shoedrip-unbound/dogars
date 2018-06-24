@@ -1,13 +1,12 @@
 import fs = require('fs');
 import request = require('request-promise-native');
-import { BattleMonitor } from './BattleMonitor';
 import { logger } from './logger';
-import { Game } from './Game';
 import { connection, PSConnection } from './PSConnection';
 import { ShowdownMon } from './ShowdownMon';
 import { PSMessage, UpdateSearchMessage, PSRequestMessage, PSRequest } from './PSMessage';
 
 import { settings } from './settings';
+import { toId } from './utils';
 
 let headers = {
 	'accept': '*/*',
@@ -28,7 +27,7 @@ export class LoginForm {
 	userid: string = '';
 }
 
-let getchallstr = async (user: string, pass: string | undefined, challenge: string) => {
+export let getchallstr = async (user: string, pass: string | undefined, challenge: string) => {
 	let regged = pass !== undefined;
 	let data: LoginForm = new LoginForm();
 	data.challstr = challenge;
@@ -84,7 +83,7 @@ export class Player {
 			return;
 		let challstr: string = this.con.challstrraw;
 		let assertion: string = await getchallstr(this.user!, this.pass, challstr);
-		this.con.send("|/trn " + this.user + ",0," + assertion);
+		this.con.send(`|/trn ${toId(this.user)},0,${assertion}`);
 	}
 
 	tryJoin(room: string) {
