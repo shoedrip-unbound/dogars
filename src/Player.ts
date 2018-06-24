@@ -83,7 +83,7 @@ export class Player {
 			return;
 		let challstr: string = this.con.challstrraw;
 		let assertion: string = await getchallstr(this.user!, this.pass, challstr);
-		this.con.send(`|/trn ${toId(this.user)},0,${assertion}`);
+		this.con.send(`|/trn ${this.user},0,${assertion}`);
 	}
 
 	tryJoin(room: string) {
