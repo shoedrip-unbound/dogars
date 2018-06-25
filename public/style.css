@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css?family=Itim');
 
+img.cringe-image {
+    width: 100%;
+}
+
 .current {
 	top:                  15px;
 	left:                 10px;
@@ -130,6 +134,7 @@ hr.style13, hr.style13b {
 a {
 	padding-left:     5px;
 	padding-right:    5px;
+	display: inline-block;
 	text-decoration: none;
 }
 

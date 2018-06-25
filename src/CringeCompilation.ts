@@ -14,7 +14,7 @@ export class CringCompilation {
     }
 
     async init() {
-        this.browser = await puppeteer.launch({ executablePath: '/usr/bin/chromium' });
+        this.browser = await puppeteer.launch({ executablePath: '/usr/bin/chromium', args: ['--no-sandbox'] });
         this.page = await this.browser.newPage();
         this.page.setViewport({ width: 831, height: 531 });
 
@@ -48,15 +48,7 @@ export class CringCompilation {
     }
 
     async cleanup() {
-        await this.page!.close();
+        if (this.page)
+            await this.page!.close();
     }
 }
-/*
-(async () => {
-    let cc = new CringCompilation('https://play.pokemonshowdown.com/battle-gen7ou-767038993');
-    await cc.init();
-    await snooze(5000);
-    await cc.snap();
-    await cc.cleanup();
-    process.exit(0);
-})();*/
