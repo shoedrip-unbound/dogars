@@ -23,6 +23,7 @@ import { request } from 'websocket';
 import { Request } from './dogars-request';
 
 let upload = multer({ dest: '/tmp' });
+
 export let router = express();
 let apiai = require('apiai');
 
@@ -83,6 +84,10 @@ router.get("/all", async (request: Request, response: express.Response, n: NextF
 });
 
 router.get("/import", (request, response, n: NextFunction) => {
+    n();
+});
+
+router.get("/cringe", (request, response, n: NextFunction) => {
     n();
 });
 

@@ -224,7 +224,4 @@ export const createNewSet = async (sdata: {
     return nset;
 }
 
-export let getRandomSet = async (seed: number = ~~(Math.random() * total)) => {
-    console.log('getting random', seed, total);
-    return SetsCollection.find().skip(seed % total).limit(1).toArray();
-}
+export let getRandomSet = async (seed: number = ~~(Math.random() * total)) => SetsCollection.find().skip(seed % total).limit(1).toArray();

@@ -9,7 +9,8 @@ import { PSRoom } from './PSRoom';
 import { PSBattleMessage, PSLeaveMessage, PSWinMessage, PSChatMessage, PSJoinMessage, PSPlayerDecl, PSSwitchMessage, PSFaintMessage } from './PSMessage';
 import { Player } from './Player';
 import { Game } from './Game';
-import { levenshtein } from './utils';
+import { levenshtein, snooze } from './utils';
+import { CringCompilation } from './CringeCompilation';
 
 class BattleEvent {
 	name: string = '';
@@ -26,8 +27,9 @@ export class BattleMonitor {
 	champ: Champ;
 	room: PSRoom;
 	battlers: Map<string, Champ> = new Map<string, Champ>();
-
+	compiler: CringCompilation;
 	events: { [idx: string]: (ev: any) => Promise<void> } = {};
+	cringeReady: boolean = false;
 
 	constructor(pchamp: Champ, isreg: boolean = true) {
 		this.con = connection;
@@ -39,9 +41,15 @@ export class BattleMonitor {
 		this.battleData.champ = this.champ;
 		this.battleData.memes = [];
 		this.battleData.dist = 100;
+		this.compiler = new CringCompilation(this.champ.champ_battle);
 		this.battleData.roomid = this.champ.champ_battle.match(/battle-(.*)\/?/)![0];
 		this.room = this.con.tryJoin(this.champ.champ_battle.match(/(battle-.*)\/?/)![0]);
 		//		this.room = this.con.joinRoom();
+
+		this.compiler.init().then(async () => {
+			await snooze(5000);
+			this.cringeReady = true;
+		});
 
 		this.events = {
 			l: this.l,
@@ -64,9 +72,24 @@ export class BattleMonitor {
 	}
 
 	async c(mes: PSChatMessage) {
-		if (mes.content.toLowerCase().indexOf('hi dogars-chan') == -1)
-			return;
-		this.con.message(this.room.room, `Hi ${mes.username}!`);
+		let norm = mes.content.toLowerCase();
+		let mapper = [{
+			test: /hi dogars-chan/i,
+			fun: async () => {
+				this.con.message(this.room.room, `Hi ${mes.username}!`);
+			}
+		}, {
+			test: /\*sn(a|i)ps?\*/i,
+			fun: async () => {
+				if (!this.cringeReady)
+					return;
+				await this.compiler.snap();
+				this.con.message(this.room.room, "Yep. This one's going in my cringe compilation.");
+			}
+		}];
+		for (let r of mapper)
+			if (r.test.test(norm))
+				await r.fun();
 	}
 
 	async monitor() {
@@ -107,6 +130,7 @@ export class BattleMonitor {
 			await registerChampResult(this.battleData, this.battleData.champ!.showdown_name == winner.username);
 		this.stopped = true;
 		this.con.tryLeave(this.room.room);
+		await this.compiler.cleanup();
 	}
 
 	async player(pl: PSPlayerDecl) {
