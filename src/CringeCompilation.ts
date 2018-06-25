@@ -4,6 +4,13 @@ import fs = require('fs');
 import { settings } from "./settings";
 import { Cringer } from "./CringeProvider";
 
+let browser: puppeteer.Browser | null = null;
+let getBrowser = async () => {
+    if (browser)
+        return browser;
+    return browser = await puppeteer.launch({ executablePath: '/usr/bin/chromium', args: ['--no-sandbox'] });
+}
+
 export class CringCompilation {
     battleLink: string;
     inited: boolean = false;
@@ -14,7 +21,7 @@ export class CringCompilation {
     }
 
     async init() {
-        this.browser = await puppeteer.launch({ executablePath: '/usr/bin/chromium', args: ['--no-sandbox'] });
+        this.browser = await getBrowser();
         this.page = await this.browser.newPage();
         this.page.setViewport({ width: 831, height: 531 });
 
@@ -50,5 +57,7 @@ export class CringCompilation {
     async cleanup() {
         if (this.page)
             await this.page!.close();
+        else
+            console.log('page not closed?');
     }
 }
