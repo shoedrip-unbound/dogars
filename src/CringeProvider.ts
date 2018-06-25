@@ -9,7 +9,7 @@ class CringeProvider {
     ncringes: number;
     constructor() {
         this.ncringes = fs.readdirSync(settings.ressources + '/public/cringec').length;
-        this.cringeserver = sockjs.createServer({ sockjs_url: "http://cdn.jsdelivr.net/sockjs/1.0.1/sockjs.min.js" });
+        this.cringeserver = sockjs.createServer({ sockjs_url: "https://cdn.jsdelivr.net/sockjs/1.0.1/sockjs.min.js" });
         this.cringeserver.on('connection', (conn: sockjs.Connection) => {
             this.clients.push(conn);
             conn.on('close', () => {
