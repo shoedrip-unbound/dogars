@@ -1,14 +1,14 @@
-import fs = require('fs');
-import mustache = require('mustache');
 import request = require('request-promise-native');
+
 import pokedexd = require('./pokedex.js');
-import { connection } from './PSConnection';
-import { SuperSet } from './SuperSet';
-import { PSCheckTeamRequest, PSSaveBattleRequest } from './PSMessage';
-import { suck, toId, clamp, inverse } from './utils';
-import { settings } from './settings';
-import { Sets } from './entities/Sets';
-import { buildCheckableSet } from './mongo';
+import { toId, clamp } from './utils';
+
+import { connection } from '../Showdown/PSConnection';
+import { PSCheckTeamRequest, PSSaveBattleRequest } from '../Showdown/PSMessage';
+
+import { Sets } from '../Backend/Models/Sets';
+import { buildCheckableSet } from '../Backend/mongo';
+
 let pokedex = pokedexd.BattlePokedex;
 
 // Shamelessly stolen and adapted from showdown-client
@@ -36,7 +36,7 @@ let getTemplate = (name: string) => {
     name = toId(name);
     if (pokedex[name])
         return pokedex[name];
-    for (var i in pokedex) {
+    for (let i in pokedex) {
         // What's the difference between a Form and Forme, Zarel?
         // Why do some Forms have a dex entry while others don't and
         // some Formes have an entry and others don't??? kys
@@ -70,84 +70,10 @@ let getSpecies = (template: any, spec: string) => {
 }
 
 export module pokeUtils {
-    export let formatSetFromRow = (set: Sets) => {
-        let rich: SuperSet = <SuperSet>set;
-        let date = new Date(+set.date_added!);
-        rich.date = date.toLocaleDateString();
-        let template = getTemplate(rich.species!);
-
-        if (template) {
-            rich.species_ = getSpecies(template, toId(rich.species))!;
-        }
-
-        rich.set_form = '';
-        if (rich.name)
-            rich.set_form += rich.name + ' (' + rich.species + ')';
-        else
-            rich.set_form += rich.species;
-        if (rich.gender != '')
-            rich.set_form += ' (' + rich.gender + ')';
-        if (rich.item && rich.item != '')
-            rich.set_form += ' @ ' + rich.item;
-        rich.set_form += '\nAbility: ' + rich.ability + '\n';
-        if (rich.level && rich.level != 100)
-            rich.set_form += 'Level: ' + rich.level + '\n';
-        if (rich.shiny && rich.shiny !== 0) {
-            rich.set_form += 'Shiny: Yes\n';
-            rich.s = true;
-        }
-
-        rich.description_html = mustache.render('{{d}}', { d: rich.description });
-        rich.description_html = (rich.description_html + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2');
-
-        const exts = ['png', 'jpg', 'gif'];
-
-        exts.map(e => '/sets/' + rich.id + '.' + e)
-            .filter(url => fs.existsSync(settings.ressources + '/public' + url))
-            .forEach(url => {
-                rich.img_url = url;
-                rich.cust = true;
-            });
-
-        rich.img_url = rich.img_url || mustache.render('https://play.pokemonshowdown.com/sprites/xyani{{#s}}-shiny{{/s}}/{{species_}}.gif', rich);
-        if (rich.happiness !== undefined && rich.happiness !== null && rich.happiness! < 255)
-            rich.set_form += 'Happiness: ' + rich.happiness + '\n';
-        let stats = ['HP', 'Atk', 'Def', 'SpA', 'SpD', 'Spe'];
-        let evstr = '';
-        let ivstr = '';
-        for (var i in stats) {
-            let st = stats[i].toLowerCase();
-            if (rich[st + '_ev'] != 0) {
-                if (evstr.length > 0)
-                    evstr += ' / ';
-                evstr += rich[st + '_ev'] + ' ' + stats[i];
-            }
-            if (rich[st + '_iv'] != 31) {
-                if (ivstr.length > 0)
-                    ivstr += ' / ';
-                ivstr += rich[st + '_iv'] + ' ' + stats[i];
-            }
-        }
-        if (evstr != '')
-            rich.set_form += 'EVs: ' + evstr + '\n';
-        let neutral = ['Serious', 'Bashful', 'Docile', 'Hardy', 'Quirky'];
-        let nature = neutral.some(n => n == rich.nature);
-        if (rich.nature && !nature)
-            rich.set_form += rich.nature + ' Nature\n';
-        if (ivstr != '')
-            rich.set_form += 'IVs: ' + ivstr + '\n';
-        rich.set_form += [1, 2, 3, 4]
-            .map(d => 'move_' + d)
-            .filter(n => rich[n])
-            .map(n => '- ' + rich[n])
-            .join('\n');
-        return rich;
-    }
-
     export let parseSet = (text: string) => {
         let stext = text.split("\n");
         var team = [];
-        var curSet = new SuperSet();
+        var curSet: any = {};
         let moves = [];
         let first = false;
         for (var i = 0; i < stext.length; i++) {

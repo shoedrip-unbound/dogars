@@ -1,10 +1,13 @@
-import { logger } from './logger';
+import * as SockJS from 'sockjs-client';
+
 import { eventToPSMessages, PSMessage, Challstr, eventToPSBattleMessage, PSRequest, PSRoomRequest, QueryResponse, Formats, UpdateUser } from './PSMessage';
 import { PSRoom } from './PSRoom';
-import * as SockJS from 'sockjs-client';
-import { match } from './utils';
 import { Player } from './Player';
-import { settings } from './settings';
+
+import { match } from '../Website/utils';
+
+import { logger } from '../Backend/logger';
+import { settings } from '../Backend/settings';
 
 export class PSConnection {
 	usable: boolean = false;
@@ -29,7 +32,6 @@ export class PSConnection {
 		this.ws && this.ws.close();
 		this.ws = new SockJS('https://sim2.psim.us/showdown');
 		this.ws.onmessage = ev => {
-			console.log(ev);
 			if (ev.data[0] == '>') {
 				let { room, events } = eventToPSBattleMessage(ev);
 				this.roomrequests = this.roomrequests.filter(r => {
@@ -70,21 +72,18 @@ export class PSConnection {
 			}
 		};
 		this.ws.onopen = () => {
-			console.log("CONNECTION OPENED")
 			this.opened = true;
 			this.openprom && this.openprom();
 			this.openrej = undefined;
 		}
 
 		this.ws.onclose = (e: Event) => {
-			console.log("CONNECTION CLOSED");
 			this.opened = false;
 			this.usable = false;
 			this.openrej && this.openrej();
 		}
 
 		this.ws.onerror = (e: Event) => {
-			console.log("CONNECTION ERRORED");
 			this.opened = false;
 			this.usable = false;
 			this.openrej && this.openrej();
@@ -98,7 +97,6 @@ export class PSConnection {
 	send(data: string | ArrayBufferLike | Blob | ArrayBufferView) {
 		if (!this.ws)
 			throw 'Attempted to send without initialized socket';
-		console.log(data);
 		this.ws.send(data);
 	}
 
@@ -148,11 +146,9 @@ export class PSConnection {
 	}
 
 	open() {
-		console.log(this.opened);
 		if (this.opened)
 			return new Promise<void>(res => res());
 		return new Promise<void>((res, rej) => {
-			console.log("stating promise resolve");
 			this.openprom = res;
 			this.openrej = rej;
 		});

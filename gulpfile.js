@@ -1,17 +1,7 @@
-let gulp = require("gulp");
-let ts = require("gulp-typescript");
-let tsProject = ts.createProject("tsconfig.json");
+import { task, src, symlink } from "gulp";
 
-gulp.task("build", function () {
-    return tsProject.src()
-        .pipe(tsProject())
-        .js.pipe(gulp.dest("dist"));
-});
+task("default",
+    () => src(['templates', 'public', 'settings.json'])
+        .pipe(symlink("dist")));
 
-gulp.task("link", function() {
-    return gulp.src(['templates', 'public', 'settings.json'])
-        .pipe(gulp.symlink("dist"));
-});
-
-gulp.task("default",  gulp.series("build", "link"));
-
+// gulp is actually garbage

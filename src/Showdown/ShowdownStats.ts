@@ -1,4 +1,3 @@
-
 export class ShowdownStat {
     entryid: string = '';
     formatid: string = '';

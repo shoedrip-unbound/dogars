@@ -1,5 +1,4 @@
-import { ShowdownMon } from "./ShowdownMon";
-import { MemeStats } from "./BattleData";
+import { MemeStats } from "../Showdown/BattleData";
 
 export class Champ {
 	avatar: string = '166';

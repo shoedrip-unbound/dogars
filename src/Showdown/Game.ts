@@ -1,5 +1,4 @@
 import { PSConnection } from "./PSConnection";
-import { PSRoom } from "./PSRoom";
 import { Player } from "./Player";
 
 export class Game {

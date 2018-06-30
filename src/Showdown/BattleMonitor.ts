@@ -1,22 +1,17 @@
-import { registerChampResult } from './mongo';
+import { PSRoom } from './PSRoom';
+import { PSLeaveMessage, PSWinMessage, PSChatMessage, PSJoinMessage, PSPlayerDecl, PSSwitchMessage, PSFaintMessage } from './PSMessage';
+import { Player } from './Player';
 import { connection, PSConnection } from './PSConnection';
 import { PlayerHijack } from './PlayerHijack';
-import { Champ } from './Champ'
 import { BattleData } from './BattleData'
 
-import { logger } from './logger';
-import { PSRoom } from './PSRoom';
-import { PSBattleMessage, PSLeaveMessage, PSWinMessage, PSChatMessage, PSJoinMessage, PSPlayerDecl, PSSwitchMessage, PSFaintMessage } from './PSMessage';
-import { Player } from './Player';
-import { Game } from './Game';
-import { levenshtein, snooze } from './utils';
-import { CringCompilation } from './CringeCompilation';
+import { registerChampResult } from '../Backend/mongo';
+import { logger } from '../Backend/logger';
+import { CringCompilation } from '../Backend/CringeCompilation';
 
-class BattleEvent {
-	name: string = '';
-	log: string[] = [];
-	data: string = '';
-}
+import { Champ } from '../Shoedrip/Champ'
+
+import { levenshtein, snooze } from '../Website/utils';
 
 export class BattleMonitor {
 	con: Player;
@@ -30,6 +25,7 @@ export class BattleMonitor {
 	compiler: CringCompilation;
 	events: { [idx: string]: (ev: any) => Promise<void> } = {};
 	cringeReady: boolean = false;
+	hi: string[] = [];
 
 	constructor(pchamp: Champ, isreg: boolean = true) {
 		this.con = connection;
@@ -67,15 +63,21 @@ export class BattleMonitor {
 	}
 
 	async j(mes: PSJoinMessage) {
-		if (mes.username.indexOf('Roxle') > -1)
+		if (!this.hi.includes(mes.username) && mes.username.indexOf('Roxle') > -1) {
 			this.con.message(this.room.room, `Hi ${mes.username}!`);
+			this.hi.push(mes.username);
+		}
 	}
 
 	async c(mes: PSChatMessage) {
 		let norm = mes.content.toLowerCase();
+		let filter: {[key: string]: number | undefined} = {};
 		let mapper = [{
-			test: /hi dogars-chan/i,
+			test: /hi dogars-?chan/i,
 			fun: async () => {
+				if (this.hi.includes(mes.username))
+					return;
+				this.hi.push(mes.username);
 				this.con.message(this.room.room, `Hi ${mes.username}!`);
 			}
 		}, {
@@ -83,6 +85,12 @@ export class BattleMonitor {
 			fun: async () => {
 				if (!this.cringeReady)
 					return;
+				if (mes.username.includes('dogars'))
+					return;
+				let usertests = filter[mes.username] || 0;
+				if (usertests >= 3)
+					return;
+				filter[mes.username] = usertests + 1;
 				await this.compiler.snap();
 				this.con.message(this.room.room, "Yep. This one's going in my cringe compilation.");
 			}
@@ -93,13 +101,11 @@ export class BattleMonitor {
 	}
 
 	async monitor() {
-		logger.log(0, 'Starting monitoring');
 		while (!this.stopped) {
 			let event = await this.room.read();
 			if (this.events[event.name])
 				await this.events[event.name].apply(this, [event]);
 		}
-		logger.log(0, 'Battle ended');
 	}
 
 	async l(left: PSLeaveMessage) {
@@ -108,7 +114,6 @@ export class BattleMonitor {
 
 		let oppo_name;
 		let oppo_alias;
-		logger.log(0, this.battlers);
 		oppo_alias = (this.battlers.get('p1')!.showdown_name == this.battleData.champ!.showdown_name) ? 'p2' : 'p1';
 		if (this.battlers.get(oppo_alias)!.jacked)
 			return;
@@ -117,7 +122,6 @@ export class BattleMonitor {
 			if (this.attemptedJack)
 				return;
 			this.attemptedJack = true;
-			logger.log(0, `Starting jack attempt ${this.battlers.get(oppo_alias)}`);
 			let hj = new PlayerHijack(this.battleData, this.battlers);
 			hj.tryJack(false);
 		}
@@ -125,7 +129,6 @@ export class BattleMonitor {
 
 	async win(winner: PSWinMessage) {
 		this.battleData.memes = this.battlers.get(this.battleData.champ_alias!)!.team!;
-		logger.log(0, `${winner.username} won the battle`);
 		if (this.reg)
 			await registerChampResult(this.battleData, this.battleData.champ!.showdown_name == winner.username);
 		this.stopped = true;

@@ -1,14 +1,13 @@
-import * as request from 'request-promise-native';
-import { BattleMonitor } from './BattleMonitor';
-import * as mongo from './mongo';
-import { logger } from './logger';
+import { BattleMonitor } from '../Showdown/BattleMonitor';
+
+import * as mongo from '../Backend/mongo';
 import { Champ } from './Champ';
-import { fchan } from './fchan';
-import { snooze } from './utils';
+
+import { fchan } from '../Yotsuba/fchan';
+
+import { snooze } from '../Website/utils';
 
 export let champ: Champ = new Champ();
-
-let max = (a: number, b: number) => a < b ? b : a;
 
 let getCurrentThread = async () => {
     let catalog = await fchan.getBoard('vp');
@@ -17,14 +16,11 @@ let getCurrentThread = async () => {
     let found = false;
     catalog.forEach(page => {
         page.threads!.forEach(t => {
-            if (t.sub && t.sub.toLowerCase().indexOf('showderp') != -1 && t.no > derp_no) {
+            if ((t.com && t.com.toLowerCase().indexOf('dogars.ml') != -1 ||
+                (t.sub && t.sub.toLowerCase().indexOf('showderp')) != -1 &&
+                t.no > derp_no)) {
                 derp = t;
-                derp_no = max(t.no, derp_no);
-                found = true;
-            }
-            if (t.com && t.com.toLowerCase().indexOf('dogars.ml') != -1 && t.no > derp_no) {
-                derp = t;
-                derp_no = max(t.no, derp_no);
+                derp_no = Math.max(t.no, derp_no);
                 found = true;
             }
         });
@@ -76,20 +72,24 @@ let getCurrentChamp = async (thread: fchan.Thread) => {
 
 let oldbattle: string = '';
 
+function timeOutPromise<T>(prom: Promise<T>, timeout: number): Promise<T> {
+    return Promise.race([prom, new Promise<T>((res, rej) => setTimeout(rej, timeout, 'Timed out'))]);
+}
+
 export let shoestart = async () => {
     while (true) {
         try {
-            let thread = await getCurrentThread();
-            champ = await getCurrentChamp(thread);
+            //todo: timeout
+            let thread = await timeOutPromise(getCurrentThread(), 30000);
+            champ = await timeOutPromise(getCurrentChamp(thread), 30000);
 
             if (champ.champ_battle != oldbattle && champ.champ_active) {
                 oldbattle = champ.champ_battle;
-                logger.log(0, `Champ has a name so we can monitor battle`);
                 let bm = new BattleMonitor(champ, !!champ.champ_name);
                 bm.monitor();
             }
             if (champ.champ_active) {
-                let dbchamp = await mongo.ChampsCollection.findOne({trip: champ.champ_trip});
+                let dbchamp = await mongo.ChampsCollection.findOne({ trip: champ.champ_trip });
                 champ.avatar = '166';
                 if (dbchamp) {
                     champ.avatar = dbchamp.avatar!;

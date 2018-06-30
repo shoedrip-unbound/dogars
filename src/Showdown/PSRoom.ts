@@ -1,7 +1,7 @@
 import { PSConnection } from "./PSConnection";
-import { EventEmitter } from "events";
-import { PSMessage, PSBattleMessage } from "./PSMessage";
-import { match } from "./utils";
+import { PSBattleMessage } from "./PSMessage";
+
+import { match } from "../Website/utils";
 
 export class PSRoom {
     con: PSConnection;

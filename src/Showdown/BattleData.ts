@@ -1,4 +1,4 @@
-import { Champ } from './Champ'
+import { Champ } from '../Shoedrip/Champ';
 
 export class MemeStats {
 	name: string = '';

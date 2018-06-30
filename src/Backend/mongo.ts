@@ -1,19 +1,18 @@
 import { MongoClient, Db, Collection } from 'mongodb';
 import { settings } from './settings';
-import * as orm from './orm';
-import { Champ } from './entities/Champ';
-import { Repository } from 'typeorm';
-import { sets_in_replays } from './entities/sets_in_replays';
 import { logger } from './logger';
 import * as request from 'request-promise-native';
-import { toId } from './utils';
-import { ShowdownStat } from './ShowdownStats';
-import { BattleData } from './BattleData';
-import { pokeUtils } from './poke-utils';
-import { Sets } from './entities/Sets';
-import { Replay } from './entities/Replay';
 import * as tripcode from 'tripcode';
 
+import { ShowdownStat } from '../Showdown/ShowdownStats';
+import { BattleData } from '../Showdown/BattleData';
+
+import { toId } from '../Website/utils';
+import { pokeUtils } from '../Website/poke-utils';
+
+import { Champ } from './Models/Champ';
+import { Sets } from './Models/Sets';
+import { Replay } from './Models/Replay';
 
 const url = `mongodb://${settings.db.host}:${settings.db.port || 27017}`;
 const dbName = settings.db.database;
@@ -45,7 +44,6 @@ export let init = async () => {
 export const registerChampResult = async (battleData: BattleData, hasWon: boolean): Promise<void> => {
     let replayurl: string = '';
     try {
-        logger.log(0, `Checking elo of ${toId(battleData.champ.showdown_name)}`);
         let b: string = await request.get(`https://play.pokemonshowdown.com/~~showdown/action.php?act=ladderget&user=${toId(battleData.champ.showdown_name)}`);
         let stats: ShowdownStat[] = JSON.parse(b.substr(1));
         if (stats.length == 0)
@@ -54,7 +52,6 @@ export const registerChampResult = async (battleData: BattleData, hasWon: boolea
         if (!oustat)
             throw "Never played OU";
         let ouelo = ~~oustat.elo;
-        logger.log(0, `${battleData.champ.showdown_name} has a elo of ${ouelo}`);
         // no need to sync
         ChampsCollection.updateOne({
             trip: battleData.champ.champ_trip
@@ -68,17 +65,12 @@ export const registerChampResult = async (battleData: BattleData, hasWon: boolea
         console.log(e);
     }
     if (hasWon) {
-        logger.log(0, `${battleData.champ.showdown_name} won`);
         await pokeUtils.saveReplay(battleData.champ.champ_battle);
         replayurl = 'http://replay.pokemonshowdown.com/' + battleData.roomid;
-    } else {
-        logger.log(0, `${battleData.champ.showdown_name} lost`);
     }
-
     let inc = hasWon ? 'wins' : 'loses';
     let champ = ChampsCollection.findOne({ trip: battleData.champ.champ_trip });
     if (!champ) {
-        logger.log(0, `This was ${battleData.champ.champ_name} first battle`);
         ChampsCollection.insertOne(new Champ(battleData.champ.champ_name, battleData.champ.champ_trip));
     }
 
@@ -100,8 +92,7 @@ export const registerChampResult = async (battleData: BattleData, hasWon: boolea
         'Automatically uploaded replay. Champ: ' + battleData.champ.champ_name + ' ' + battleData.champ.champ_trip,
         battleData.champ.champ_name,
         battleData.champ.champ_trip,
-        false));
-    logger.log(0, `${battleData.memes.length} memes detected in champs team`);
+        0));
     let n = 0;
     for (let i = 0; i < battleData.memes.length; ++i) {
         let set = await SetsCollection.findOne({ name: battleData.memes[i].name })
@@ -111,39 +102,10 @@ export const registerChampResult = async (battleData: BattleData, hasWon: boolea
                 { $push: { sets: set } });
         }
     }
-    logger.log(0, `${n} memes matched in db`);
 }
 
 let convert = async () => {
-    await orm.init();
-    let repl = await orm.ReplaysRepo.find();
-    let champs = await orm.ChampsRepo.find();
-    let sets = await orm.SetsRepo.find();
-    let sirrepo = await orm.connection.getRepository(sets_in_replays);
-
-    memes.collection('Sets')
-        .insertMany(sets);
-
-    memes.collection('Champs')
-        .insertMany(champs);
-
-    console.log('Done converting sets and champs, converting', repl.length, 'replays, now');
-    let i = 0;
-    let j = 10;
-    for (let r of repl) {
-        i += 100 / repl.length;
-        if (i >= j) {
-            console.log(`${j}%...`);
-            j += 10;
-        }
-        let setsids = await sirrepo.find({ idreplay: r.id });
-        let seta = await orm.SetsRepo.findByIds(setsids.map(id => id.idset));
-        r.sets = seta;
-    }
-    await memes.collection('Replays')
-        .insertMany(repl);
-    connection.close();
-    console.log("Finished copying replays");
+    throw "Conversion not supported anymore";
 }
 
 export const deleteSet = async (id: number, trip: string, ignored?: any) => {
@@ -202,7 +164,7 @@ export const createNewSet = async (sdata: {
     set: string,
     creat: string
 }) => {
-    let nset = new Sets;
+    let nset: Sets = {} as Sets;
     nset.hash = tripcode(sdata.trip);
     nset.format = "gen7ou";
     let formats = ["gen7ou", "gen7ubers", "gen7anythinggoes", "gen7uu", "gen7ru", "gen7nu", "gen7pu", "gen7lc", "gen7natureswap", "gen7balancedhackmons", "gen7mixandmega", "gen7almostanyability", "gen7camomons", "gen7stabmons", "gen7customgame"];

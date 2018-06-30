@@ -1,13 +1,14 @@
 import fs = require('fs');
 import * as request from 'request-promise-native';
-import { logger } from './logger';
+
 import { LoginForm, Player } from './Player'
-import { Champ } from './Champ';
-import { PSConnection } from './PSConnection';
 import { BattleData } from './BattleData';
 
-import { settings } from './settings';
-import { snooze } from './utils';
+import { Champ } from '../Shoedrip/Champ';
+
+import { logger } from '../Backend/logger';
+
+import { snooze } from '../Website/utils';
 
 
 let checkpass = async (user: string, pass: string) => {
@@ -53,7 +54,6 @@ export class PlayerHijack {
 					}
 				}
 			} else {
-				logger.log(0, 'unregged account ${this.opponent.showdown_name}');
 				this.account = new Player(this.opponent.showdown_name);
 			}
 			if (!this.account)
@@ -61,7 +61,6 @@ export class PlayerHijack {
 			//this.bot = new Player(settings.showdown.user, settings.showdown.pass);
 			await this.account.connect();
 			this.account.tryJoin(this.room);
-			logger.log(0, 'connected as ${this.opponent.showdown_name}');
 			this.account.message(this.room, 'Hi, my name is J.A.C.K., brought to you by D*gars©');
 			let myteam = await this.account.getMyTeam(this.room)!;
 			for (let mon of myteam!) {

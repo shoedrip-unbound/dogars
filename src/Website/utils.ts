@@ -1,17 +1,20 @@
 import fs = require('fs');
 import mustache = require('mustache');
-import { champ } from './shoedrip';
-import { pokeUtils } from './poke-utils';
-import { connection } from './PSConnection';
 import express = require('express');
-import { Cookie } from './Cookie';
-import { request } from 'websocket';
-import { Request } from './dogars-request';
-import { settings } from './settings';
-import { Sets } from './entities/Sets';
-import { getRandomSet } from './mongo';
 
-let banners = fs.readdirSync(settings.ressources + '/public/ban');
+import { pokeUtils } from './poke-utils';
+import { Cookie } from './Cookie';
+import { Request } from './dogars-request';
+
+import { champ } from '../Shoedrip/shoedrip';
+
+import { connection } from '../Showdown/PSConnection';
+
+import { settings } from '../Backend/settings';
+import { Sets } from '../Backend/Models/Sets';
+import { getRandomSet } from '../Backend/mongo';
+
+export let banners = fs.readdirSync(settings.ressources + '/public/ban');
 
 let ranset: Promise<Sets[]>;
 
@@ -85,8 +88,7 @@ setInterval(prepareRandSet, 1000 * 3600 * 24);
 
 export const getSetOfTheDay = async () => {
     prepareRandSet();
-    let set = (await ranset)[0];
-    return pokeUtils.formatSetFromRow(set);
+    return (await ranset)[0];
 }
 
 export const getCookieData = (request: express.Request, response: express.Response) => {

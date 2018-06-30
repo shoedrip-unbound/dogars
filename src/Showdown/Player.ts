@@ -1,12 +1,8 @@
-import fs = require('fs');
 import request = require('request-promise-native');
-import { logger } from './logger';
-import { connection, PSConnection } from './PSConnection';
-import { ShowdownMon } from './ShowdownMon';
-import { PSMessage, UpdateSearchMessage, PSRequestMessage, PSRequest } from './PSMessage';
 
-import { settings } from './settings';
-import { toId } from './utils';
+import { PSConnection } from './PSConnection';
+import { ShowdownMon } from './ShowdownMon';
+import { PSRequestMessage, PSRequest } from './PSMessage';
 
 let headers = {
 	'accept': '*/*',
@@ -43,8 +39,6 @@ export let getchallstr = async (user: string, pass: string | undefined, challeng
 		form: data
 	});
 	if (body[0] == ';') {
-		console.log(body);
-		console.log(data);
 		throw 'Issue with challenge';
 	}
 	if (regged) {

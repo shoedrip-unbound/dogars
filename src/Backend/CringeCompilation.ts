@@ -1,5 +1,4 @@
 import * as puppeteer from "puppeteer";
-import { snooze } from "./utils";
 import fs = require('fs');
 import { settings } from "./settings";
 import { Cringer } from "./CringeProvider";
@@ -57,7 +56,5 @@ export class CringCompilation {
     async cleanup() {
         if (this.page)
             await this.page!.close();
-        else
-            console.log('page not closed?');
     }
 }

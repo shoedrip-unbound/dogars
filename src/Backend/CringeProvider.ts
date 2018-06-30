@@ -13,7 +13,6 @@ class CringeProvider {
         this.cringeserver.on('connection', (conn: sockjs.Connection) => {
             this.clients.push(conn);
             conn.on('close', () => {
-                console.log('cringy disconnection');
                 let idx = this.clients.findIndex(cli => cli.id == conn.id);
                 idx >= 0 && this.clients.splice(idx, 1);
             });
