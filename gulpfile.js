@@ -1,7 +1,6 @@
-import { task, src, symlink } from "gulp";
+let gulp = require("gulp");
 
-task("default",
-    () => src(['templates', 'public', 'settings.json'])
-        .pipe(symlink("dist")));
-
-// gulp is actually garbage
+gulp.task("default", function() {
+    return gulp.src(['templates', 'public', 'settings.json'])
+        .pipe(gulp.symlink("dist"));
+});

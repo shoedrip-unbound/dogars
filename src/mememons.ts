@@ -27,12 +27,12 @@ setInterval(async () => {
 console.log('Starting web server...');
 
 let server = http.createServer(router);
-//Cringer.install(server);
+Cringer.install(server);
 server.listen(+process.argv[2] || 1234, '0.0.0.0', async () => {
     console.log('Web server started, initializing database connection...');
     await mongo.init();
     console.log('Database connection started, initializing showdown connection...');
     await connection.connect();
     console.log('Showdown connection started, initializing showderp watch service...');
-    //shoestart();
+    shoestart();
 });
