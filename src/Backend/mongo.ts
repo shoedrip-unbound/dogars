@@ -209,7 +209,8 @@ export const createNewSet = async (sdata: {
     let nset: Sets = {} as Sets;
     nset.hash = tripcode(sdata.trip);
     nset.format = "gen7ou";
-    let formats = ["gen7ou", "gen7ubers", "gen7anythinggoes", "gen7uu", "gen7ru", "gen7nu", "gen7pu", "gen7lc", "gen7natureswap", "gen7balancedhackmons", "gen7mixandmega", "gen7almostanyability", "gen7camomons", "gen7stabmons", "gen7customgame"];
+    let formats = ["gen7ou", "gen7anythinggoes", "ubers", "uu", "ru",
+        "nu", "pu", "lc", "gen8oubeta", "gen8doublesoubeta", "cap"];
     if (formats.includes(sdata.format))
         nset.format = sdata.format;
     nset.creator = sdata.creat.substr(0, 23);
