@@ -35,6 +35,7 @@ export class PSConnection {
 		this.ws && this.ws.close();
 		this.ws = new SockJS('https://sim2.psim.us/showdown');
 		this.ws.onmessage = ev => {
+console.log(ev)
 			if (ev.data[0] == '>') {
 				let { room, events } = eventToPSBattleMessage(ev);
 				if (this.rooms.has(room)) {

@@ -172,7 +172,7 @@ export const updateSet = async (id: number, trip: string, info: { format: string
         throw 'Wrong tripcode';
     uset.format = "gen7ou";
     let formats = ["gen7ou", "gen7anythinggoes", "ubers", "uu", "ru",
-        "nu", "pu", "lc", "cap"];
+        "nu", "pu", "lc", "gen8oubeta", "gen8doublesoubeta", "cap"];
     if (formats.includes(info.format))
         uset.format = info.format;
     uset.description = info.desc.substr(0, 650);
