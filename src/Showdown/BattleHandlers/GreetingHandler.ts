@@ -75,10 +75,11 @@ export default class GreetingHandler extends BasicHandler {
 
 	async c(m: BattleEvents['c']) {
 		let norm = m[2].toLowerCase();
+		let nn = this.account.user.toLowerCase();
 		if (banlist.find(w => m[1].includes(w)))
 			return;
-		if (!norm.includes(`hi ${this.account.user}`) &&
-			!norm.includes(`hi  ${this.account.user}`))
+		if (!norm.includes(`hi ${nn}`) &&
+			!norm.includes(`hi  ${nn}`))
 			return;
 		if (this.hi.includes(m[1]))
 			return;
