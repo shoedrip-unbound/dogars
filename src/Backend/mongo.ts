@@ -43,7 +43,10 @@ let inited = false;
 export let init = async () => {
     if (inited)
         return;
-    connection = await MongoClient.connect(url, { useNewUrlParser: true });
+    connection = await MongoClient.connect(url, {
+        useUnifiedTopology: true,
+        useNewUrlParser: true
+    });
     memes = connection.db(dbName);
     let collections = await memes.collections();
     inited = true;
@@ -51,6 +54,7 @@ export let init = async () => {
     SetsCollection = memes.collection('Sets');
     ReplaysCollection = memes.collection('Replays');
     total = await SetsCollection.countDocuments({});
+    console.log(total, "of memes in DB")
 }
 
 const updateElo = async (trip: string, name: string) => {
@@ -66,11 +70,11 @@ const updateElo = async (trip: string, name: string) => {
     ChampsCollection.updateOne({
         trip
     }, {
-            $set: {
-                elo: ouelo,
-                showdown_name: name
-            }
-        });
+        $set: {
+            elo: ouelo,
+            showdown_name: name
+        }
+    });
 }
 
 export const rebuildChampAvatars = async () => {
@@ -91,8 +95,8 @@ export const rebuildChampAvatars = async () => {
             await ChampsCollection.updateOne({
                 trip: c.trip
             }, {
-                    $set: { avatar: c.avatar }
-                });        
+                $set: { avatar: c.avatar }
+            });
         }
     }
 
@@ -116,17 +120,17 @@ export const registerChampResult = async (battleData: BattleData, hasWon: boolea
         await ChampsCollection.updateOne({
             trip: battleData.champ.trip
         }, {
-                $set: { avatar: battleData.champ.avatar }
-            });
+            $set: { avatar: battleData.champ.avatar }
+        });
     await ChampsCollection.updateOne({
         trip: battleData.champ.trip
     }, {
-            $inc: { [inc]: 1 },
-            $set: {
-                name: battleData.champ.name,
-                last_seen: +new Date
-            }
-        });
+        $inc: { [inc]: 1 },
+        $set: {
+            name: battleData.champ.name,
+            last_seen: +new Date
+        }
+    });
     if (!hasWon)
         return;
     if (!battleData.champ.current_battle)
@@ -162,6 +166,11 @@ export const deleteSet = async (id: number, trip: string, ignored?: any) => {
     return null;
 }
 
+export const formats = ["gen8ou", "gen8ubers", "gen8lc", "gen8monotype",
+    "gen8anythinggoes", "gen8nfe", "gen81v1", "gen8cap", "gen8battlestadiumsingles",
+    "gen8galarbeginnings", "gen8doublesou", "gen8battlestadiumdoubles", "gen82v2doubles",
+    "gen8metronomebattle", "gen8nationaldex", "gen8nationaldexag", "gen8balancedhackmons"]
+
 export const updateSet = async (id: number, trip: string, info: { format: string, desc: string, set: string }) => {
     let uset = await SetsCollection.findOne({ id });
     if (!uset)
@@ -170,9 +179,7 @@ export const updateSet = async (id: number, trip: string, info: { format: string
         throw 'No tripcode associated with this set or no tripcode given';
     if (!(trip == settings.admin_pass || uset.hash == tripcode(trip)))
         throw 'Wrong tripcode';
-    uset.format = "gen7ou";
-    let formats = ["gen7ou", "gen7anythinggoes", "ubers", "uu", "ru",
-        "nu", "pu", "lc", "gen8oubeta", "gen8doublesoubeta", "cap"];
+    uset.format = "gen8ou";
     if (formats.includes(info.format))
         uset.format = info.format;
     uset.description = info.desc.substr(0, 650);
@@ -208,9 +215,7 @@ export const createNewSet = async (sdata: {
 }) => {
     let nset: Sets = {} as Sets;
     nset.hash = tripcode(sdata.trip);
-    nset.format = "gen7ou";
-    let formats = ["gen7ou", "gen7anythinggoes", "ubers", "uu", "ru",
-        "nu", "pu", "lc", "gen8oubeta", "gen8doublesoubeta", "cap"];
+    nset.format = "gen8ou";
     if (formats.includes(sdata.format))
         nset.format = sdata.format;
     nset.creator = sdata.creat.substr(0, 23);
@@ -225,7 +230,7 @@ export const createNewSet = async (sdata: {
     nset.date_added = +new Date();
     total++;
     nset.id = (await SetsCollection.find().sort({ id: -1 }).toArray())[0].id + 1;
-    await SetsCollection.insert(nset);
+    await SetsCollection.insertOne(nset);
     return nset;
 }
 

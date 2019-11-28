@@ -5,7 +5,108 @@ import { PSRoom, RoomID } from './PSRoom';
 import { Player } from './Player';
 
 import SockJS = require('sockjs-client');
-import { snooze } from '../Website/utils';
+import { snooze, toId } from '../Website/utils';
+
+type ID = string & { __tag: 'id' }
+export let toID = (e: Parameters<typeof toId>[0]) => toId(e) as ID;
+type Format = { id: ID, name: string, section: string };
+
+let parseFormats = (formatsList: string[]) => {
+	let isSection = false;
+	let section = '';
+
+	let column = 0;
+
+	let BattleFormats: Map<ID, Format> = new Map;
+	for (let j = 1; j < formatsList.length; j++) {
+		const entry = formatsList[j];
+		if (isSection) {
+			section = entry;
+			isSection = false;
+		} else if (entry === ',LL') {
+			//PS.teams.usesLocalLadder = true;
+		} else if (entry === '' || (entry.charAt(0) === ',' && !isNaN(Number(entry.slice(1))))) {
+			isSection = true;
+
+			if (entry) {
+				column = parseInt(entry.slice(1), 10) || 0;
+			}
+		} else {
+			let name = entry;
+			let searchShow = true;
+			let challengeShow = true;
+			let tournamentShow = true;
+			let team: 'preset' | null = null;
+			let teambuilderLevel: number | null = null;
+			let lastCommaIndex = name.lastIndexOf(',');
+			let code = lastCommaIndex >= 0 ? parseInt(name.substr(lastCommaIndex + 1), 16) : NaN;
+			if (!isNaN(code)) {
+				name = name.substr(0, lastCommaIndex);
+				if (code & 1) team = 'preset';
+				if (!(code & 2)) searchShow = false;
+				if (!(code & 4)) challengeShow = false;
+				if (!(code & 8)) tournamentShow = false;
+				if (code & 16) teambuilderLevel = 50;
+			} else {
+				// Backwards compatibility: late 0.9.0 -> 0.10.0
+				if (name.substr(name.length - 2) === ',#') { // preset teams
+					team = 'preset';
+					name = name.substr(0, name.length - 2);
+				}
+				if (name.substr(name.length - 2) === ',,') { // search-only
+					challengeShow = false;
+					name = name.substr(0, name.length - 2);
+				} else if (name.substr(name.length - 1) === ',') { // challenge-only
+					searchShow = false;
+					name = name.substr(0, name.length - 1);
+				}
+			}
+			let id = toID(name);
+			let isTeambuilderFormat = !team && name.slice(-11) !== 'Custom Game';
+			let teambuilderFormat = '' as ID;
+			let teambuilderFormatName = '';
+			if (isTeambuilderFormat) {
+				teambuilderFormatName = name;
+				if (id.slice(0, 3) !== 'gen') {
+					teambuilderFormatName = '[Gen 6] ' + name;
+				}
+				let parenPos = teambuilderFormatName.indexOf('(');
+				if (parenPos > 0 && name.slice(-1) === ')') {
+					// variation of existing tier
+					teambuilderFormatName = teambuilderFormatName.slice(0, parenPos).trim();
+				}
+				if (teambuilderFormatName !== name) {
+					teambuilderFormat = toID(teambuilderFormatName);
+					let elem = BattleFormats.get(teambuilderFormat);
+					if (!elem) {
+						BattleFormats.set(teambuilderFormat, {
+							id: teambuilderFormat,
+							name: teambuilderFormatName,
+							section,
+						});
+					}
+					isTeambuilderFormat = false;
+				}
+			}
+			// make sure formats aren't out-of-order
+			if (BattleFormats.has(id))
+				BattleFormats.delete(id);
+			BattleFormats.set(id, {
+				id,
+				name,
+				section,
+			});
+		}
+	}
+	return BattleFormats
+}
+export let availableFormats: any = {};
+
+let updateAvailableFormats = (formats: string[]) => {
+	let map = parseFormats(formats);
+	for (let e of map.entries())
+		availableFormats[e[0]] = e[1] 
+}
 
 export class PSConnection {
 	usable: boolean = false;
@@ -35,7 +136,7 @@ export class PSConnection {
 		this.ws && this.ws.close();
 		this.ws = new SockJS('https://sim2.psim.us/showdown');
 		this.ws.onmessage = ev => {
-console.log(ev)
+			console.log(ev)
 			if (ev.data[0] == '>') {
 				let { room, events } = eventToPSBattleMessage(ev);
 				if (this.rooms.has(room)) {
@@ -174,6 +275,9 @@ console.log(ev)
 			// don't care yet
 			let user = await this.read('updateuser');
 			let formats = await this.read('formats');
+
+			updateAvailableFormats(formats);
+
 			// Hum what the fuck zarle?
 			// let rooms = await this.read('queryresponse');
 			let challstr = await this.read('challstr');

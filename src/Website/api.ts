@@ -13,6 +13,7 @@ import { Replay } from '../Backend/Models/Replay';
 import { decompose, banners, getSetOfTheDay } from './utils';
 import { champ, cthread } from '../Shoedrip/shoedrip';
 import { Champ } from '../Backend/Models/Champ';
+import { availableFormats } from '../Showdown/PSConnection';
 
 export let api = express();
 api.set('env', 'production');
@@ -187,6 +188,10 @@ api.post('/contact', (req, res) => {
 
 api.post("/trip", (request, response) => {
     response.json(tripcode(request.body.v));
+});
+
+api.get("/formats", (request, response) => {
+    response.json(availableFormats);
 });
 
 api.get("/day", async (_, response) => {

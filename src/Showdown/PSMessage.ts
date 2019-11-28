@@ -18,7 +18,7 @@ export type GlobalEvents = {
     queryresponse: ['queryresponse', string, string?, string?],
     popup: ['popup', Message],
     pm: ['pm', Username, Username, Message],
-    formats: ['formats', string],
+    formats: ['formats', ...string[]],
     challstr: ['challstr', '4', string],
     updatesearch: ['updatesearch', string],
     error: ['error', string]
