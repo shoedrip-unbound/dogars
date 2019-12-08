@@ -11,7 +11,7 @@ import { BattleURL } from '../Backend/CringeCompilation';
 import { RoomID } from '../Showdown/PSRoom';
 
 // Shamelessly stolen and adapted from showdown-client
-let BattleStatIDs: { [idx: string]: string } = {
+const BattleStatIDs: { [idx: string]: string } = {
     HP: 'hp',
     hp: 'hp',
     Atk: 'atk',

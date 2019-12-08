@@ -1,11 +1,8 @@
 import * as sockjs from "sockjs"
 import { Server } from "http";
-import fs = require('fs');
-import { settings } from "../Backend/settings";
 import { registerChampResult } from "../Backend/mongo";
 import { champ } from "../Shoedrip/shoedrip";
 import { CringeCompilation } from "../Backend/CringeCompilation";
-import { cookieCompare } from "tough-cookie";
 
 class DogarsIPCServer {
     clients: sockjs.Connection[] = [];
@@ -18,37 +15,41 @@ class DogarsIPCServer {
         this.ipcserver.on('connection', (conn: sockjs.Connection) => {
             this.clients.push(conn);
             conn.on('data', async (m) => {
-                let req = JSON.parse(m);
-                let res;
+                try {
+                    let req = JSON.parse(m);
+                    let res;
 
-                console.log(req);
-                if (req.method == 'registerChampResult')
-                    res = await registerChampResult.apply(null, req.args);
-                else if (req.method == 'refresh')
-                    res = champ;
-                else if (req.method == 'setbattle') {
-                    champ.current_battle = req.args[0];
-                }
-                else if (req.method == 'snap') {
-                    let cc = this.cringes[conn.id];
-                    if (cc) {
-                        await cc.snap();
+                    console.log(req);
+                    if (req.method == 'registerChampResult')
+                        res = await registerChampResult.apply(null, req.args);
+                    else if (req.method == 'refresh')
+                        res = champ;
+                    else if (req.method == 'setbattle') {
+                        champ.current_battle = req.args[0];
                     }
-                } else if (req.method == 'close') {
-                    let cc = this.cringes[conn.id];
-                    if (cc)
-                        await cc.done();
-                } else if (req.method == 'prepare') {
-                    let url = req.args[0];
-                    let cc = new CringeCompilation(url);
-                    await cc.init();
-                    this.cringes[conn.id] = cc;
-                }
+                    else if (req.method == 'snap') {
+                        let cc = this.cringes[conn.id];
+                        if (cc) {
+                            await cc.snap();
+                        }
+                    } else if (req.method == 'close') {
+                        let cc = this.cringes[conn.id];
+                        if (cc)
+                            await cc.done();
+                    } else if (req.method == 'prepare') {
+                        let url = req.args[0];
+                        let cc = new CringeCompilation(url);
+                        await cc.init();
+                        this.cringes[conn.id] = cc;
+                    }
 
-                if (req.method) {
-                    let repl = { id: req.id, response: res };
-                    console.log(repl);
-                    conn.write(JSON.stringify(repl));
+                    if (req.method) {
+                        let repl = { id: req.id, response: res };
+                        console.log(repl);
+                        conn.write(JSON.stringify(repl));
+                    }
+                } catch (e) {
+                    console.error(e);
                 }
             });
             conn.on('close', () => {
