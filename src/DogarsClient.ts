@@ -4,20 +4,32 @@ import { Champ } from './Shoedrip/Champ';
 import { settings } from './Backend/settings';
 import { BattleData } from './Showdown/BattleData';
 import { BattleURL } from './Backend/CringeCompilation';
+import { snooze } from './Website/utils';
 
 export class DogarsIPCClient {
     pass: string;
-    s = new SockJS('https://dogars.ml/ipc');
-    message: AsyncIterableIterator<IPCCmd>;
+    s!: WebSocket;
+    message!: AsyncIterableIterator<IPCCmd>;
+
+    onerror: (e: Parameters<NonNullable<WebSocket['onerror']>>[0]) => any = (e) => {};
+
     constructor(pass: string) {
-        this.pass = pass;
-        console.log(asyncify)
+        this.pass = pass; // Unused yet, until I observe abuse
+    }
+
+    connect() {
+        this.s = new SockJS('https://dogars.ml/ipc');
         let stream = asyncify(async (cb: (v: MessageEvent) => void) => {
             this.s.onmessage = message => cb(message)
         });
 
         let publish: (m: IPCCmd) => void;
         this.message = asyncify(async (cb: (v: IPCCmd) => void) => publish = m => cb(m));
+
+        let inst = this;
+        this.s.onerror = e => {
+            inst.onerror(e);
+        }
 
         (async () => {
             for await (let mess of stream) {
@@ -30,12 +42,10 @@ export class DogarsIPCClient {
                 }
             }
         })();
-    }
-
-    connect() {
-        return new Promise(r => {
+        
+        return new Promise((r) => {
             this.s.onopen = r;
-        })
+        });
     }
 
     messageStream() {
@@ -114,3 +124,9 @@ export interface AckCmd {
 export type IPCCmd = MonitorCmd | AckCmd;
 
 export let DogarsClient = new DogarsIPCClient(settings.admin_pass);
+
+const connectionErrorHandler = async (e: Event) => {
+    console.log("A connection error occured, attempting to reconnect in 5 seconds...");
+    await snooze(5000);
+    await DogarsClient.connect();
+};
