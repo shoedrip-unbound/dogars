@@ -64,6 +64,8 @@ export class CringeCompilation {
     }
 
     done() {
-        return this.page!.close({runBeforeUnload: false});
+        // Don't actually close because we don't want to open/close tabs everytime,
+        // simply reuse the currently opened tab
+        //return this.page!.close({runBeforeUnload: false});
     }
 }

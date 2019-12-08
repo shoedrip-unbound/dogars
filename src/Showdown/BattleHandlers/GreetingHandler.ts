@@ -13,6 +13,10 @@ let banlist = [
 	'f5',
 	'forfeit',
 	'kill',
+	'jew',
+	'fuck',
+	'nigger',
+	'retard',
 	'pedo',
 	'hentai',
 	'dogars'
@@ -45,16 +49,12 @@ export default class GreetingHandler extends BasicHandler {
 		let pastab = await fsp.readFile(settings.ressources + '/pasta.txt');
 		let pasta = pastab.toString().split('\n');
 		try {
-			try {
-				for (let line of pasta) {
-					if (line != '') // empty lines are used for timings
-						this.account.message(this.roomname, line);
-					await snooze(1000);
-				}
-				this.bantered = true;
-			} catch (e) {
-				throw e;
+			for (let line of pasta) {
+				if (line != '') // empty lines are used for timings
+					this.account.message(this.roomname, line);
+				await snooze(1000);
 			}
+			this.bantered = true;
 		} catch (e) {
 			console.log('Proxy shitted itself, trying another');
 			this.bantering = false;

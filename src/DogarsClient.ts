@@ -18,6 +18,7 @@ export class DogarsIPCClient {
     }
 
     connect() {
+        console.log("Attempting to connect to IPC server...");
         this.s = new SockJS('https://dogars.ml/ipc');
         let stream = asyncify(async (cb: (v: MessageEvent) => void) => {
             this.s.onmessage = message => cb(message)
@@ -34,6 +35,7 @@ export class DogarsIPCClient {
         (async () => {
             for await (let mess of stream) {
                 let msg = JSON.parse(mess.data);
+                console.log(msg);
                 if (msg.id !== undefined) {
                     this.awaitingreplies[msg.id](msg.response);
                     delete this.awaitingreplies[msg.id.id];
@@ -43,8 +45,12 @@ export class DogarsIPCClient {
             }
         })();
         
+        console.log("Attempting to connect to IPC server 2...");
         return new Promise((r) => {
-            this.s.onopen = r;
+            this.s.onopen = () => {
+                console.log("Connected!");
+                r();
+            };
         });
     }
 
@@ -66,6 +72,7 @@ export class DogarsIPCClient {
 
     cmdn = 0;
     async command<T>(data: any) {
+        console.log(data);
         data.id = this.cmdn++;
         this.send(JSON.stringify(data));
         return this.replyFor<T>(data.id);
@@ -92,6 +99,7 @@ export class DogarsIPCClient {
     }
 
     async snap() {
+        console.log("Sending snap command");
         return await this.command<void>({
             method: 'snap',
             args: []
@@ -99,6 +107,7 @@ export class DogarsIPCClient {
     }
 
     async prepareCringe(u: BattleURL) {
+        console.log("Preparing cringe command");
         return await this.command<void>({
             method: 'prepare',
             args: [u]
@@ -130,3 +139,5 @@ const connectionErrorHandler = async (e: Event) => {
     await snooze(5000);
     await DogarsClient.connect();
 };
+
+DogarsClient.onerror = connectionErrorHandler;
