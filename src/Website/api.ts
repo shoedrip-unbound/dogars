@@ -155,8 +155,8 @@ api.post('/replays', async (req, res) => {
     }
 });
 
-let commitstr = cp.spawnSync('git', ['-C', settings.ressources, 'log', `--pretty=format:%h%x00%ad%x00%s%x00%b%x00`]).stdout.toString();
-let grouped = commitstr.split('\x00\n').map(s => s.split('\x00'));
+const commitstr = cp.spawnSync('git', ['-C', settings.ressources, 'log', `--pretty=format:%h%x00%ad%x00%s%x00%b%x00`]).stdout.toString();
+const grouped = commitstr.split('\x00\n').map(s => s.split('\x00'));
 
 let commits = grouped.map(g => {
     return {

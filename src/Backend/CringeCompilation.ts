@@ -1,9 +1,8 @@
-import * as puppeteer from "puppeteer";
+import * as puppeteer from "puppeteer-core";
 import fs = require('fs');
 import { settings } from "./settings";
 import { Cringer } from "./CringeProvider";
 import { As } from "../Showdown/PSMessage";
-import { getPackedSettings } from "http2";
 
 export type BattleURL = string & As<'BattleURL'>;
 
@@ -65,6 +64,8 @@ export class CringeCompilation {
     }
 
     done() {
-        return this.page!.close({runBeforeUnload: false});
+        // Don't actually close because we don't want to open/close tabs everytime,
+        // simply reuse the currently opened tab
+        //return this.page!.close({runBeforeUnload: false});
     }
 }

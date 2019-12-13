@@ -9,3 +9,8 @@ dogars.code-workspace
 public/*
 *.bson*
 *.gz
+sids.json
+dist
+*.map
+*.js
+test.ts
