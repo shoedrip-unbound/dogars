@@ -1,11 +1,11 @@
 import fs = require('fs');
 import { settings } from '../Backend/settings';
-import { Sets } from '../Backend/Models/Sets';
+import { Sets, DBSet } from '../Backend/Models/Sets';
 import { getRandomSet } from '../Backend/mongo';
 
 export let banners = fs.readdirSync(settings.ressources + '/public/ban');
 
-let ranset: Sets | null = null;
+let ranset: DBSet | null = null;
 
 export const fileCache: { [idx: string]: string } = {};
 
@@ -19,7 +19,7 @@ setInterval(() => { ranset = null }, 1000 * 3600 * 24);
 
 export const getSetOfTheDay = async () => {
     if (ranset)
-        return ranset as Sets;
+        return ranset as DBSet;
     let a = new Date();
     let seed = (((a.getMonth() + 1) * (a.getDay() + 1) * (a.getFullYear()) + 1));
     ranset = (await getRandomSet(seed))[0];

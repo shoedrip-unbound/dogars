@@ -1,4 +1,4 @@
-import { Sets } from "./Sets";
+import { Sets, DBSet } from "./Sets";
 
 export class Replay {
 
@@ -18,5 +18,5 @@ export class Replay {
     champ!: string;
     trip!: string;
     manual!: number;
-    sets!: Sets[];
+    sets!: DBSet[];
 }

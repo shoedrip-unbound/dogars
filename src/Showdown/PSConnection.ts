@@ -1,5 +1,3 @@
-import { Agent } from 'https';
-
 import { eventToPSMessages, GlobalEventsType, eventToPSBattleMessage, PSRequest, EventsName, PSEvent, PSEventType, BattleEventsType } from './PSMessage';
 import { PSRoom, RoomID } from './PSRoom';
 import { Player } from './Player';

@@ -47,6 +47,7 @@
     "mv": "^2.1.1",
     "mysql": "^2.17.1",
     "mysql-promise": "^4.1.0",
+    "pokemon-showdown": "file:pokemon-showdown",
     "proxy-lists": "^1.20.0",
     "puppeteer": "^1.17.0",
     "reflect-metadata": "^0.1.13",
