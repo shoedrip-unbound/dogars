@@ -10,7 +10,7 @@ import { toId } from '../Website/utils';
 import { pokeUtils } from '../Website/poke-utils';
 
 import { Champ } from './Models/Champ';
-import { Sets } from './Models/Sets';
+import { Sets, DBSet } from './Models/Sets';
 import { Replay } from './Models/Replay';
 import { BattleURL } from './CringeCompilation';
 import { BattleAvatarNumbers } from '../Shoedrip/dexdata';
@@ -21,7 +21,7 @@ let memes: Db;
 
 export let total = 0;
 export let ChampsCollection: Collection<Champ>;
-export let SetsCollection: Collection<Sets>;
+export let SetsCollection: Collection<DBSet>;
 export let ReplaysCollection: Collection<Replay>;
 
 export type QueryOperation<T> =
@@ -183,28 +183,51 @@ export const updateSet = async (id: number, trip: string, info: { format: string
     if (formats.includes(info.format))
         uset.format = info.format;
     uset.description = info.desc.substr(0, 650);
-    let pok = pokeUtils.parseSet(info.set);
+    let pok = pokeUtils.parseSet(info.set) as Sets;
+    pok.date_added = +new Date();
     pok.format = uset.format;
-    for (let i in pok)
-        uset[i] = pok[i];
-    uset.date_added = +new Date();
-    let errors = await pokeUtils.checkSet(pok);
+    pok.creator = uset.creator;
+    pok.hash = uset.hash;
+    pok.description = uset.description;
+    pok.id = uset.id;
+    pok.has_custom = uset.has_custom
+    let errors = pokeUtils.checkSet(pok);
     if (errors) {
         throw errors;
     }
-    SetsCollection.updateOne({ id }, { $set: uset });
+    SetsCollection.updateOne({ id }, { $set: toDBSet(pok) });
     return null;
 }
 
 export const buildCheckableSet = (set: Sets) => {
-    let nset = set;
-    [1, 2, 3, 4]
-        .map(d => 'move_' + d)
-        .forEach(mp => nset[mp] = nset[mp] ? (<string>nset[mp]).split('/')[0].trim() : null);
+    let nset = JSON.parse(JSON.stringify(set)) as Sets;
+    nset.moves = nset.moves
+        .map(mp => mp ? mp.split('/')[0].trim() : '');
     return nset;
 }
 
-type t = [number, number?];
+const toDBSet = (s: Sets) => {
+    let ret = JSON.parse(JSON.stringify(s)) as Sets & DBSet;
+    ret.hp_ev = s.evs.hp;
+    ret.atk_ev = s.evs.atk;
+    ret.def_ev = s.evs.def;
+    ret.spa_ev = s.evs.spa;
+    ret.spd_ev = s.evs.spd;
+    ret.spe_ev = s.evs.spe;
+
+    ret.hp_iv = s.ivs.hp;
+    ret.atk_iv = s.ivs.atk;
+    ret.def_iv = s.ivs.def;
+    ret.spa_iv = s.ivs.spa;
+    ret.spd_iv = s.ivs.spd;
+    ret.spe_iv = s.ivs.spe;
+
+    [ret.move_1, ret.move_2, ret.move_3, ret.move_4] = s.moves;
+    delete ret.moves;    
+    delete ret.ivs;    
+    delete ret.evs;
+    return ret as DBSet;    
+}
 
 export const createNewSet = async (sdata: {
     trip: string,
@@ -220,17 +243,16 @@ export const createNewSet = async (sdata: {
         nset.format = sdata.format;
     nset.creator = sdata.creat.substr(0, 23);
     nset.description = sdata.desc.substr(0, 650);
-    let pok = pokeUtils.parseSet(sdata.set);
+    let pok = pokeUtils.parseSet(sdata.set) as Sets;
     pok.format = nset.format;
-    let errors = await pokeUtils.checkSet(pok);
+    let errors = pokeUtils.checkSet(pok);
     if (errors)
         throw errors;
-    for (let i in pok)
-        nset[i] = pok[i];
+    nset = {...nset, ...pok};
     nset.date_added = +new Date();
     total++;
     nset.id = (await SetsCollection.find().sort({ id: -1 }).toArray())[0].id + 1;
-    await SetsCollection.insertOne(nset);
+    await SetsCollection.insertOne(toDBSet(nset));
     return nset;
 }
 

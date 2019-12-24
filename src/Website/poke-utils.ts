@@ -1,17 +1,17 @@
 import request = require('request-promise-native');
 
-import { toId, clamp } from './utils';
+import { clamp } from './utils';
 
 import { connection } from '../Showdown/PSConnection';
-import { PSCheckTeamRequest, PSSaveBattleRequest } from '../Showdown/PSMessage';
+import { PSSaveBattleRequest } from '../Showdown/PSMessage';
 
 import { Sets } from '../Backend/Models/Sets';
-import { buildCheckableSet } from '../Backend/mongo';
 import { BattleURL } from '../Backend/CringeCompilation';
 import { RoomID } from '../Showdown/PSRoom';
+import { TeamValidator } from 'pokemon-showdown/sim/team-validator'
 
 // Shamelessly stolen and adapted from showdown-client
-const BattleStatIDs: { [idx: string]: string } = {
+let BattleStatIDs: { [idx: string]: ('hp' | 'atk' | 'def' | 'spa' | 'spd' | 'spe') } = {
     HP: 'hp',
     hp: 'hp',
     Atk: 'atk',
@@ -36,16 +36,16 @@ export module pokeUtils {
     // I'm never touching this.
     export let parseSet = (text: string) => {
         let stext = text.split("\n");
-        var team = [];
-        var curSet: any = {};
+        let team: PokemonSet[] = [];
+        let curSet: PokemonSet = {} as PokemonSet;
         let moves = [];
         let first = false;
         for (var i = 0; i < stext.length; i++) {
             var line = stext[i].trim();
             if (!first) {
                 first = true;
-                curSet.hp_iv = curSet.atk_iv = curSet.def_iv = curSet.spa_iv = curSet.spd_iv = curSet.spe_iv = 31;
-                curSet.hp_ev = curSet.atk_ev = curSet.def_ev = curSet.spa_ev = curSet.spd_ev = curSet.spe_ev = 0;
+                curSet.ivs = {hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31};
+                curSet.evs = {hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0};
 
                 team.push(curSet);
                 var atIndex = line.lastIndexOf(' @ ');
@@ -75,7 +75,7 @@ export module pokeUtils {
                 line = line.substr(9);
                 curSet.ability = line.substr(0, 20);
             } else if (line === 'Shiny: Yes') {
-                curSet.shiny = 1;
+                curSet.shiny = true;
             } else if (line.substr(0, 7) === 'Level: ') {
                 line = line.substr(7);
                 curSet.level = clamp(1, +line, 100);
@@ -86,30 +86,30 @@ export module pokeUtils {
                 line = line.substr(5);
                 var evLines = line.split('/');
 
-                curSet.hp_ev = curSet.atk_ev = curSet.def_ev = curSet.spa_ev = curSet.spd_ev = curSet.spe_ev = 0;
+                curSet.evs = {hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0};
 
                 for (var j = 0; j < evLines.length; j++) {
                     var evLine = evLines[j].trim();
                     var spaceIndex = evLine.indexOf(' ');
                     if (spaceIndex === -1) continue;
-                    var statid = BattleStatIDs[evLine.substr(spaceIndex + 1)];
+                    let statid = BattleStatIDs[evLine.substr(spaceIndex + 1)];
                     var statval = parseInt(evLine.substr(0, spaceIndex), 10);
                     if (!statid) continue;
-                    curSet[statid + '_ev'] = clamp(0, statval, 252);
+                    curSet.evs[statid] = clamp(0, statval, 252);
                 }
             } else if (line.substr(0, 5) === 'IVs: ') {
                 line = line.substr(5);
                 var ivLines = line.split(' / ');
-                curSet.hp_iv = curSet.atk_iv = curSet.def_iv = curSet.spa_iv = curSet.spd_iv = curSet.spe_iv = 31;
+                curSet.ivs = {hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31};
                 for (var j = 0; j < ivLines.length; j++) {
                     var ivLine = ivLines[j];
                     var spaceIndex = ivLine.indexOf(' ');
                     if (spaceIndex === -1) continue;
-                    var statid = BattleStatIDs[ivLine.substr(spaceIndex + 1)];
+                    let statid = BattleStatIDs[ivLine.substr(spaceIndex + 1)];
                     var statval = parseInt(ivLine.substr(0, spaceIndex), 10);
                     if (!statid) continue;
                     if (isNaN(statval)) statval = 31;
-                    curSet[statid + '_iv'] = clamp(0, statval, 31);
+                    curSet.ivs[statid] = clamp(0, statval, 31);
                 }
             } else if (line.match(/^[A-Za-z]+ (N|n)ature/)) {
                 var natureIndex = line.indexOf(' Nature');
@@ -123,10 +123,7 @@ export module pokeUtils {
                 moves.push(line);
             }
         }
-        curSet.move_1 = moves[0];
-        curSet.move_2 = moves[1];
-        curSet.move_3 = moves[2];
-        curSet.move_4 = moves[3];
+        curSet.moves = moves;
         curSet.name = curSet.name!.substr(0, 30);
         curSet.species = curSet.species!.substr(0, 30);
         return curSet;
@@ -144,36 +141,11 @@ export module pokeUtils {
         'x-requested-with': 'XMLHttpRequest'
     }
 
-    let pack = (set: Sets): string => {
-        let appstats = (n: string, def: number) =>
-            ['hp', 'atk', 'def', 'spa', 'spd', 'spe']
-                .map(s => `${s}_${n}`)
-                .map(s => set[s] == def ? '' : set[s])
-                .join(',');
-        let packed = [
-            set.name,
-            ['species', 'item', 'ability'].map(attr => toId(set[attr])).join('|'),
-            [1, 2, 3, 4]
-                .map(m => toId(set[`move_${m}`]))
-                .join(','),
-            set.nature,
-            appstats('ev', 0),
-            set.gender,
-            appstats('iv', 31),
-            set.shiny && 'S',
-            set.level && set.level != 100 && set.level,
-            set.happiness && set.happiness < 255 && set.happiness
-        ].map(e => e ? e : '').join('|');
-        return packed;
-    }
-
-    export let checkSet = async (set: Sets) => {
-        let cset = buildCheckableSet(set);
-        await connection.setTeam(pack(cset));
-        let req = new PSCheckTeamRequest(set.format!);
-        let res = await connection.request(req);
-        if (res.failed)
-            return res.reasons;
+    export let checkSet = (set: Sets) => {
+        let validator = TeamValidator.get(set.format);
+        let res = validator.validateTeam([set]);
+        if (res && res.length)
+            return res;
         return null;
     }
 
