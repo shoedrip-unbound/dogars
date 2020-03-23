@@ -1,4 +1,10 @@
-export type Sets = PokemonSet & {
+import type { PokemonSet } from '../../pokemon-showdown/tools/set-import/sets'
+
+export type Moves = {
+        [k in 'move_1' | 'move_2' | 'move_3' | 'move_4']: string;
+}
+
+export type Sets = Omit<PokemonSet, 'moves'> & Moves & {
         date_added: number;
         format: string;
         creator: string;
@@ -6,6 +12,10 @@ export type Sets = PokemonSet & {
         description: string;
         id: number;
         has_custom: number;
+        move_1: string;
+        move_2: string;
+        move_3: string;
+        move_4: string;
 };
 
 export type DBSet = Omit<Sets, 'moves' | 'evs' | 'ivs'> & {
