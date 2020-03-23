@@ -1,10 +1,10 @@
-import type { PokemonSet } from '../../pokemon-showdown/tools/set-import/sets'
+import type { PokemonSet } from 'pokemon-showdown/tools/set-import/sets'
 
 export type Moves = {
         [k in 'move_1' | 'move_2' | 'move_3' | 'move_4']: string;
 }
 
-export type Sets = Omit<PokemonSet, 'moves'> & Moves & {
+export type Sets = PokemonSet & Moves & {
         date_added: number;
         format: string;
         creator: string;
