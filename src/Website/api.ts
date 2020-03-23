@@ -230,18 +230,27 @@ api.get("/search", async (request, response) => {
             }, { $sort: { id: 1 } }], spp, page);
             response.json(results);
         } else { // Advanced search
-            let data = ['date_added', 'format', 'creator', 'hash', 'name', 'species',
+            const data = ['date_added', 'format', 'creator', 'hash', 'name', 'species',
                 'gender', 'item', 'ability', 'shiny', 'level', 'happiness', 'nature',
-                'move_1', 'move_2', 'move_3', 'move_4', 'description'];
-            Object.keys(request.query)
+                'move_1', 'move_2', 'move_3', 'move_4', 'description'] as const;
+            type fields = typeof data[number];
+            let query = request.query as { [k in fields]: string | number };
+            const isint: {
+                [k in fields]?: boolean
+            } = {
+                level: true,
+                happiness: true,
+            };
+            (Object.keys(query) as fields[])
                 .filter(v => !data.includes(v))
                 .forEach(attr => { delete request.query[attr] });
             let results = await paginate(db.SetsCollection, [{
                 $match: {
-                    $and: decompose(request.query).map(k => {
-                        let prop = Object.keys(k)[0];
-                        k[prop] = new RegExp(k[prop], 'i');
-                        return k;
+                    $and: decompose(query).map(k => {
+                        let prop = Object.keys(k)[0] as fields;
+                        return {
+                            [prop]: isint[prop] ? +k[prop]! : new RegExp(k[prop] as string, 'i')
+                        };
                     })
                 }
             }, { $sort: { id: 1 } }], spp, page);

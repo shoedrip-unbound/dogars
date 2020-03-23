@@ -49,10 +49,13 @@ export let levenshtein = (a: string, b: string) => {
     return res;
 }
 
-export let decompose = (obj: { [k: string]: any }): { [k: string]: any }[] => {
-    let ret = [];
-    for (let i in obj)
-        ret.push({ [i]: obj[i] });
+export let decompose = <T>(obj: T) => {
+    let ret: Partial<T>[] = [];
+    for (let j in obj) {
+        let i: keyof T = j as any;
+        let k : {[x in keyof T]: T[x]} = { [i]: obj[i] } as any;
+        ret.push(k);
+    }
     return ret;
 }
 

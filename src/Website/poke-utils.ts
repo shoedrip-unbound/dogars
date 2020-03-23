@@ -8,7 +8,7 @@ import { PSSaveBattleRequest } from '../Showdown/PSMessage';
 import { Sets } from '../Backend/Models/Sets';
 import { BattleURL } from '../Backend/CringeCompilation';
 import { RoomID } from '../Showdown/PSRoom';
-import { TeamValidator } from 'pokemon-showdown/sim/team-validator'
+import { TeamValidator } from '../../pokemon-showdown/sim/team-validator'
 
 // Shamelessly stolen and adapted from showdown-client
 let BattleStatIDs: { [idx: string]: ('hp' | 'atk' | 'def' | 'spa' | 'spd' | 'spe') } = {
