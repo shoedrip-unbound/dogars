@@ -9,33 +9,19 @@ import HijackHandler from './Showdown/BattleHandlers/HijackHandler';
 import EndHandler from './Showdown/BattleHandlers/EndHandler';
 import { DogarsClient, IPCCmd } from './DogarsClient';
 import { Champ } from './Shoedrip/Champ';
+import { monitor } from './bot-utils';
+import { BattleURL } from './Backend/CringeCompilation';
 
 console.log('Starting dogars-chan...');
 
-export let monitor = (champ: Champ, account: Player) => {
-    console.log('Start monitor')
-    let bm = new BattleMonitor(account, champ.current_battle!);
-    let ia = new InfoAggregator(champ);
-    bm.attachListeners([
-        new Announcer(ia),
-        new CringeHandler,
-        new DigitsChecker,
-        new GreetingHandler,
-        ia,
-        new HijackHandler(ia),
-        new EndHandler(ia)
-    ]);
-    bm.monitor();
-}
-
 (async () => {
     await DogarsClient.connect();
+    console.log('Client Connected too!')
 
     let ransuff = (n: number) => [...new Array(n)].map(e => '' + ~~(Math.random() * 10)).join('');
-
     let dogarschan = new Player('dogars-chan' + ransuff(3));
     await dogarschan.connect();
-    console.log('Connected')
+    console.log('Connected too!')
     monitor(await DogarsClient.refresh(), dogarschan);
     for await (let cmd of DogarsClient.messageStream()) {
         console.log(cmd);
@@ -43,5 +29,4 @@ export let monitor = (champ: Champ, account: Player) => {
             monitor(cmd.champ, dogarschan);
         }
     }
-
 })();

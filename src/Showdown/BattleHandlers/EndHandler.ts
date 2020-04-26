@@ -6,7 +6,7 @@ import InfoAggregator from "./InfoAggregator";
 import { monitorPlayer, champ } from "../../Shoedrip/shoedrip";
 import { BattleURL } from "../../Backend/CringeCompilation";
 import { DogarsClient } from "../../DogarsClient";
-import { monitor } from "../../dogars-chan";
+import { monitor } from "../../bot-utils";
 
 export default class EndHandler extends BasicHandler {
     bm!: BattleMonitor;
