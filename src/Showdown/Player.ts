@@ -91,7 +91,7 @@ export let _getassertion = async (user: string, pass: string | undefined, challe
 		}
 		let cookies = jar.getCookies('http://pokemonshowdown.com/');
 		cookies = cookies.filter(c => c.key == 'sid');
-		return [cookies[0].value, body.assertion];
+		return [cookies[0]?.value, body.assertion];
 	}
 	else if (body.length > 10)
 		return ['', body];
@@ -158,7 +158,8 @@ export class Player {
 						}
 					}
 					let exp = now + 6 * 30 * 24 * 60 * 60 * 1000; // expires in 6 months
-					sids[toId(this.user)] = { sid, exp };
+					if (sid)
+						sids[toId(this.user)] = { sid, exp };
 					fs.writeFile(sidsfile, JSON.stringify(sids), () => console.log(`saved session for ${this.user}`));
 				}
 				connected = await this.request(new ConnectionRequest(this.user!, assertion));
