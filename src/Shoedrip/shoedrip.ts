@@ -75,11 +75,16 @@ function timeOutPromise<T>(prom: Promise<T>, timeout: number): Promise<T> {
 }
 
 export let monitorPlayer = (champ: Champ) => {
-    if (!champ.current_battle)
+    console.log('monitor request')
+    if (!champ.current_battle) {
+        console.log('Champ not currently in battle')
         return;
+    }
     let id = +champ.current_battle.split('-').pop()!;
-    if (oldid && id <= oldid)
+    if (oldid && id <= oldid) {
+        console.log('new battle is older or the same')
         return;
+    }
     oldid = id;
     IPCServer.askMonitor();
 }

@@ -13,6 +13,7 @@ class DogarsIPCServer {
     constructor() {
         this.ipcserver = sockjs.createServer({ sockjs_url: "https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.5/sockjs.min.js" });
         this.ipcserver.on('connection', (conn: sockjs.Connection) => {
+            console.log('connection received')
             this.clients.push(conn);
             conn.on('data', async (m) => {
                 try {
@@ -60,6 +61,8 @@ class DogarsIPCServer {
     }
 
     askMonitor() {
+        console.log(`pushin monitor to ${this.clients.length} clients`)
+
         const cmd = JSON.stringify({
             command: 'monitor',
             champ: champ
