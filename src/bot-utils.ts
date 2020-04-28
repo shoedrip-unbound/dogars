@@ -19,7 +19,7 @@ export let monitor = (champ: Champ, account: Player) => {
         new DigitsChecker,
         new GreetingHandler,
         ia,
-        new HijackHandler(ia),
+        //new HijackHandler(ia),
         new EndHandler(ia)
     ]);
     bm.monitor();
