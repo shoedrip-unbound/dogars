@@ -103,7 +103,7 @@ export let availableFormats: any = {};
 let updateAvailableFormats = (formats: string[]) => {
 	let map = parseFormats(formats);
 	for (let e of map.entries())
-		availableFormats[e[0]] = e[1] 
+		availableFormats[e[0]] = e[1]
 }
 
 export class PSConnection {
@@ -235,7 +235,7 @@ export class PSConnection {
 				return res(elem as PSEvent[T]);
 			}
 			this.readprom = { name, res };
-		}) as any as PSEvent[T];
+		}) as any as Promise<PSEvent[T]>;
 	}
 
 	close() {
@@ -244,6 +244,7 @@ export class PSConnection {
 		if (!this.ws)
 			throw 'Attempted to close without initialized socket';
 		this.ws.close();
+		this.ws.onclose = null;
 	}
 
 	request<T extends GlobalEventsType | BattleEventsType, R>(req: PSRequest<T, R>): Promise<R> {
@@ -253,9 +254,9 @@ export class PSConnection {
 		})
 	}
 
-	open() {
+	async open() {
 		if (this.opened)
-			return new Promise<void>(res => res());
+			return;
 		return new Promise<void>((res, rej) => {
 			this.openprom = res;
 			this.openrej = rej;
@@ -264,9 +265,8 @@ export class PSConnection {
 
 	async start() {
 		this.clear();
-		if (this.usable) {
-			return new Promise<void>(e => e());
-		}
+		if (this.usable)
+			return;
 		try {
 			await this.open();
 
@@ -294,7 +294,7 @@ export class PSConnection {
 		} catch (e) {
 			console.log('Something horribly wrong happened, disabled websocket', e);
 			this.close();
-			await this.start();
+			//await this.start();
 		}
 	}
 };
@@ -311,7 +311,7 @@ export let tryConnect = async () => {
 		try {
 			connection = new Player();
 			await connection.connect();
-			console.log('Successfull connection with proxy ');
+			console.log('Successful connection ');
 			success = true;
 		} catch (e) {
 			console.log('Connection failed, attempting again in 5 seconds...');
