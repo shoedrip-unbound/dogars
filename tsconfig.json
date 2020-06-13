@@ -17,6 +17,6 @@
 	},
 	"include": [
 		"./src/**/*",
-		"./pokemon-showdown/**/*.ts"
+		"./pokemon-showdown/sim/**/*.ts"
 	]
 }
