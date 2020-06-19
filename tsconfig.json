@@ -1,0 +1,22 @@
+{
+	"compilerOptions": {
+		"outDir": "./dist",
+		"allowJs": true,
+		"target": "es6",
+		"module": "commonjs",
+		"inlineSourceMap": true,
+		"inlineSources": true,
+		"strict": true,
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"lib": [
+			"es7", 
+			"dom",
+			"esnext"
+		],
+	},
+	"include": [
+		"./src/**/*",
+			"./pokemon-showdown/sim/**/*.ts"
+	]
+}
