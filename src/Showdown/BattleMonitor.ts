@@ -2,6 +2,7 @@ import { PSRoom, RoomID } from './PSRoom';
 import { Player } from './Player';
 import { BattleEvents, BattleEventsName } from './PSMessage';
 import { BattleURL } from '../Backend/CringeCompilation';
+import { DogarsClient } from '../DogarsClient';
 
 export type BattleHandler = {
 	[key in BattleEventsName]?: (m: BattleEvents[key]) => Promise<void>
@@ -15,7 +16,9 @@ export class BattleMonitor {
 	listeners: BattleHandler[] = [];
 	url: BattleURL;
 
-	constructor(acc: Player, link: BattleURL) {
+	constructor(acc: Player,
+		link: BattleURL,
+		public client: DogarsClient) {
 		this.url = link;
 		this.account = acc;
 		this.room = this.account.tryJoin(link.match(/(battle-.*)\/?/)![0] as RoomID);

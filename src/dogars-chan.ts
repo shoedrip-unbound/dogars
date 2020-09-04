@@ -11,22 +11,23 @@ import { DogarsClient, IPCCmd } from './DogarsClient';
 import { Champ } from './Shoedrip/Champ';
 import { monitor } from './bot-utils';
 import { BattleURL } from './Backend/CringeCompilation';
+import { settings } from './Backend/settings';
 
 console.log('Starting dogars-chan...');
 
-(async () => {
+export let dogarsroutine = async () => {
     await DogarsClient.connect();
     console.log('Client Connected too!')
 
-    let ransuff = (n: number) => [...new Array(n)].map(e => '' + ~~(Math.random() * 10)).join('');
-    let dogarschan = new Player('dogars-chan' + ransuff(3));
+    //let ransuff = (n: number) => [...new Array(n)].map(e => '' + ~~(Math.random() * 10)).join('');
+    let dogarschan = new Player(settings.showdown.user, settings.showdown.pass);
     await dogarschan.connect();
     console.log('Connected too!')
-    monitor(await DogarsClient.refresh(), dogarschan);
+    monitor(await DogarsClient.refresh(), dogarschan, DogarsClient);
     for await (let cmd of DogarsClient.messageStream()) {
         console.log(cmd);
         if (cmd.command == 'monitor') {
-            monitor(cmd.champ, dogarschan);
+            monitor(cmd.champ, dogarschan, DogarsClient);
         }
     }
-})();
+};
