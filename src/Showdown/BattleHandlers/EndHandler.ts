@@ -13,7 +13,6 @@ export default class EndHandler extends BasicHandler {
     ia: InfoAggregator;
     async attached(bm: BattleMonitor, detach: () => void) {
         super.attached(bm, detach);
-        this.bm = bm;
     }
 
     constructor(ia: InfoAggregator) {
@@ -34,9 +33,9 @@ export default class EndHandler extends BasicHandler {
                     .filter(n => n > this.roomname); // newest rooms
                 if (rooms.length >= 1) {
                     this.ia.guessedChamp.current_battle = `https://play.pokemonshowdown.com/${rooms[0]}` as BattleURL;
-                    DogarsClient.setbattle(this.ia.guessedChamp.current_battle);
+                    this.bm.client.setbattle(this.ia.guessedChamp.current_battle)
                     this.account.message(this.roomname, this.ia.guessedChamp.current_battle);
-                    monitor(this.ia.guessedChamp, this.account);
+                    monitor(this.ia.guessedChamp, this.account, this.bm.client);
                     await snooze(1000);
                     break;
                 }

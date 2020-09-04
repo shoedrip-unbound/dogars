@@ -6,9 +6,11 @@ import { RoomID } from "../PSRoom";
 export default class BasicHandler implements BattleHandler {
     protected account!: Player;
     protected roomname!: RoomID;
+    protected bm!: BattleMonitor;
     private detach?: () => void;
 
     async attached(bm: BattleMonitor, detach: () => void) {
+        this.bm = bm;
         this.roomname = bm.room.room;
         this.account = bm.account;
         this.detach = detach;

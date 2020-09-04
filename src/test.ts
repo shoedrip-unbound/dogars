@@ -14,6 +14,7 @@ import EndHandler from "./Showdown/BattleHandlers/EndHandler";
 import { Player } from "./Showdown/Player";
 import { connection } from "./Showdown/PSConnection";
 import { BattleURL } from "./Backend/CringeCompilation";
+import { DogarsLocalClient } from "./DogarsLocalClient";
 
 let tests = createServer((r, re) => { });
 //Cringer.install(tests);
@@ -25,7 +26,7 @@ tests.listen(1531, async () => {
     bdev.showdown_name = 'bored dev';
     bdev.trip = '!test';
     bdev.current_battle = 'https://play.pokemonshowdown.com/battle-gen7randombattle-794528583' as BattleURL;
-    let bm = new BattleMonitor(connection, bdev.current_battle);
+    let bm = new BattleMonitor(connection, bdev.current_battle, new DogarsLocalClient());
     let ia = new InfoAggregator(bdev);
     bm.attachListeners([
         new Announcer(ia),

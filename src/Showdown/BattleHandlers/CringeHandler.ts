@@ -10,7 +10,7 @@ export default class CringeHandler extends BasicHandler {
 
     async attached(bm: BattleMonitor, detach: () => void) {
         super.attached(bm, detach);
-        await DogarsClient.prepareCringe(bm.url);
+        await this.bm.client.prepareCringe(bm.url);
         this.ready = true;
     }
 
@@ -26,11 +26,11 @@ export default class CringeHandler extends BasicHandler {
         if (usertests >= 3)
             return;
         this.filter[m[1]] = usertests + 1;
-        await DogarsClient.snap();
+        await this.bm.client.snap();
         this.account.message(this.roomname, "Yep. This one's going in my cringe compilation.");
     }
 
     async win() {
-        await DogarsClient.closeCringe();
+        await this.bm.client.closeCringe();
     }
 }

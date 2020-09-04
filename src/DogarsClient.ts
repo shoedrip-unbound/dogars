@@ -6,12 +6,21 @@ import { BattleData } from './Showdown/BattleData';
 import { BattleURL } from './Backend/CringeCompilation';
 import { snooze } from './Website/utils';
 
-export class DogarsIPCClient {
+export interface DogarsClient {
+    registerChampResult(data: BattleData, won: boolean): Promise<void>;
+    refresh(): Promise<Champ>;
+    setbattle(url: BattleURL): Promise<void>;
+    snap(): Promise<void>;
+    prepareCringe(u: BattleURL): Promise<void>;
+    closeCringe(): Promise<void>;
+}
+
+export class DogarsIPCClient implements DogarsClient {
     pass: string;
     s!: WebSocket;
     message!: AsyncIterableIterator<IPCCmd>;
 
-    onerror: (e: Parameters<NonNullable<WebSocket['onerror']>>[0]) => any = (e) => {};
+    onerror: (e: Parameters<NonNullable<WebSocket['onerror']>>[0]) => any = (e) => { };
 
     constructor(pass: string) {
         this.pass = pass; // Unused yet, until I observe abuse
@@ -44,7 +53,7 @@ export class DogarsIPCClient {
                 }
             }
         })();
-        
+
         console.log("Attempting to connect to IPC server 2...");
         return new Promise((r) => {
             this.s.onopen = () => {
@@ -84,15 +93,15 @@ export class DogarsIPCClient {
             args: [data, won]
         });
     }
-    
+
     async refresh() {
         return await this.command<Champ>({
             method: 'refresh'
         });
     }
-    
+
     async setbattle(url: BattleURL) {
-        return await this.command<Champ>({
+        return await this.command<void>({
             method: 'setbattle',
             args: [url]
         });

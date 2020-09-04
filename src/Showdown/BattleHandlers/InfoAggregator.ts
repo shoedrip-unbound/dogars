@@ -134,7 +134,7 @@ export default class InfoAggregator extends BasicHandler {
         if (champdata) {
             this.battleData.memes = champdata.team;
             if (champdata.showdown_name) {
-                await DogarsClient.registerChampResult(this.battleData, champdata.showdown_name == w[1]);
+                this.bm.client.registerChampResult(this.battleData, champdata.showdown_name == w[1]);
             }
         }
         this.battleData.finished = true;
