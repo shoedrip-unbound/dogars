@@ -10,6 +10,7 @@ export default class BasicHandler implements BattleHandler {
     private detach?: () => void;
 
     async attached(bm: BattleMonitor, detach: () => void) {
+        this.bm = bm;
         this.roomname = bm.room.room;
         this.account = bm.account;
         this.detach = detach;
