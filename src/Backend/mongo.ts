@@ -207,26 +207,31 @@ export const buildCheckableSet = (set: Sets) => {
 }
 
 const toDBSet = (s: Sets) => {
-    let ret = JSON.parse(JSON.stringify(s)) as Sets & DBSet;
-    ret.hp_ev = s.evs.hp;
-    ret.atk_ev = s.evs.atk;
-    ret.def_ev = s.evs.def;
-    ret.spa_ev = s.evs.spa;
-    ret.spd_ev = s.evs.spd;
-    ret.spe_ev = s.evs.spe;
+    type SetOptionnal<T, U extends string | number | symbol> = Omit<T, U> & Partial<T>;
+    let ret = JSON.parse(JSON.stringify(s)) as SetOptionnal<Sets & DBSet, 'evs' | 'ivs' | 'moves'>;
+    if (s.evs) {
+        ret.hp_ev = s.evs.hp;
+        ret.atk_ev = s.evs.atk;
+        ret.def_ev = s.evs.def;
+        ret.spa_ev = s.evs.spa;
+        ret.spd_ev = s.evs.spd;
+        ret.spe_ev = s.evs.spe;
+    }
 
-    ret.hp_iv = s.ivs.hp;
-    ret.atk_iv = s.ivs.atk;
-    ret.def_iv = s.ivs.def;
-    ret.spa_iv = s.ivs.spa;
-    ret.spd_iv = s.ivs.spd;
-    ret.spe_iv = s.ivs.spe;
+    if (s.ivs) {
+        ret.hp_iv = s.ivs.hp;
+        ret.atk_iv = s.ivs.atk;
+        ret.def_iv = s.ivs.def;
+        ret.spa_iv = s.ivs.spa;
+        ret.spd_iv = s.ivs.spd;
+        ret.spe_iv = s.ivs.spe;
+    }
 
-    [ret.move_1, ret.move_2, ret.move_3, ret.move_4] = s.moves;
-    delete ret.moves;    
-    delete ret.ivs;    
+    [ret.move_1, ret.move_2, ret.move_3, ret.move_4] = s.moves!;
+    delete ret.moves;
+    delete ret.ivs;
     delete ret.evs;
-    return ret as DBSet;    
+    return ret as DBSet;
 }
 
 export const createNewSet = async (sdata: {
