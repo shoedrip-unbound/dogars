@@ -44,8 +44,8 @@ export module pokeUtils {
             var line = stext[i].trim();
             if (!first) {
                 first = true;
-                curSet.ivs = {hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31};
-                curSet.evs = {hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0};
+                curSet.ivs = { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 };
+                curSet.evs = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
 
                 team.push(curSet);
                 var atIndex = line.lastIndexOf(' @ ');
@@ -86,7 +86,7 @@ export module pokeUtils {
                 line = line.substr(5);
                 var evLines = line.split('/');
 
-                curSet.evs = {hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0};
+                curSet.evs = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
 
                 for (var j = 0; j < evLines.length; j++) {
                     var evLine = evLines[j].trim();
@@ -100,7 +100,7 @@ export module pokeUtils {
             } else if (line.substr(0, 5) === 'IVs: ') {
                 line = line.substr(5);
                 var ivLines = line.split(' / ');
-                curSet.ivs = {hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31};
+                curSet.ivs = { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 };
                 for (var j = 0; j < ivLines.length; j++) {
                     var ivLine = ivLines[j];
                     var spaceIndex = ivLine.indexOf(' ');
@@ -142,8 +142,18 @@ export module pokeUtils {
     }
 
     export let checkSet = (set: Sets) => {
+        let clone = JSON.parse(JSON.stringify(set)) as Sets;
+        let f = (x: string) => x.split('/').map(e => e.trim());
+        clone.moves = [
+            ...f(clone.move_1),
+            ...f(clone.move_2),
+            ...f(clone.move_3),
+            ...f(clone.move_4)
+        ]
+        clone.move_1 = clone.move_2 = clone.move_3 = clone.move_4 = '';
         let validator = TeamValidator.get(set.format);
-        let res = validator.validateTeam([set as PokemonSet]);
+
+        let res = validator.validateTeam([clone as PokemonSet]);
         if (res && res.length)
             return res;
         return null;
