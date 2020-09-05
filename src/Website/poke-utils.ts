@@ -143,14 +143,8 @@ export module pokeUtils {
 
     export let checkSet = (set: Sets) => {
         let clone = JSON.parse(JSON.stringify(set)) as Sets;
-        let f = (x: string) => x.split('/').map(e => e.trim());
-        clone.moves = [
-            ...f(clone.move_1),
-            ...f(clone.move_2),
-            ...f(clone.move_3),
-            ...f(clone.move_4)
-        ]
-        clone.move_1 = clone.move_2 = clone.move_3 = clone.move_4 = '';
+        let f = (x?: string) => x ? x.split('/').map(e => e.trim()) : [''];
+        clone.moves = f(clone.moves.join('/')).slice(0, 4);
         let validator = TeamValidator.get(set.format);
 
         let res = validator.validateTeam([clone as PokemonSet]);

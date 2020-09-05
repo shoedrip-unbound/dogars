@@ -89,7 +89,7 @@ export let monitorPlayer = (champ: Champ) => {
     oldid = id;
     console.log(`start monitoring ${id}`);
     IPCServer.askMonitor();   
-    localclient.monitor();
+    localclient && localclient.monitor();
 }
 
 export let shoestart = async () => {
