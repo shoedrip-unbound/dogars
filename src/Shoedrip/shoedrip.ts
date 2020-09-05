@@ -7,6 +7,7 @@ import { snooze } from '../Website/utils';
 import { BattleURL } from '../Backend/CringeCompilation';
 import { BattleAvatarNumbers } from './dexdata';
 import { IPCServer } from '../Website/DogarsIPCServer';
+import { dogarschan, localclient } from '../mememons';
 
 export let champ: Champ = new Champ();
 export let cthread: { no?: number, tim?: number } = {};
@@ -88,6 +89,7 @@ export let monitorPlayer = (champ: Champ) => {
     oldid = id;
     console.log(`start monitoring ${id}`);
     IPCServer.askMonitor();   
+    localclient.monitor();
 }
 
 export let shoestart = async () => {
