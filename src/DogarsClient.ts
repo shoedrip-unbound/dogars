@@ -13,6 +13,7 @@ export interface DogarsClient {
     snap(): Promise<void>;
     prepareCringe(u: BattleURL): Promise<void>;
     closeCringe(): Promise<void>;
+    monitor(): Promise<void>;
 }
 
 export class DogarsIPCClient implements DogarsClient {
@@ -29,30 +30,6 @@ export class DogarsIPCClient implements DogarsClient {
     connect() {
         console.log("Attempting to connect to IPC server...");
         this.s = new SockJS('https://dogars.ga/ipc');
-        let stream = asyncify(async (cb: (v: MessageEvent) => void) => {
-            this.s.onmessage = message => cb(message)
-        });
-
-        let publish: (m: IPCCmd) => void;
-        this.message = asyncify(async (cb: (v: IPCCmd) => void) => publish = m => cb(m));
-
-        let inst = this;
-        this.s.onerror = e => {
-            inst.onerror(e);
-        }
-
-        (async () => {
-            for await (let mess of stream) {
-                let msg = JSON.parse(mess.data);
-                console.log(msg);
-                if (msg.id !== undefined) {
-                    this.awaitingreplies[msg.id](msg.response);
-                    delete this.awaitingreplies[msg.id.id];
-                } else {
-                    publish!(msg as IPCCmd);
-                }
-            }
-        })();
 
         console.log("Attempting to connect to IPC server 2...");
         return new Promise((r) => {
@@ -63,8 +40,8 @@ export class DogarsIPCClient implements DogarsClient {
         });
     }
 
-    messageStream() {
-        return this.message;
+    monitor(): Promise<void> {
+        throw new Error("Method not implemented.");
     }
 
     send(t: Parameters<WebSocket['send']>[0]) {

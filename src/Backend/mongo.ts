@@ -201,7 +201,7 @@ export const updateSet = async (id: number, trip: string, info: { format: string
 
 export const buildCheckableSet = (set: Sets) => {
     let nset = JSON.parse(JSON.stringify(set)) as Sets;
-    nset.moves = nset.moves
+    nset.moves = nset.moves!
         .map(mp => mp ? mp.split('/')[0].trim() : '');
     return nset;
 }
@@ -253,7 +253,7 @@ export const createNewSet = async (sdata: {
     let errors = pokeUtils.checkSet(pok);
     if (errors)
         throw errors;
-    nset = {...nset, ...pok};
+    nset = { ...nset, ...pok };
     nset.date_added = +new Date();
     total++;
     nset.id = (await SetsCollection.find().sort({ id: -1 }).toArray())[0].id + 1;
