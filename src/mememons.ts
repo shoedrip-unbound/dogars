@@ -12,7 +12,9 @@ import * as mongo from './Backend/mongo';
 import { settings } from './Backend/settings';
 import { Cringer } from './Backend/CringeProvider';
 import { IPCServer } from './Website/DogarsIPCServer';
-import { dogarsroutine } from './dogars-chan';
+import { DogarsLocalClient } from './DogarsLocalClient';
+import { monitor } from './bot-utils';
+import { Player } from './Showdown/Player';
 
 setInterval(async () => {
     let backup = `${settings.ressources}/public/backup.tar.gz`;
@@ -33,5 +35,8 @@ server.listen(+process.argv[2] || 1234, '0.0.0.0', async () => {
     await tryConnect();
     console.log('Showdown connection started, initializing showderp watch service...');
     shoestart();
-    dogarsroutine();
+    let dogarschan = new Player(settings.showdown.user, settings.showdown.pass);
+    let client = new DogarsLocalClient(dogarschan);
+    await dogarschan.connect();
+    monitor(await client.refresh(), dogarschan, client);
 });

@@ -143,7 +143,7 @@ export module pokeUtils {
 
     export let checkSet = (set: Sets) => {
         let validator = TeamValidator.get(set.format);
-        let res = validator.validateTeam([set]);
+        let res = validator.validateTeam([set as PokemonSet]);
         if (res && res.length)
             return res;
         return null;

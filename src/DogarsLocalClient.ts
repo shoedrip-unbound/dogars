@@ -4,12 +4,21 @@ import { BattleURL, CringeCompilation } from './Backend/CringeCompilation';
 import { DogarsClient } from './DogarsClient';
 import { registerChampResult } from './Backend/mongo';
 import { champ } from './Shoedrip/shoedrip';
+import { monitor } from './bot-utils';
+import { Player } from './Showdown/Player';
 
 export class DogarsLocalClient implements DogarsClient {
     cc: CringeCompilation | undefined;
 
+    constructor(private player: Player) {
+    }
+
     registerChampResult(data: BattleData, won: boolean): Promise<void> {
         return registerChampResult(data, won);
+    }
+
+    async monitor() {
+        monitor(champ, this.player, this);
     }
 
     async refresh() {
