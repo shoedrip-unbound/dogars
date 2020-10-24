@@ -42,7 +42,11 @@ export class CringeCompilation {
             "nopastgens": true
         };
         lll = JSON.stringify(lll);
-        await this.page.evaluate(`localStorage.setItem("showdown_prefs", '${lll}');`);
+        try {
+            await this.page.evaluate(`localStorage.setItem("showdown_prefs", '${lll}');`);
+        } catch(e) {
+            console.error(e);
+        }
         this.inited = true;
     }
 

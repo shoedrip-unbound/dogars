@@ -8,10 +8,11 @@ import GreetingHandler from './Showdown/BattleHandlers/GreetingHandler';
 import HijackHandler from './Showdown/BattleHandlers/HijackHandler';
 import EndHandler from './Showdown/BattleHandlers/EndHandler';
 import { Champ } from './Shoedrip/Champ';
+import { DogarsClient } from './DogarsClient';
 
-export let monitor = (champ: Champ, account: Player) => {
+export let monitor = (champ: Champ, account: Player, client: DogarsClient) => {
     console.log('Start monitor')
-    let bm = new BattleMonitor(account, champ.current_battle!);
+    let bm = new BattleMonitor(account, champ.current_battle!, client);
     let ia = new InfoAggregator(champ);
     bm.attachListeners([
         new Announcer(ia),
