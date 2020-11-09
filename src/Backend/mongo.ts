@@ -257,7 +257,7 @@ export const createNewSet = async (sdata: {
     nset = { ...nset, ...pok };
     nset.date_added = +new Date();
     total++;
-    nset.id = (await SetsCollection.find().sort({ id: -1 }).toArray())[0].id + 1;
+    nset.id = ((await SetsCollection.find().sort({ id: -1 }).toArray())[0]?.id || 0) + 1;
     await SetsCollection.insertOne(toDBSet(nset));
     return nset;
 }
