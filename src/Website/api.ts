@@ -215,6 +215,7 @@ api.get("/search", async (request, response) => {
     let spp = request.query.spp || 15;
     spp < 1 && (spp = 15);
     spp > 100 && (spp = 100);
+    let random = request.query.random ? true : false;
     try {
         Object.keys(request.query)
             .filter(attr => request.query[attr] === '')
@@ -227,7 +228,7 @@ api.get("/search", async (request, response) => {
                         return { [k]: new RegExp(request.query.q, 'i') };
                     })
                 }
-            }, { $sort: { id: 1 } }], spp, page);
+            }, random ? { $sample: { size: 1 } } : { $sort: { id: 1 } }], spp, page);
             response.json(results);
         } else { // Advanced search
             const data = ['date_added', 'format', 'creator', 'hash', 'name', 'species',
@@ -253,7 +254,7 @@ api.get("/search", async (request, response) => {
                         };
                     })
                 }
-            }, { $sort: { id: 1 } }], spp, page);
+            }, random ? { $sample: { size: 1 } } : { $sort: { id: 1 } }], spp, page);
             response.json(results);
         }
     } catch (e) {
