@@ -36,6 +36,7 @@ export type AggregationPipelineStage<T> =
     { $match: AggregationQuery<QueryFieldOf<T>> } |
     { $addFields: { [k: string]: QueryOperation<T> } } |
     { $sort: { [key in keyof T]?: -1 | 1 } } |
+    { $sample: { size: number } } |
     undefined;
 
 let connection: MongoClient;
