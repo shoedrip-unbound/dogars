@@ -57,7 +57,7 @@ api.get('/thread', async (_, res) => {
 });
 
 api.get('/fame', async (request, response) => {
-    let res = await paginate(db.SetsCollection, [{ $match: { has_custom: 1 } }, { $sort: { id: 1 } }], +request.query.spp, +request.query.paged);
+    let res = await paginate(db.SetsCollection, [{ $match: { has_custom: 1 } }, { $sort: { id: 1 } }], +request.query.spp, +request.query.page);
     response.json(res);
 });
 
@@ -215,7 +215,8 @@ api.get("/search", async (request, response) => {
     let spp = request.query.spp || 15;
     spp < 1 && (spp = 15);
     spp > 100 && (spp = 100);
-    let random = request.query.random ? true : false;
+    let random = !!request.query.random;
+    console.log('random:', random);
     try {
         Object.keys(request.query)
             .filter(attr => request.query[attr] === '')
