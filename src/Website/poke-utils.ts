@@ -147,7 +147,7 @@ export module pokeUtils {
         clone.moves = f(clone.moves.join('/')).slice(0, 4);
         let validator = TeamValidator.get(set.format);
 
-        let res = validator.validateTeam([clone as PokemonSet]);
+        let res = validator.validateSet(clone as PokemonSet, {});
         if (res && res.length)
             return res;
         return null;
