@@ -46,7 +46,9 @@ export let init = async () => {
         return;
     connection = await MongoClient.connect(url, {
         useUnifiedTopology: true,
-        useNewUrlParser: true
+        useNewUrlParser: true,
+        auth: { user: settings.db.user, password: settings.db.password },
+        authSource: 'admin'
     });
     memes = connection.db(dbName);
     let collections = await memes.collections();
