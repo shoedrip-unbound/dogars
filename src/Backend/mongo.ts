@@ -14,7 +14,7 @@ import { Sets, DBSet } from './Models/Sets';
 import { Replay } from './Models/Replay';
 import { BattleAvatarNumbers } from '../Shoedrip/dexdata';
 
-const url = `mongodb://${settings.db.host}:${settings.db.port || 27017}`;
+const url = `mongodb://${settings.db.user}:${settings.db.password}@${settings.db.host}:${settings.db.port || 27017}`;
 const dbName = settings.db.database;
 let memes: Db;
 
