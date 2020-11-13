@@ -12,7 +12,6 @@ import { pokeUtils } from '../Website/poke-utils';
 import { Champ } from './Models/Champ';
 import { Sets, DBSet } from './Models/Sets';
 import { Replay } from './Models/Replay';
-import { BattleURL } from './CringeCompilation';
 import { BattleAvatarNumbers } from '../Shoedrip/dexdata';
 import { availableFormats } from '../Showdown/PSConnection';
 
@@ -179,7 +178,7 @@ export const updateSet = async (id: number, trip: string, info: { format: string
     if (!(trip == settings.admin_pass || uset.hash == tripcode(trip)))
         throw 'Wrong tripcode';
     uset.format = "gen8ou";
-    if (Object.keys(availableFormats).includes(info.format))
+    if (availableFormats.some(x => x.id == info.format))
         uset.format = info.format;
     uset.description = info.desc.substr(0, 650);
     let pok = pokeUtils.parseSet(info.set) as Sets;
@@ -243,7 +242,7 @@ export const createNewSet = async (sdata: {
     let nset: Sets = {} as Sets;
     nset.hash = tripcode(sdata.trip);
     nset.format = "gen8ou";
-    if (Object.keys(availableFormats).includes(sdata.format))
+    if (availableFormats.some(x => x.id == sdata.format))
         nset.format = sdata.format;
     nset.creator = sdata.creat.substr(0, 23);
     nset.description = sdata.desc.substr(0, 650);
