@@ -14,6 +14,7 @@ import { Sets, DBSet } from './Models/Sets';
 import { Replay } from './Models/Replay';
 import { BattleURL } from './CringeCompilation';
 import { BattleAvatarNumbers } from '../Shoedrip/dexdata';
+import { availableFormats } from '../Showdown/PSConnection';
 
 const url = `mongodb://${settings.db.host}:${settings.db.port || 27017}`;
 const dbName = settings.db.database;
@@ -169,11 +170,6 @@ export const deleteSet = async (id: number, trip: string, ignored?: any) => {
     return null;
 }
 
-export const formats = ["gen8ou", "gen8ubers", "gen8lc", "gen8monotype",
-    "gen8anythinggoes", "gen8nfe", "gen81v1", "gen8cap", "gen8battlestadiumsingles",
-    "gen8galarbeginnings", "gen8doublesou", "gen8battlestadiumdoubles", "gen82v2doubles",
-    "gen8metronomebattle", "gen8nationaldex", "gen8nationaldexag", "gen8balancedhackmons"]
-
 export const updateSet = async (id: number, trip: string, info: { format: string, desc: string, set: string }) => {
     let uset = await SetsCollection.findOne({ id });
     if (!uset)
@@ -183,7 +179,7 @@ export const updateSet = async (id: number, trip: string, info: { format: string
     if (!(trip == settings.admin_pass || uset.hash == tripcode(trip)))
         throw 'Wrong tripcode';
     uset.format = "gen8ou";
-    if (formats.includes(info.format))
+    if (Object.keys(availableFormats).includes(info.format))
         uset.format = info.format;
     uset.description = info.desc.substr(0, 650);
     let pok = pokeUtils.parseSet(info.set) as Sets;
@@ -247,7 +243,7 @@ export const createNewSet = async (sdata: {
     let nset: Sets = {} as Sets;
     nset.hash = tripcode(sdata.trip);
     nset.format = "gen8ou";
-    if (formats.includes(sdata.format))
+    if (Object.keys(availableFormats).includes(sdata.format))
         nset.format = sdata.format;
     nset.creator = sdata.creat.substr(0, 23);
     nset.description = sdata.desc.substr(0, 650);
