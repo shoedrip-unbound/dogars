@@ -1,8 +1,7 @@
 import fs = require('fs');
 import cp = require('child_process');
 import http = require('http');
-
-import { connection, tryConnect as tryConnect } from './Showdown/PSConnection';
+import { tryConnect as tryConnect } from './Showdown/PSConnection';
 
 import { shoestart } from './Shoedrip/shoedrip';
 

@@ -10,10 +10,11 @@ import tripcode = require('tripcode');
 import { settings } from '../Backend/settings';
 import * as db from '../Backend/mongo';
 import { Replay } from '../Backend/Models/Replay';
-import { decompose, banners, getSetOfTheDay } from './utils';
+import { decompose, banners } from './utils';
 import { champ, cthread } from '../Shoedrip/shoedrip';
 import { Champ } from '../Backend/Models/Champ';
-import { availableFormats } from '../Showdown/PSConnection';
+import { availableFormats } from '../Showdown/Dex';
+import type { DBSet } from '../Backend/Models/Sets';
 
 export let api = express();
 api.set('env', 'production');
@@ -21,6 +22,18 @@ api.use(bodyParser.json());
 api.use(bodyParser.urlencoded({ extended: true }));
 api.use(compression());
 
+let ranset: DBSet | null = null;
+
+setInterval(() => { ranset = null }, 1000 * 3600 * 24);
+
+export const getSetOfTheDay = async () => {
+    if (ranset)
+        return ranset as DBSet;
+    let a = new Date();
+    let seed = (((a.getMonth() + 1) * (a.getDay() + 1) * (a.getFullYear()) + 1));
+    ranset = (await db.getRandomSet(seed))[0];
+    return ranset;
+}
 async function paginate<T>(coll: Collection<T>, prop: db.AggregationPipelineStage<T>[], pspp: number, ppage: number): Promise<[number, T[]]> {
     if (ppage <= 0)
         ppage = 1;

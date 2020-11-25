@@ -7,7 +7,7 @@ import { snooze } from '../Website/utils';
 import { BattleURL } from '../Backend/CringeCompilation';
 import { BattleAvatarNumbers } from './dexdata';
 import { IPCServer } from '../Website/DogarsIPCServer';
-import { dogarschan, localclient } from '../mememons';
+import { localclient } from '../mememons';
 
 export let champ: Champ = new Champ();
 export let cthread: { no?: number, tim?: number } = {};

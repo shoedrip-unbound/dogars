@@ -1,21 +1,13 @@
+import { snooze, toId } from '../Website/utils';
 import { eventToPSMessages, GlobalEventsType, eventToPSBattleMessage, PSRequest, EventsName, PSEvent, PSEventType, BattleEventsType } from './PSMessage';
 import { PSRoom, RoomID } from './PSRoom';
 import { Player } from './Player';
 
 import SockJS = require('sockjs-client');
-import { snooze, toId } from '../Website/utils';
-
-const Dex: ModdedDex = require('../../pokemon-showdown/.sim-dist/dex').Dex;
 
 type ID = string & { __tag: 'id' }
 export let toID = (e: Parameters<typeof toId>[0]) => toId(e) as ID;
 type Format = { id: ID, name: string, section: string };
-
-export let availableFormats = Object.keys(Dex.formats).map(e => ({
-	id: toID(Dex.formats[e].name),
-	section: Dex.formats[e].section,
-	name: Dex.formats[e].name
-}));
 
 export class PSConnection {
 	usable: boolean = false;

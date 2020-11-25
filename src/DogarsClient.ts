@@ -20,6 +20,7 @@ export class DogarsIPCClient implements DogarsClient {
     pass: string;
     s!: WebSocket;
     message!: AsyncIterableIterator<IPCCmd>;
+    awaitingreplies: {[k in number]: (fun: any) => void | { id: number, response: any } } = {};
 
     onerror: (e: Parameters<NonNullable<WebSocket['onerror']>>[0]) => any = (e) => { };
 
@@ -32,6 +33,11 @@ export class DogarsIPCClient implements DogarsClient {
         this.s = new SockJS('https://dogars.ga/ipc');
 
         console.log("Attempting to connect to IPC server 2...");
+        this.s.onmessage = (ev: MessageEvent<any>) => {
+            const res = JSON.parse(ev.data) as { id: number, response: any };
+            console.log(res);
+            this.awaitingreplies[res.id](res.response)
+        };
         return new Promise((r) => {
             this.s.onopen = () => {
                 console.log("Connected!");
@@ -48,11 +54,12 @@ export class DogarsIPCClient implements DogarsClient {
         this.s.send(t);
     }
 
-    awaitingreplies: ((fun: any) => void)[] = [];
-
     replyFor<T>(id: number) {
         return new Promise<T>((res, rej) => {
-            this.awaitingreplies[id] = res;
+            if (this.awaitingreplies[id])
+                res(this.awaitingreplies[id] as any);
+            else
+                this.awaitingreplies[id] = res;
         });
     }
 

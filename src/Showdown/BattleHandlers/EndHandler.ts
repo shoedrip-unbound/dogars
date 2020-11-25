@@ -3,9 +3,7 @@ import { BattleMonitor } from "../BattleMonitor";
 import { snooze } from "../../Website/utils";
 import { PSUserDetails, UserDetails, BattleEvents } from "../PSMessage";
 import InfoAggregator from "./InfoAggregator";
-import { monitorPlayer, champ } from "../../Shoedrip/shoedrip";
 import { BattleURL } from "../../Backend/CringeCompilation";
-import { DogarsClient } from "../../DogarsClient";
 import { monitor } from "../../bot-utils";
 
 export default class EndHandler extends BasicHandler {
@@ -42,7 +40,7 @@ export default class EndHandler extends BasicHandler {
                 await snooze(1000);
             }
         else {
-            console.log(`Didn't follow champ because`, this.ia.battleData, champ);
+            console.log(`Didn't follow champ because`, this.ia.battleData);
         }
         this.account.tryLeave(this.roomname);
     }

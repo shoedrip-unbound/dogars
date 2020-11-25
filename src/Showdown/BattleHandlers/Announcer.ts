@@ -10,6 +10,7 @@ const specials = {
     'Talonflame': 'Talonflame Trimmer'
 }
 
+// TODO: split nouns and adjectives to randomly combine pairs with the same starting letter
 const pebbles = [
     'Aggressive Aggregate', 'Astucious Asphalt',
     'Buried Boulders',
@@ -20,16 +21,22 @@ const pebbles = [
     'Guileful Granite',
     'Hidden Hornfels',
     'Insidious Iridium', 'Inconceivable Iron',
+    'Jarring Jade',
     'Keen Kryptonite',
     'Latent Lead', 'Lurking Limestone',
     'Merciless Minerals', 'Metaphorical Moth Balls',
     'Ninja Nuggets',
     'Obscure Ore',
     'Pernicious Pebbles',
+    'Quirky Quartz',
     'Rusing Radium', 'Reclusive Rocks',
     'Sacrilegious Shards', 'Shrouded Sediment', 'Smogon Stones',
     'Terrorizing Tectinics', 'Tricky Terrain',
+    'Usurping Uranium',
     'Veiled Variolite',
+    'Wily Wiluite', 'Wicked Whetstone',
+    'Xenophobic Xenophyllite',
+    'Yucky Yolk', // This is cute and valid because egg yolk contains minerals :^)
     'Zetetic Zircon'
 ];
 
@@ -48,10 +55,18 @@ let shuffle = <T>(arr: Array<T>) => {
     return arr;
 }
 
-let greedmoves = ['Swords Dance', 'Dragon Dance',
-    'Agility', 'Acupressure', 'Calm Mind', 'Iron Defense',
-    'Shift Gear', 'Work Up', 'Bulk Up', 'Rock Polish',
-    'Nasty Plot', 'Quiver Dance']
+let greedmoves = [
+    'Swords Dance', 'Dragon Dance', 'Agility', 'Acupressure',
+    'Calm Mind', 'Iron Defense', 'Shift Gear', 'Work Up',
+    'Bulk Up', 'Rock Polish', 'Nasty Plot', 'Quiver Dance',
+    'Belly Drum', 'Clangorous Soul', 'Coil', 'Gear Up',
+    'Growth', 'Hone Claws', 'Howl', 'Meditate',
+    'Rototiller', 'Sharpen', 'Shell Smash', 'Work Up',
+    'Acid Armor', 'Barrier', 'Cosmic Power', 'Cotton Guard',
+    'Defend Order', 'Defense Curl', 'Harden', 'Stockpile',
+    'Stuff Cheeks', 'Withdraw', 'Geomancy', 'Automotize',
+    'Tail Glow', 'Amnesia', 'Charge', 'Double Team', 'Minimize'
+];
 
 export default class Announcer extends BasicHandler {
     private warned: boolean = false;

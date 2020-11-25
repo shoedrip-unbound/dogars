@@ -1,16 +1,13 @@
+import fs = require('fs');
 import request = require('request-promise-native');
 
 import { PSConnection } from './PSConnection';
 import { ShowdownMon } from './ShowdownMon';
-import { PSRequest, PSEventType, GlobalEventsType, ConnectionRequest, PSRoomRequest, PSRoomMessageRequest, BattleEventsType } from './PSMessage';
-import fs = require('fs');
+import { PSRequest, GlobalEventsType, ConnectionRequest, PSRoomMessageRequest, BattleEventsType } from './PSMessage';
 import { settings } from '../Backend/settings';
 import { toId } from '../Website/utils';
-import { RoomID } from './PSRoom';
+import type { RoomID } from './PSRoom';
 import { Agent } from 'https';
-
-let httpsagent = require('https-proxy-agent');
-let socksagent = require('socks-proxy-agent');
 
 let sids: { [key: string]: { sid: string, exp: number } } = {};
 

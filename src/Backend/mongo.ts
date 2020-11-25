@@ -13,7 +13,6 @@ import { Champ } from './Models/Champ';
 import { Sets, DBSet } from './Models/Sets';
 import { Replay } from './Models/Replay';
 import { BattleAvatarNumbers } from '../Shoedrip/dexdata';
-import { availableFormats } from '../Showdown/PSConnection';
 
 const url = `mongodb://${settings.db.host}:${settings.db.port || 27017}`;
 const dbName = settings.db.database;
@@ -59,6 +58,8 @@ export let init = async () => {
     total = await SetsCollection.countDocuments({});
     console.log(total, "of memes in DB")
 }
+
+export let getRandomSet = async (seed: number = ~~(Math.random() * total)) => SetsCollection.find().skip(seed % total).limit(1).toArray();
 
 const updateElo = async (trip: string, name: string) => {
     let b: string = await request.get(`https://play.pokemonshowdown.com/~~showdown/action.php?act=ladderget&user=${toId(name)}`);
@@ -169,6 +170,9 @@ export const deleteSet = async (id: number, trip: string, ignored?: any) => {
     return null;
 }
 
+import { availableFormats } from '../Showdown/Dex';
+
+
 export const updateSet = async (id: number, trip: string, info: { format: string, desc: string, set: string }) => {
     let uset = await SetsCollection.findOne({ id });
     if (!uset)
@@ -258,5 +262,3 @@ export const createNewSet = async (sdata: {
     await SetsCollection.insertOne(toDBSet(nset));
     return nset;
 }
-
-export let getRandomSet = async (seed: number = ~~(Math.random() * total)) => SetsCollection.find().skip(seed % total).limit(1).toArray();
