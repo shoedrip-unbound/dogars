@@ -1,5 +1,3 @@
-console.log('started evaluating utils')
-
 import fs = require('fs');
 import { settings } from '../Backend/settings';
 

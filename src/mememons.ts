@@ -14,7 +14,7 @@ import { IPCServer } from './Website/DogarsIPCServer';
 import { DogarsLocalClient } from './DogarsLocalClient';
 import { monitor } from './bot-utils';
 import { Player } from './Showdown/Player';
-import { DogarsClient } from './DogarsClient';
+import type { DogarsClient } from './DogarsClient';
 
 setInterval(async () => {
     let backup = `${settings.ressources}/public/backup.tar.gz`;

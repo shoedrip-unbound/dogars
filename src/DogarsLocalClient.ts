@@ -1,7 +1,7 @@
 import { Champ } from './Shoedrip/Champ';
 import { BattleData } from './Showdown/BattleData';
 import { BattleURL, CringeCompilation } from './Backend/CringeCompilation';
-import { DogarsClient } from './DogarsClient';
+import type { DogarsClient } from './DogarsClient';
 import { registerChampResult } from './Backend/mongo';
 import { champ } from './Shoedrip/shoedrip';
 import { monitor } from './bot-utils';
@@ -17,7 +17,7 @@ export class DogarsLocalClient implements DogarsClient {
         return registerChampResult(data, won);
     }
 
-    async monitor() {
+    async monitor(champ: Champ) {
         monitor(champ, this.player, this);
     }
 

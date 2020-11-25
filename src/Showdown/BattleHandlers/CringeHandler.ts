@@ -1,8 +1,6 @@
 import { BattleMonitor } from "../BattleMonitor";
-import { CringeCompilation } from "../../Backend/CringeCompilation";
 import BasicHandler from "./BasicHandler";
 import { BattleEvents } from "../PSMessage";
-import { DogarsClient } from "../../DogarsClient";
 
 export default class CringeHandler extends BasicHandler {
     private ready: boolean = false;

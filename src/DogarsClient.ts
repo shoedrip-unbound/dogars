@@ -1,10 +1,10 @@
 import asyncify from 'callback-to-async-iterator';
 import SockJS = require('sockjs-client');
 import { Champ } from './Shoedrip/Champ';
-import { settings } from './Backend/settings';
 import { BattleData } from './Showdown/BattleData';
 import { BattleURL } from './Backend/CringeCompilation';
-import { snooze } from './Website/utils';
+import { monitor } from './bot-utils';
+import { Player } from './Showdown/Player';
 
 export interface DogarsClient {
     registerChampResult(data: BattleData, won: boolean): Promise<void>;
@@ -13,31 +13,48 @@ export interface DogarsClient {
     snap(): Promise<void>;
     prepareCringe(u: BattleURL): Promise<void>;
     closeCringe(): Promise<void>;
-    monitor(): Promise<void>;
+    monitor(champ: Champ): Promise<void>;
 }
 
 export class DogarsIPCClient implements DogarsClient {
-    pass: string;
     s!: WebSocket;
     message!: AsyncIterableIterator<IPCCmd>;
-    awaitingreplies: {[k in number]: (fun: any) => void | { id: number, response: any } } = {};
 
-    onerror: (e: Parameters<NonNullable<WebSocket['onerror']>>[0]) => any = (e) => { };
+    onerror: (e: Parameters<NonNullable<WebSocket['onerror']>>[0]) => any = (e) => {};
 
-    constructor(pass: string) {
-        this.pass = pass; // Unused yet, until I observe abuse
+    constructor(private player: Player) {
+        this.player = player; // Unused yet, until I observe abuse
     }
 
     connect() {
         console.log("Attempting to connect to IPC server...");
         this.s = new SockJS('https://dogars.ga/ipc');
+        let stream = asyncify(async (cb: (v: MessageEvent) => void) => {
+            this.s.onmessage = message => cb(message)
+        });
 
+        let publish: (m: IPCCmd) => void;
+        this.message = asyncify(async (cb: (v: IPCCmd) => void) => publish = m => cb(m));
+
+        let inst = this;
+        this.s.onerror = e => {
+            inst.onerror(e);
+        }
+
+        (async () => {
+            for await (let mess of stream) {
+                let msg = JSON.parse(mess.data);
+                console.log(msg);
+                if (msg.id !== undefined) {
+                    this.awaitingreplies[msg.id](msg.response);
+                    delete this.awaitingreplies[msg.id.id];
+                } else {
+                    publish!(msg as IPCCmd);
+                }
+            }
+        })();
+        
         console.log("Attempting to connect to IPC server 2...");
-        this.s.onmessage = (ev: MessageEvent<any>) => {
-            const res = JSON.parse(ev.data) as { id: number, response: any };
-            console.log(res);
-            this.awaitingreplies[res.id](res.response)
-        };
         return new Promise((r) => {
             this.s.onopen = () => {
                 console.log("Connected!");
@@ -46,20 +63,24 @@ export class DogarsIPCClient implements DogarsClient {
         });
     }
 
-    monitor(): Promise<void> {
-        throw new Error("Method not implemented.");
+    messageStream() {
+        return this.message;
     }
+
+    async monitor(champ: Champ) {
+        monitor(champ, this.player, this);
+    }
+
 
     send(t: Parameters<WebSocket['send']>[0]) {
         this.s.send(t);
     }
 
+    awaitingreplies: ((fun: any) => void)[] = [];
+
     replyFor<T>(id: number) {
         return new Promise<T>((res, rej) => {
-            if (this.awaitingreplies[id])
-                res(this.awaitingreplies[id] as any);
-            else
-                this.awaitingreplies[id] = res;
+            this.awaitingreplies[id] = res;
         });
     }
 
@@ -77,13 +98,13 @@ export class DogarsIPCClient implements DogarsClient {
             args: [data, won]
         });
     }
-
+    
     async refresh() {
         return await this.command<Champ>({
             method: 'refresh'
         });
     }
-
+    
     async setbattle(url: BattleURL) {
         return await this.command<void>({
             method: 'setbattle',
@@ -124,13 +145,3 @@ export interface AckCmd {
 }
 
 export type IPCCmd = MonitorCmd | AckCmd;
-
-export let DogarsClient = new DogarsIPCClient(settings.admin_pass);
-
-const connectionErrorHandler = async (e: Event) => {
-    console.log("A connection error occured, attempting to reconnect in 5 seconds...");
-    await snooze(5000);
-    await DogarsClient.connect();
-};
-
-DogarsClient.onerror = connectionErrorHandler;

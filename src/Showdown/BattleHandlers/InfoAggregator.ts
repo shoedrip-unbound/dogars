@@ -2,12 +2,9 @@ import BasicHandler from "./BasicHandler";
 import { Champ } from "../../Shoedrip/Champ";
 import { BattleData, playerAlias } from "../BattleData";
 import { levenshtein, toId } from "../../Website/utils";
-import { isRegged } from "../PlayerHijack";
 import { BattleEvents } from "../PSMessage";
-import { registerChampResult, init } from "../../Backend/mongo";
 import { RoomID } from "../PSRoom";
 import { BattleAvatarNumbers } from "../../Shoedrip/dexdata";
-import { DogarsClient } from "../../DogarsClient";
 
 export default class InfoAggregator extends BasicHandler {
     battlers: { [k in 'p1' | 'p2']: Champ } = {

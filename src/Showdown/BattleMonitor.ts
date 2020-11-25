@@ -2,7 +2,7 @@ import { PSRoom, RoomID } from './PSRoom';
 import { Player } from './Player';
 import { BattleEvents, BattleEventsName } from './PSMessage';
 import { BattleURL } from '../Backend/CringeCompilation';
-import { DogarsClient } from '../DogarsClient';
+import type { DogarsClient } from '../DogarsClient';
 
 export type BattleHandler = {
 	[key in BattleEventsName]?: (m: BattleEvents[key]) => Promise<void>
