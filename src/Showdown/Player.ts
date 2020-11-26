@@ -34,6 +34,8 @@ export type LoginForm = {
 	act: 'getassertion';
 	userid?: string;
 	challstr: string;
+} | {
+	act: 'changepassword';
 	oldpassword?: string;
 	password?: string;
 	cpassword?: string;
