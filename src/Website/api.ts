@@ -242,9 +242,9 @@ api.post("/action", async (req, res) => {
     }
 
     // * can't be specified with Allow-Credentials
-    res.header('Access-Control-Allow-Origin', 'play.dogars.ga');
+    res.header('Access-Control-Allow-Origin', 'https://play.dogars.ga');
     res.header('Access-Control-Allow-Credentials', 'true');
-    res.send(d);
+    res.send(d.body);
 });
 
 api.get("/search", async (request, response) => {
