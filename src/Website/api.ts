@@ -227,7 +227,7 @@ api.post("/action", async (req, res) => {
     const jar = requestPromise.jar();
     if (req.cookies['sid'])
         jar.setCookie('sid', req.cookies['sid']);
-    const d = await requestPromise.get('https://play.pokemonshowdown.com/~~showdown/action.php', { body: req.body, jar });
+    const d = await requestPromise.post('https://play.pokemonshowdown.com/~~showdown/action.php', { jar, form: req.body });
 
     res.cookie('sid', jar);
     let cookies = jar.getCookies('http://pokemonshowdown.com/');
