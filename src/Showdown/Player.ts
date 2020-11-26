@@ -21,21 +21,26 @@ export enum LoginError {
 	MalformedAssertion
 };
 
-export class LoginForm {
-	challstr: string = '';
-	act: string = '';
-	name: string = '';
-	pass?: string = '';
-	userid: string = '';
+export type LoginForm = {
+	act: 'login';
+	challstr: string;
+	name: string;
+	pass?: string;
+} | {
+	act: 'upkeep';
+	userid?: string;
+	challstr: string;
+} | {
+	act: 'getassertion';
+	userid?: string;
+	challstr: string;
 	oldpassword?: string;
 	password?: string;
 	cpassword?: string;
 }
 
 export let upkeep = async (sid: string, challstr: string) => {
-	let data: LoginForm = new LoginForm();
-	data.challstr = challstr;
-	data.act = 'upkeep';
+	let data: LoginForm = { act: 'upkeep', challstr };
 	let body = await request.post('http://play.pokemonshowdown.com/action.php', {
 		form: data,
 		timeout: 10000,
@@ -58,17 +63,14 @@ export let upkeep = async (sid: string, challstr: string) => {
 
 export let _getassertion = async (user: string, pass: string | undefined, challenge: string, proxy?: Agent): Promise<[string, string]> => {
 	let regged = pass !== undefined;
-	let data: LoginForm = new LoginForm();
+	let data: LoginForm | null;
 	let jar = request.jar();
-	data.challstr = challenge;
 	if (regged) {
-		data.act = 'login';
-		data.name = user;
-		data.pass = pass;
+		data = { challstr: challenge, act: 'login', name: user, pass};
 	} else {
-		data.act = 'getassertion';
-		data.userid = user;
+		data = { act: 'getassertion', userid: user, challstr: challenge};
 	}
+	console.log(data);
 	let body = await request.post('http://play.pokemonshowdown.com/action.php', {
 		form: data,
 		timeout: 10000,
@@ -84,6 +86,7 @@ export let _getassertion = async (user: string, pass: string | undefined, challe
 		body = body.substr(1);
 		body = JSON.parse(body);
 		if (body.assertion[0] == ';') {
+			console.error(body);
 			throw LoginError.MalformedAssertion;
 		}
 		let cookies = jar.getCookies('http://pokemonshowdown.com/');

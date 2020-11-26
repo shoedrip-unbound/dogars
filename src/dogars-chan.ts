@@ -9,6 +9,7 @@ export let dogarschan: Player;
     await dogarschan.connect();
     const remoteclient = new DogarsIPCClient(dogarschan);
     await remoteclient.connect();
+    monitor(await remoteclient.refresh(), dogarschan, remoteclient);
     for await (let msg of remoteclient.messageStream()) {
         if (msg.command == 'monitor')
             monitor(msg.champ, dogarschan, remoteclient);

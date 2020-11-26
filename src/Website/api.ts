@@ -15,6 +15,7 @@ import { champ, cthread } from '../Shoedrip/shoedrip';
 import { Champ } from '../Backend/Models/Champ';
 import { availableFormats } from '../Showdown/Dex';
 import type { DBSet } from '../Backend/Models/Sets';
+import requestPromise = require('request-promise-native');
 
 export let api = express();
 api.set('env', 'production');
@@ -221,6 +222,25 @@ api.get("/ban", (_, res) => {
     let len = banners.length;
     res.json(banners[~~(Math.random() * len)]);
 })
+
+api.post("/action", async (req, res) => {
+    const jar = requestPromise.jar();
+    if (req.cookies['sid'])
+        jar.setCookie('sid', req.cookies['sid']);
+    const d = await requestPromise.get('https://play.pokemonshowdown.com/~~showdown/action.php', { body: req.body, jar });
+
+    res.cookie('sid', jar);
+    let cookies = jar.getCookies('http://pokemonshowdown.com/');
+    cookies = cookies.filter(c => c.key == 'sid');
+    const sid = cookies[0]?.value;
+    if (sid)
+        res.cookie('sid', sid, { domain: 'play.dogars.ga', httpOnly: true });
+
+    // * can't be specified with Allow-Credentials
+    res.header('Access-Control-Allow-Origin', 'play.dogars.ga');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.send(d);
+});
 
 api.get("/search", async (request, response) => {
     let page = request.query.page || 1;
