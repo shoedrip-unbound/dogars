@@ -236,8 +236,9 @@ api.post("/action", async (req, res) => {
     if (sidcookie) {
         res.cookie('sid', sidcookie.match(/sid=(.*?);/)![1], {
             domain: 'dogars.ga',
-            httpOnly: true, 
+            httpOnly: false, 
             secure: true,
+            sameSite: 'None'
         });
     }
 
