@@ -15,6 +15,7 @@ import { DogarsLocalClient } from './DogarsLocalClient';
 import { monitor } from './bot-utils';
 import { Player } from './Showdown/Player';
 import type { DogarsClient } from './DogarsClient';
+import { AltChatServer } from './AltChat';
 
 setInterval(async () => {
     let backup = `${settings.ressources}/public/backup.tar.gz`;
@@ -27,6 +28,7 @@ console.log('Starting web server...');
 let server = http.createServer(router);
 Cringer.install(server);
 IPCServer.install(server);
+AltChatServer.install(server);
 
 export let dogarschan: Player;
 export let localclient: DogarsClient;
