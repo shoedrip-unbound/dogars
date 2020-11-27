@@ -60,7 +60,7 @@ class AltChat {
                         if (msg[0] == '/' && msg[1] != '/')
                             this.interpret_room_cmd(cli, this.rooms[room], msg);
                         else // regular message in room
-                            Object.values(this.rooms[room].clients).forEach(c => c.connection.write(`>${room}\n|c| ${cli.name}|${msg}`))
+                            Object.values(this.rooms[room].clients).forEach(c => c.connection.write(`>${room}\n|c|▲${cli.name}|${msg}`))
                     }
                 } catch (e) {
                     console.error(e);
