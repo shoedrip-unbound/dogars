@@ -23,6 +23,7 @@ class Room {
 
 class Client {
     subbed_rooms: { [k in string]: Room } = {};
+    name = "Anonymous";
     constructor(public connection: sockjs.Connection) {
     }
 
@@ -45,6 +46,7 @@ class AltChat {
         this.ipcserver.on('connection', (conn: sockjs.Connection) => {
             const cli = new Client(conn);
             this.clients[conn.id] = cli;
+            console.log(conn.id)
             conn.on('data', async (m) => {
                 try {
                     const [room, msg] = m.split('|');
@@ -56,9 +58,9 @@ class AltChat {
                     } else {
                         const id = extract_room_id(room);
                         if (msg[0] == '/' && msg[1] != '/')
-                            this.interpret_room_cmd(cli, this.rooms[id], msg);
+                            this.interpret_room_cmd(cli, this.rooms[room], msg);
                         else // regular message in room
-                            Object.values(this.rooms[id].clients).forEach(c => c.connection.write(`${room}|c|${msg}`))
+                            Object.values(this.rooms[room].clients).forEach(c => c.connection.write(`>${room}\n|c| ${cli.name}|${msg}`))
                     }
                 } catch (e) {
                     console.error(e);
@@ -83,8 +85,10 @@ class AltChat {
     interpret_cmd(client: Client, msg: string) {
         if (msg.startsWith('/join ')) {
             const roomid = msg.slice(6).trim();
-            if (roomid in client.subbed_rooms) // already joined
+            // already joined
+            if (roomid in client.subbed_rooms) {
                 return;
+            }
             let room: Room;
             if (roomid in this.rooms) {
                 room = this.rooms[roomid];
@@ -93,13 +97,17 @@ class AltChat {
                 this.rooms[roomid] = room;
             }
             client.subbed_rooms[roomid] = room;
+            room.clients[client.connection.id] = client;
         } else if (msg.startsWith('/leave ')) {
             const roomid = msg.slice(8).trim();
             if (roomid in client.subbed_rooms) {
                 const room = this.rooms[roomid];
                 this.leaveRoom(client, room);
             }
-        }
+        } else if (msg.startsWith('/trn ')) {
+            client.name = msg.slice(5).split(',')[0]
+        } else if (msg.startsWith('/noreply '))
+            this.interpret_cmd(client, msg.slice(9));
     }
 
     interpret_room_cmd(client: Client, room: Room, msg: string) {

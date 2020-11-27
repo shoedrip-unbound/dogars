@@ -17,6 +17,7 @@ import { availableFormats } from '../Showdown/Dex';
 import type { DBSet } from '../Backend/Models/Sets';
 import requestPromise = require('request-promise-native');
 import { Response } from 'request';
+import request = require('request');
 
 export let api = express();
 api.set('env', 'production');
@@ -225,26 +226,27 @@ api.get("/ban", (_, res) => {
 })
 
 api.post("/action", async (req, res) => {
-    const options = {
-        method: 'POST',
+    const options: any = {
         uri: 'https://play.pokemonshowdown.com/~~showdown/action.php',
         resolveWithFullResponse: true,
-        form: req.body
+        form: req.body,
+
     };
+    if (req.cookies['sid'])
+        options.headers = {
+            'Cookie': `sid=${req.cookies['sid']}`
+        };
+
     const d: Response = await requestPromise(options);
     const sidcookie = d.headers['set-cookie']?.filter(e => e.startsWith('sid='))[0];
     if (sidcookie) {
         res.cookie('sid', sidcookie.match(/sid=(.*?);/)![1], {
-            domain: 'dogars.ga',
-            httpOnly: false, 
+            domain: 'play.dogars.ga',
+            httpOnly: false,
             secure: true,
             sameSite: 'None'
         });
     }
-
-    // * can't be specified with Allow-Credentials
-    res.header('Access-Control-Allow-Origin', 'https://play.dogars.ga');
-    res.header('Access-Control-Allow-Credentials', 'true');
     res.send(d.body);
 });
 
