@@ -17,7 +17,22 @@ import { Server } from "http";
 
 class Room {
     clients: { [k in string]: Client } = {};
+    log: string[] = [];
+
     constructor(public id: string) {
+    }
+
+    broadcast(cli: Client, msg: string) {
+        const entry = `|c|▲${cli.name}|${msg}`;
+        Object.values(this.clients).forEach(c => c.connection.write(`>${this.id}\n${entry}`))
+        this.log.push(entry);
+    }
+
+    // log will be in order relative to itself, but not relative to battle, since dogars
+    // doesn't get the full battle log (yet) and there are no mechanism to insert a message back in time
+    // in client (yet)
+    playback(cli: Client) {
+        cli.connection.write(`>${this.id}\n${this.log.join('\n')}`);
     }
 }
 
@@ -31,8 +46,6 @@ class Client {
         Object.values(this.subbed_rooms).forEach(r => delete r.clients[this.connection.id])
     }
 }
-
-const extract_room_id = (room: string) => room.match(/battle-(.*)/)![1];
 
 class AltChat {
     clients: { [k in string]: Client } = {};
@@ -56,11 +69,11 @@ class AltChat {
                             this.interpret_cmd(cli, msg);
                         // ignore global messages
                     } else {
-                        const id = extract_room_id(room);
+                        const id = room.trim();
                         if (msg[0] == '/' && msg[1] != '/')
                             this.interpret_room_cmd(cli, this.rooms[room], msg);
                         else // regular message in room
-                            Object.values(this.rooms[room].clients).forEach(c => c.connection.write(`>${room}\n|c|▲${cli.name}|${msg}`))
+                            this.rooms[room].broadcast(cli, msg);
                     }
                 } catch (e) {
                     console.error(e);
@@ -111,9 +124,10 @@ class AltChat {
     }
 
     interpret_room_cmd(client: Client, room: Room, msg: string) {
-        // ignore
+        if (msg.startsWith('/playback'))
+            if (room.log.length)
+                room.playback(client);
     }
-
 
     install(server: Server) {
         this.ipcserver.installHandlers(server, { prefix: '/chat' });
