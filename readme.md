@@ -29,8 +29,4 @@ Features
 Known bugs
 ==========
 
-- After a while, Showdown automatically closes the connection if it has
-  not been used to transmit data, and a lot of the features rely on
-  this.
-
-- Database backup every hour, and preserves every previous backups, just in case.
+- Database backup every hour, and preserves every previous backups, just in case. Wait that's not a bug.
