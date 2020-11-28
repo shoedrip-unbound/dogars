@@ -30,7 +30,7 @@ class Room {
         if (id in this.timeout)
             if (this.timeout[id] > now)
                 return;
-        this.timeout[id] = now + 1000; // 1 second delay between messages
+        this.timeout[id] = now + 250; // 250ms delay between messages (will promptly implement exp delay if sableye abuses it again)
         const lines = msg.split('\n');
         msg = lines.slice(0, 5).map(e => e.substr(0, 350)).join('\n');
         const entry = `|c|▲${cli.name}|${msg}`;
