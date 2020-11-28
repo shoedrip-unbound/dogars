@@ -227,16 +227,16 @@ api.get("/ban", (_, res) => {
 
 api.post("/action", async (req, res) => {
     const options: any = {
+        method: 'POST',
         uri: 'https://play.pokemonshowdown.com/~~showdown/action.php',
         resolveWithFullResponse: true,
         form: req.body,
-
     };
     if (req.cookies['sid'])
         options.headers = {
             'Cookie': `sid=${req.cookies['sid']}`
         };
-
+    console.log(options.form);
     const d: Response = await requestPromise(options);
     const sidcookie = d.headers['set-cookie']?.filter(e => e.startsWith('sid='))[0];
     if (sidcookie) {
@@ -257,7 +257,6 @@ api.get("/search", async (request, response) => {
     spp < 1 && (spp = 15);
     spp > 100 && (spp = 100);
     let random = !!request.query.random;
-    console.log('random:', random);
     try {
         Object.keys(request.query)
             .filter(attr => request.query[attr] === '')

@@ -17,12 +17,22 @@ import { Server } from "http";
 
 class Room {
     clients: { [k in string]: Client } = {};
+    timeout: { [k in string]: number } = {};
     log: string[] = [];
 
     constructor(public id: string) {
     }
 
     broadcast(cli: Client, msg: string) {
+        // fuck you sableye
+        const id = cli.connection.id;
+        const now = +new Date;
+        if (id in this.timeout)
+            if (this.timeout[id] > now)
+                return;
+        this.timeout[id] = now + 1000; // 1 second delay between messages
+        const lines = msg.split('\n');
+        msg = lines.slice(0, 5).map(e => e.substr(0, 350)).join('\n');
         const entry = `|c|▲${cli.name}|${msg}`;
         Object.values(this.clients).forEach(c => c.connection.write(`>${this.id}\n${entry}`))
         this.log.push(entry);
@@ -118,7 +128,7 @@ class AltChat {
                 this.leaveRoom(client, room);
             }
         } else if (msg.startsWith('/trn ')) {
-            client.name = msg.slice(5).split(',')[0]
+            client.name = msg.slice(5).split(',')[0].substr(0, 42);
         } else if (msg.startsWith('/noreply '))
             this.interpret_cmd(client, msg.slice(9));
     }
@@ -127,8 +137,9 @@ class AltChat {
         if (msg.startsWith('/playback'))
             if (room.log.length)
                 room.playback(client);
+        if (msg.startsWith('/me '))
+            room.broadcast(client, msg);
     }
-
     install(server: Server) {
         this.ipcserver.installHandlers(server, { prefix: '/chat' });
     }
