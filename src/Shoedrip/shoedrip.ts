@@ -85,7 +85,7 @@ export let monitorPlayer = (champ: Champ) => {
         return;
     }
     const matches = champ.current_battle.match(/battle(-.+)/g);
-    const [format, ids, invite] = matches![1].split('-').slice(1)
+    const [format, ids, invite] = matches![0].split('-').slice(1)
     const id = +ids;
     if (oldid && id <= oldid) {
         console.log('new battle is older or the same')
