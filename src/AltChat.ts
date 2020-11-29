@@ -74,10 +74,6 @@ class Room {
 
     async broadcastimage(cli: Client, url: string) {
         const surl = sanitize(url);
-        if (!['.png', '.jpg', '.gif', '.jpeg'].includes(path.extname(surl).toLowerCase())) {
-            cli.connection.write(`>${this.id}\n|error|Needs to be a simple image file`)
-            return;
-        }
 
         const id = cli.connection.id;
         const now = +new Date;
@@ -117,7 +113,7 @@ class Room {
 
         const inc = tinc[id] || 125;
         timo[id] = now + inc;
-        const entry = `|c|${cli.mark}${cli.name}| /me uploaded a picture:\n|raw| <img src="${surl}" style="max-width: 400px; max-height: 400px;"/>`;
+        const entry = `|c|${cli.mark}${cli.name}| /me uploaded a picture:\n|raw| <img ondblclick="this.remove()" src="${surl}" style="max-width: 400px; max-height: 400px;"/>`;
         Object.values(this.clients).forEach(c => c.connection.write(`>${this.id}\n${entry}`))
         this.log.push(entry);
     }
