@@ -47,8 +47,8 @@ let getCurrentChamp = async (thread: fchan.Thread) => {
             .replace(/<(?:.|\n)*?>/gm, '')
             .replace(/<wbr>/gm, '');
         let matches;
-        const psreg = /(https?:\/\/)?play.pokemonshowdown.com\/battle-(.*)-(.+)/g;
-        const dsreg = /(https?:\/\/)?play.dogars.ga\/battle-(.*)-(.+)/g;
+        const psreg = /https?:\/\/?play.pokemonshowdown.com\/battle-(.+)/g;
+        const dsreg = /https?:\/\/play\.dogars\.ga\/battle-(.+)/g;
         if ((matches = content.match(dsreg)) ||
             (matches = content.match(psreg))) {
             let curtime = ~~(+new Date() / 1000);
@@ -84,7 +84,9 @@ export let monitorPlayer = (champ: Champ) => {
         console.log('Champ not currently in battle')
         return;
     }
-    let id = +champ.current_battle.split('-').pop()!;
+    const matches = champ.current_battle.match(/battle(-.+)/g);
+    const [format, ids, invite] = matches![1].split('-').slice(1)
+    const id = +ids;
     if (oldid && id <= oldid) {
         console.log('new battle is older or the same')
         return;

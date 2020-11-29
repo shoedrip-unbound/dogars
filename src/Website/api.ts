@@ -236,7 +236,6 @@ api.post("/action", async (req, res) => {
         options.headers = {
             'Cookie': `sid=${req.cookies['sid']}`
         };
-    console.log(options.form);
     const d: Response = await requestPromise(options);
     const sidcookie = d.headers['set-cookie']?.filter(e => e.startsWith('sid='))[0];
     if (sidcookie) {
