@@ -19,7 +19,7 @@ export let monitor = (champ: Champ, account: Player, client: DogarsClient) => {
     let ia = new InfoAggregator(champ);
     bm.attachListeners([
         new Announcer(ia),
-        new CringeHandler,
+//        new CringeHandler,
         new DigitsChecker,
         new GreetingHandler,
         ia,

@@ -47,8 +47,10 @@ class Room {
         const tinc = this.increments;
 
         if (id in timo) {
-            if (timo[id] > now)
+            if (timo[id] > now) {
+                cli.connection.write(`>${this.id}\n|error|You're shitposting too fast, retard.`)
                 return;
+            }
             // default inc is 125ms, if you post again less than 125ms after expiration, 
             // timer will be doubled, and you will be allowed to post, but your next expiration will be in 150ms, etc...
             // this will reset to 125 if you wait more than the current increment AFTER your increment has expired
@@ -71,8 +73,10 @@ class Room {
 
     async broadcastimage(cli: Client, url: string) {
         const surl = sanitize(url);
-        if (!['.png', '.jpg', '.gif', '.jpeg'].includes(path.extname(surl).toLowerCase()))
+        if (!['.png', '.jpg', '.gif', '.jpeg'].includes(path.extname(surl).toLowerCase())) {
+            cli.connection.write(`>${this.id}\n|error|Needs to be a simple image file`)
             return;
+        }
 
         const id = cli.connection.id;
         const now = +new Date;
@@ -81,8 +85,10 @@ class Room {
         const tinc = this.imageincrements;
 
         if (id in timo) {
-            if (timo[id] > now)
+            if (timo[id] > now) {
+                cli.connection.write(`>${this.id}\n|error|You're shitposting too fast, retard.`)
                 return;
+            }
             let inc = tinc[id] || 20000;
             if (now - timo[id] < inc)
                 inc *= 2;
@@ -104,6 +110,7 @@ class Room {
                 return;
             await sharp(buf.data).metadata(); // i think it should throw if image cannot be decoded
         } catch (e) {
+            cli.connection.write(`>${this.id}\n|error|Image too big, hotlinking forbidden, or not an image`);
             return;
         }
 
@@ -208,20 +215,35 @@ class AltChat {
         } else if (msg.startsWith('/trn ')) {
             const name = msg.slice(5).split(',')[0].substr(0, 42);
             // someone already has that name
-            if (Object.values(this.clients).some(c => c.name == name))
+            if (Object.values(this.clients).some(c => c.name == name)) {
+                client.connection.write(`|popup|Someone else is already using your name. Reverting to your previous name (or Anonymous)`)
                 return;
+            }
             client.name = name;
         } else if (msg.startsWith('/noreply '))
             this.interpret_cmd(client, msg.slice(9));
     }
 
     interpret_room_cmd(client: Client, room: Room, msg: string) {
-        if (msg.startsWith('/playback'))
+        if (msg.startsWith('/playback')) {
             if (room.log.length)
                 room.playback(client);
-        if (msg.startsWith('/me '))
+        }
+        else if (msg.startsWith('/me '))
             room.broadcast(client, msg);
+        else if (msg.startsWith('/img '))
+            room.broadcastimage(client, msg.substr(5));
+        else if (msg.startsWith('/fnick')) {
+            const name = msg.slice(5).split(',')[0].substr(0, 42);
+            // someone already has that name
+            if (Object.values(this.clients).some(c => c.name == name)) {
+                client.connection.write(`|popup|Someone else is already using your name. Reverting to your previous name (or Anonymous)`)
+                return;
+            }
+            client.name = name;
+        }
     }
+
     install(server: Server) {
         this.ipcserver.installHandlers(server, { prefix: '/chat' });
     }

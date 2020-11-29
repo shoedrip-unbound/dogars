@@ -8,7 +8,7 @@ import { monitor } from './bot-utils';
 import { Player } from './Showdown/Player';
 
 export class DogarsLocalClient implements DogarsClient {
-    cc: CringeCompilation | undefined;
+//    cc: CringeCompilation | undefined;
 
     constructor(private player: Player) {
     }
@@ -30,15 +30,15 @@ export class DogarsLocalClient implements DogarsClient {
     }
 
     async snap() {
-        await this.cc?.snap()
+        // await this.cc?.snap()
     }
 
     async prepareCringe(u: BattleURL) {
-        this.cc = new CringeCompilation(u);
-        await this.cc?.init();
+        // this.cc = new CringeCompilation(u);
+        // await this.cc?.init();
     }
 
     async closeCringe() {
-        await this.cc?.done();
+        // await this.cc?.done();
     }
 }

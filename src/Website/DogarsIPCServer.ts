@@ -29,19 +29,19 @@ class DogarsIPCServer {
                         champ.current_battle = req.args[0];
                     }
                     else if (req.method == 'snap') {
-                        let cc = this.cringes[conn.id];
-                        if (cc) {
-                            await cc.snap();
-                        }
+                        // let cc = this.cringes[conn.id];
+                        // if (cc) {
+                        //     await cc.snap();
+                        // }
                     } else if (req.method == 'close') {
-                        let cc = this.cringes[conn.id];
-                        if (cc)
-                            await cc.done();
+                        // let cc = this.cringes[conn.id];
+                        // if (cc)
+                        //     await cc.done();
                     } else if (req.method == 'prepare') {
-                        let url = req.args[0];
-                        let cc = new CringeCompilation(url);
-                        await cc.init();
-                        this.cringes[conn.id] = cc;
+                        // let url = req.args[0];
+                        // let cc = new CringeCompilation(url);
+                        // await cc.init();
+                        // this.cringes[conn.id] = cc;
                     }
 
                     if (req.method) {
