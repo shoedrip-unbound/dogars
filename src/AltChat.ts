@@ -1,5 +1,9 @@
 import * as sockjs from "sockjs"
 import { Server } from "http";
+import url = require('url');
+import path = require('path');
+import sharp = require('sharp');
+import axios from 'axios';
 
 /*
     Idea is to combine both the showdown socket and dogars socket as a single message stream so that
@@ -15,9 +19,20 @@ import { Server } from "http";
     if an opponent turns modjoin on.
 */
 
+const sanitize = (surl: string) => {
+    const parsed = url.parse(surl);
+    if (parsed.protocol != 'https:')
+        return '';
+    return parsed.href;
+}
+
 class Room {
     clients: { [k in string]: Client } = {};
     timeout: { [k in string]: number } = {};
+    increments: { [k in string]: number } = {};
+
+    imagetimeout: { [k in string]: number } = {};
+    imageincrements: { [k in string]: number } = {};
     log: string[] = [];
 
     constructor(public id: string) {
@@ -27,13 +42,74 @@ class Room {
         // fuck you sableye
         const id = cli.connection.id;
         const now = +new Date;
-        if (id in this.timeout)
-            if (this.timeout[id] > now)
+
+        const timo = this.timeout;
+        const tinc = this.increments;
+
+        if (id in timo) {
+            if (timo[id] > now)
                 return;
-        this.timeout[id] = now + 250; // 250ms delay between messages (will promptly implement exp delay if sableye abuses it again)
-        const lines = msg.split('\n');
+            // default inc is 125ms, if you post again less than 125ms after expiration, 
+            // timer will be doubled, and you will be allowed to post, but your next expiration will be in 150ms, etc...
+            // this will reset to 125 if you wait more than the current increment AFTER your increment has expired
+            // this means the optimal rate to post to not get your increment doubled is 1msg/250ms
+            let inc = tinc[id] || 125;
+            if (now - timo[id] < inc) // if: posted too fast after previous exp
+                inc *= 2;
+            else // we good
+                inc = 125;
+            tinc[id] = inc;
+        }
+        const inc = tinc[id] || 125;
+        timo[id] = now + inc;
+        const lines = msg.trim().split('\n');
         msg = lines.slice(0, 5).map(e => e.substr(0, 350)).join('\n');
-        const entry = `|c|▲${cli.name}|${msg}`;
+        const entry = `|c|${cli.mark}${cli.name}|${msg}`;
+        Object.values(this.clients).forEach(c => c.connection.write(`>${this.id}\n${entry}`))
+        this.log.push(entry);
+    }
+
+    async broadcastimage(cli: Client, url: string) {
+        const surl = sanitize(url);
+        if (!['.png', '.jpg', '.gif', '.jpeg'].includes(path.extname(surl).toLowerCase()))
+            return;
+
+        const id = cli.connection.id;
+        const now = +new Date;
+
+        const timo = this.imagetimeout;
+        const tinc = this.imageincrements;
+
+        if (id in timo) {
+            if (timo[id] > now)
+                return;
+            let inc = tinc[id] || 20000;
+            if (now - timo[id] < inc)
+                inc *= 2;
+            else
+                inc = 20000;
+            tinc[id] = inc;
+        }
+        // this is after timeout verification to prevent DoS and to discourage trying to game the system
+        try {
+            const buf = await axios.get(surl, {
+                headers: {
+                    Referer: 'https://play.dogars.ga' // will throw if hotlinking not allowed
+                },
+                responseType: 'arraybuffer',
+                timeout: 5000,
+                maxContentLength: 1024 * 1024
+            });
+            if ((buf.data as ArrayBuffer).byteLength > 1024 * 1024) // 1MB file limit
+                return;
+            await sharp(buf.data).metadata(); // i think it should throw if image cannot be decoded
+        } catch (e) {
+            return;
+        }
+
+        const inc = tinc[id] || 125;
+        timo[id] = now + inc;
+        const entry = `|c|${cli.mark}${cli.name}| /me uploaded a picture:\n|raw| <img src="${surl}" style="max-width: 400px; max-height: 400px;"/>`;
         Object.values(this.clients).forEach(c => c.connection.write(`>${this.id}\n${entry}`))
         this.log.push(entry);
     }
@@ -49,6 +125,8 @@ class Room {
 class Client {
     subbed_rooms: { [k in string]: Room } = {};
     name = "Anonymous";
+    mark = "▲";
+
     constructor(public connection: sockjs.Connection) {
     }
 
@@ -128,7 +206,11 @@ class AltChat {
                 this.leaveRoom(client, room);
             }
         } else if (msg.startsWith('/trn ')) {
-            client.name = msg.slice(5).split(',')[0].substr(0, 42);
+            const name = msg.slice(5).split(',')[0].substr(0, 42);
+            // someone already has that name
+            if (Object.values(this.clients).some(c => c.name == name))
+                return;
+            client.name = name;
         } else if (msg.startsWith('/noreply '))
             this.interpret_cmd(client, msg.slice(9));
     }
