@@ -4,6 +4,7 @@ import url = require('url');
 import path = require('path');
 import sharp = require('sharp');
 import axios from 'axios';
+import { toId } from "./Website/utils";
 
 /*
     Idea is to combine both the showdown socket and dogars socket as a single message stream so that
@@ -214,8 +215,9 @@ class AltChat {
             }
         } else if (msg.startsWith('/trn ')) {
             const name = msg.slice(5).split(',')[0].substr(0, 42);
+            const idn = toId(name);
             // someone already has that name
-            if (Object.values(this.clients).some(c => c.name == name)) {
+            if (Object.values(this.clients).some(c => toId(c.name) == idn)) {
                 client.connection.write(`|popup|Someone else is already using your name. Reverting to your previous name (or Anonymous)`)
                 return;
             }
