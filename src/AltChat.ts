@@ -72,7 +72,7 @@ class Room {
         this.log.push(entry);
     }
 
-    async broadcastimage(cli: Client, url: string) {
+    async broadcastimage(cli: Client, url: string, nsfw = false) {
         const surl = sanitize(url);
 
         const id = cli.connection.id;
@@ -113,7 +113,12 @@ class Room {
 
         const inc = tinc[id] || 125;
         timo[id] = now + inc;
-        const entry = `|c|${cli.mark}${cli.name}| /me uploaded a picture:\n|raw| <img ondblclick="this.remove()" src="${surl}" style="max-width: 400px; max-height: 400px;"/>`;
+
+        let entry: string;
+        if (nsfw)
+            entry = `|c|${cli.mark}${cli.name}| /me uploaded a picture:\n|raw| <details ontoggle="this.children[1].src = '${surl}';"><summary>Image (NSFW)</summary><img style="max-width: 400px; max-height: 400px;"/></details>`;
+        else
+            entry = `|c|${cli.mark}${cli.name}| /me uploaded a picture:\n|raw| <details open><summary>Image (Worksafe)</summary><img src="${surl}" style="max-width: 400px; max-height: 400px;"/></details>`;
         Object.values(this.clients).forEach(c => c.connection.write(`>${this.id}\n${entry}`))
         this.log.push(entry);
     }
@@ -231,6 +236,8 @@ class AltChat {
             room.broadcast(client, msg);
         else if (msg.startsWith('/img '))
             room.broadcastimage(client, msg.substr(5));
+        else if (msg.startsWith('/imgns '))
+            room.broadcastimage(client, msg.substr(5), true);
         else if (msg.startsWith('/fnick')) {
             const name = msg.slice(5).split(',')[0].substr(0, 42);
             // someone already has that name
