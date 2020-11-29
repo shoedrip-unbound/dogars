@@ -47,7 +47,10 @@ let getCurrentChamp = async (thread: fchan.Thread) => {
             .replace(/<(?:.|\n)*?>/gm, '')
             .replace(/<wbr>/gm, '');
         let matches;
-        if ((matches = content.match(/(https?:\/\/)?play.pokemonshowdown.com\/battle-(.*)-([0-9]+)/g))) {
+        const psreg = /(https?:\/\/)?play.pokemonshowdown.com\/battle-(.*)-(.+)/g;
+        const dsreg = /(https?:\/\/)?play.dogars.ga\/battle-(.*)-(.+)/g;
+        if ((matches = content.match(dsreg)) ||
+            (matches = content.match(psreg))) {
             let curtime = ~~(+new Date() / 1000);
             champ = <Champ>{
                 name: thread.posts![i].name,
@@ -56,9 +59,9 @@ let getCurrentChamp = async (thread: fchan.Thread) => {
                 avatar: '166'
             };
             champ.active = curtime - champ.last_active < 15 * 60;
-			/*
-			  Dead hours
-			 */
+            /*
+              Dead hours
+             */
             champ.deaddrip = curtime - champ.last_active < 120 * 60;
             champ.current_battle = matches[0] as BattleURL;
             if (champ.current_battle[0] != 'h')
@@ -88,7 +91,7 @@ export let monitorPlayer = (champ: Champ) => {
     }
     oldid = id;
     console.log(`start monitoring ${id}`);
-    IPCServer.askMonitor();   
+    IPCServer.askMonitor();
     localclient && localclient.monitor(champ);
 }
 

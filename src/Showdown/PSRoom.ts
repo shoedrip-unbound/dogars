@@ -1,4 +1,4 @@
-import { PSConnection } from "./PSConnection";
+import { PSConnection, Sink } from "./PSConnection";
 import { BattleEventsType, BattleEventsName, BattleEvents, As } from "./PSMessage";
 
 export type RoomID = string & As<'RoomID'>;
@@ -35,7 +35,7 @@ export class PSRoom {
         }) as any;
     }
 
-    send(data: string) {
-		this.con.send(`${this.room}|${data}`);
+    send(data: string, sink: Sink) {
+		this.con.send(`${this.room}|${data}`, sink);
     }
 }

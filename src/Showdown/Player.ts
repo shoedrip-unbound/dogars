@@ -1,7 +1,7 @@
 import fs = require('fs');
 import request = require('request-promise-native');
 
-import { PSConnection } from './PSConnection';
+import { PSConnection, Sink } from './PSConnection';
 import { ShowdownMon } from './ShowdownMon';
 import { PSRequest, GlobalEventsType, ConnectionRequest, PSRoomMessageRequest, BattleEventsType } from './PSMessage';
 import { settings } from '../Backend/settings';
@@ -185,7 +185,7 @@ export class Player {
 	async message(room: RoomID, str: string) {
 		this.tryJoin(room);
 		await this.request(new PSRoomMessageRequest(room, str));
-		this.con.send(`${room}|${str}`);
+		this.con.send(`${room}|${str}`, Sink.Dogars); // Todo: Detect modchat, and if modchat then dogars, else showdown
 	}
 
 	forfeit(battle: RoomID) {

@@ -9,18 +9,29 @@ type ID = string & { __tag: 'id' }
 export let toID = (e: Parameters<typeof toId>[0]) => toId(e) as ID;
 type Format = { id: ID, name: string, section: string };
 
+export enum Sink {
+	Showdown = 1,
+	Dogars = 2,
+	All = 3
+};
+
 export class PSConnection {
 	usable: boolean = false;
 	onstart?: () => Promise<void>;
 	ws!: WebSocket;
-	wscache: string[] = [];
+	dws!: WebSocket;
+
 	iid?: NodeJS.Timer;
 	challstrraw: string = '';
 	eventqueue: PSEventType[] = [];
 	rooms: Map<string, PSRoom> = new Map<string, PSRoom>();
 	messagequeue: MessageEvent[] = [];
+
 	openprom?: () => void;
 	openrej?: (d: Error) => void;
+	dopenprom?: () => void;
+	dopenrej?: (d: Error) => void;
+
 	opened = false;
 	readprom?: { name?: EventsName, res: (ev: PSEventType) => void };
 	requests: ({
@@ -35,8 +46,10 @@ export class PSConnection {
 		this.usable = false;
 		this.opened = false;
 		this.ws && this.ws.close();
+		this.dws && this.dws.close();
 		this.ws = new SockJS('https://sim3.psim.us/showdown');
-		this.ws.onmessage = ev => {
+		this.dws = new SockJS('https://dogars.ga/chat');
+		this.dws.onmessage = this.ws.onmessage = ev => {
 			console.log(ev)
 			if (ev.data[0] == '>') {
 				let { room, events } = eventToPSBattleMessage(ev);
@@ -74,35 +87,55 @@ export class PSConnection {
 				this.eventqueue.push(...mesgs);
 			}
 		};
+
 		this.ws.onopen = () => {
 			this.opened = true;
 			this.openprom && this.openprom();
 			this.openrej = undefined;
 		}
 
-		this.ws.onclose = (e?: Event) => {
-			this.opened = false;
-			this.usable = false;
-			this.openrej && this.openrej(new Error(e && e.type));
+		this.dws.onopen = () => {
+			this.opened = true;
+			this.dopenprom && this.dopenprom();
+			this.dopenrej = undefined;
 		}
 
-		this.ws.onerror = (e?: Event) => {
+		const sderror = (e?: Event) => {
 			this.opened = false;
 			this.usable = false;
 			this.openrej && this.openrej(new Error(e && e.type));
-		}
+		};
+
+		const doerror = (e?: Event) => {
+			this.opened = false;
+			this.usable = false;
+			this.dopenrej && this.dopenrej(new Error(e && e.type));
+		};
+
+		this.ws.onclose = sderror;
+		this.ws.onerror = sderror;
+		this.dws.onclose = doerror;
+		this.dws.onerror = doerror;
 	}
 
 	constructor() {
 		//this.clear();
 	}
 
-	send(data: string | ArrayBufferLike | Blob | ArrayBufferView) {
-		if (!this.ws)
-			throw 'Attempted to send without initialized socket';
+
+	send(data: string | ArrayBufferLike | Blob | ArrayBufferView, sink: Sink) {
 		if (this.errored)
 			throw 'Socket is in an error state';
-		this.ws.send(data);
+		if (sink & Sink.Showdown) {
+			if (!this.ws)
+				throw 'Attempted to send without initialized socket';
+			this.ws.send(data);
+		}
+		if (sink & Sink.Dogars) {
+			if (!this.dws)
+				throw 'Attempted to send without initialized socket';
+			this.dws.send(data);
+		}
 	}
 
 	joinRoom(room: RoomID): PSRoom {
@@ -113,7 +146,7 @@ export class PSConnection {
 		let ret: PSRoom = new PSRoom(this, room);
 		if (!this.ws)
 			throw 'Attempted to send without initialized socket';
-		this.send(`|/join ${room}`);
+		this.send(`|/join ${room}`, Sink.All);
 		this.rooms.set(room, ret);
 		return ret;
 	}
@@ -122,7 +155,7 @@ export class PSConnection {
 		if (!this.rooms.has(room))
 			return;
 		let ret: PSRoom = this.rooms.get(room)!;
-		ret.send('/leave');
+		ret.send('/leave', Sink.All);
 		this.rooms.delete(room);
 		return ret;
 	}
@@ -146,13 +179,17 @@ export class PSConnection {
 		this.opened = false;
 		if (!this.ws)
 			throw 'Attempted to close without initialized socket';
+		if (!this.dws)
+			throw 'Attempted to close without initialized socket';
 		this.ws.close();
+		this.dws.close();
 		this.ws.onclose = null;
+		this.dws.onclose = null;
 	}
 
 	request<T extends GlobalEventsType | BattleEventsType, R>(req: PSRequest<T, R>): Promise<R> {
 		return new Promise<R>((res, rej) => {
-			this.send(req.toString());
+			this.send(req.toString(), Sink.All);
 			this.requests.push({ req, res, rej });
 		})
 	}
@@ -160,10 +197,13 @@ export class PSConnection {
 	async open() {
 		if (this.opened)
 			return;
-		return new Promise<void>((res, rej) => {
+		return Promise.all([new Promise<void>((res, rej) => {
 			this.openprom = res;
 			this.openrej = rej;
-		});
+		}), new Promise<void>((res, rej) => {
+			this.dopenprom = res;
+			this.dopenrej = rej;
+		})]);
 	}
 
 	async start() {
@@ -184,10 +224,10 @@ export class PSConnection {
 			this.challstrraw = challstr.join('|');
 			this.usable = true;
 			// heartbeat
-			this.iid = setInterval(() => this.send('/me dabs'), 1000 * 60);
-			if (!this.ws)
+			this.iid = setInterval(() => this.send('/me dabs', Sink.Showdown), 1000 * 60);
+			if (!this.ws || !this.dws)
 				throw 'Socket not initialized';
-			this.ws.onclose = async (ev) => {
+			this.dws.onclose = this.ws.onclose = async (ev) => {
 				this.close();
 				await this.start();
 			};
