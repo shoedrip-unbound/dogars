@@ -249,6 +249,13 @@ api.post("/action", async (req, res) => {
     res.send(d.body);
 });
 
+api.get("/action", async (req, res) => {
+    const d = await requestPromise.get('https://play.pokemonshowdown.com/~~showdown/action.php', { 
+        qs: req.query
+    });
+    res.send(d);
+});
+
 api.get("/search", async (request, response) => {
     let page = request.query.page || 1;
     page < 1 && (page = 1);
