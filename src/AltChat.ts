@@ -245,7 +245,7 @@ class AltChat {
         else if (msg.startsWith('/img '))
             room.broadcastimage(client, msg.substr(5));
         else if (msg.startsWith('/imgns '))
-            room.broadcastimage(client, msg.substr(5), true);
+            room.broadcastimage(client, msg.substr(7), true);
         else if (msg.startsWith('/fnick')) {
             const name = msg.slice(5).split(',')[0].substr(0, 42);
             // someone already has that name
