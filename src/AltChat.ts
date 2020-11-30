@@ -4,6 +4,7 @@ import url = require('url');
 import path = require('path');
 import sharp = require('sharp');
 import axios from 'axios';
+import { AxiosResponse } from 'axios';
 import { toId } from "./Website/utils";
 
 /*
@@ -95,19 +96,26 @@ class Room {
         }
         // this is after timeout verification to prevent DoS and to discourage trying to game the system
         try {
-            const buf = await axios.get(surl, {
-                headers: {
-                    Referer: 'https://play.dogars.ga' // will throw if hotlinking not allowed
-                },
-                responseType: 'arraybuffer',
-                timeout: 5000,
-                maxContentLength: 1024 * 1024
-            });
-            if ((buf.data as ArrayBuffer).byteLength > 1024 * 1024) // 1MB file limit
-                return;
-            await sharp(buf.data).metadata(); // i think it should throw if image cannot be decoded
+            let buf: AxiosResponse<any>;
+            try {
+                buf = await axios.get(surl, {
+                    headers: {
+                        Referer: 'https://play.dogars.ga' // will throw if hotlinking not allowed
+                    },
+                    responseType: 'arraybuffer',
+                    timeout: 5000,
+                    maxContentLength: 1024 * 1024
+                });    
+            } catch (e) {
+                throw "Prefetch failed, maybe due to hotlinking not allowed, timeout, or file too big";
+            }
+            if ((buf.data as ArrayBuffer).byteLength > 1024 * 1024) // isn't that redundant?
+                throw "Image too big (Over 1MB)";
+            const meta = await sharp(buf.data).metadata(); // i think it should throw if image cannot be decoded
+            if (!['jpg', 'png', 'gif', 'webp', 'svg'].includes(meta.format || ''))
+                throw "Unsupported format";
         } catch (e) {
-            cli.connection.write(`>${this.id}\n|error|Image too big, hotlinking forbidden, or not an image`);
+            cli.connection.write(`>${this.id}\n|error|${e}`);
             return;
         }
 
