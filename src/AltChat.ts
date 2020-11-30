@@ -112,7 +112,7 @@ class Room {
             if ((buf.data as ArrayBuffer).byteLength > 1024 * 1024) // isn't that redundant?
                 throw "Image too big (Over 1MB)";
             const meta = await sharp(buf.data).metadata(); // i think it should throw if image cannot be decoded
-            if (!['jpg', 'png', 'gif', 'webp', 'svg'].includes(meta.format || ''))
+            if (!['jpeg', 'png', 'gif', 'webp', 'svg'].includes(meta.format || ''))
                 throw "Unsupported format";
         } catch (e) {
             cli.connection.write(`>${this.id}\n|error|${e}`);
