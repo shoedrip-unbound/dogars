@@ -51,7 +51,7 @@ enum AccessLevel {
 const extract_cmd = (str: string): [Target, CommandType, string] => {
     const matches = str.match(/(!|\/)([a-z]+)(.*)/);
     if (!matches)
-        throw new Error('Malformed command');
+        throw new Error(`Malformed command ${str}`);
     const [a, t, c, b] = matches;
     return [t == '!' ? Target.Room : Target.Self, c as CommandType, b.trim()];
 }
@@ -66,20 +66,22 @@ class TimeoutManager {
     can_pass(key: string) {
         if (!(key in this.timeout))
             return true;
-        return this.timeout[key] >= +new Date;
+        return +new Date > this.timeout[key];
     }
 
     pass(key: string) {
         if (!this.can_pass(key))
-            throw "You're shitposting too fast, retard.";
-        const now = +new Date;
-        let inc = this.increment[key] || this.dinc;
-        if (now - this.timeout[key] < inc) // if: posted too fast after previous exp
-            inc *= 2;
-        else // we good
-            inc = this.dinc;
-        this.increment[key] = inc;
-        this.timeout[key] = now + inc;
+            throw `You're shitposting too fast, retard.`;
+        else {
+            let now = +new Date;
+            let inc = this.increment[key] || this.dinc;
+            if (now - this.timeout[key] < inc) // if: posted too fast after previous exp
+                inc *= 2;
+            else // we good
+                inc = this.dinc;
+            this.increment[key] = inc;
+            this.timeout[key] = now + inc;
+        }
     }
 }
 
@@ -95,14 +97,6 @@ class Room {
     }
 
     broadcast(cli: Client, msg: string) {
-        if (cli.access < AccessLevel.Janny)
-            try {
-                this.chat_timeout.pass(cli.connection.id);
-            } catch (e) {
-                cli.connection.write(`>${this.id}\n|error|${e}`);
-                return;
-            }
-
         const lines = msg.trim().split('\n');
         if (cli.access < AccessLevel.Janny)
             msg = lines.slice(0, 5).map(e => e.substr(0, 350)).join('\n');
@@ -120,7 +114,7 @@ class Room {
                 origin.connection.write(`>${this.id}\n|error|${e}`);
                 return;
             }
-        const packet = `>${this.id}\n|${msg}`;
+        const packet = `>${this.id}\n${msg}`;
         Object.values(this.clients)
             .filter(c => !c.ignored.has(origin.connection.id))
             .forEach(c => c.connection.write(packet));
@@ -282,12 +276,14 @@ class AltChat {
                 const name = body.split(',')[0].substr(0, 42);
                 const idn = toId(name);
                 // someone already has that name
-                if (client.access < AccessLevel.Admin && Object.values(this.clients).some(c => toId(c.name) == idn)) {
+                if (client.access < AccessLevel.Admin && 
+                    Object.values(this.clients).some(c => toId(c.name) == idn && c.connection.remoteAddress != client.connection.remoteAddress)) {
                     client.connection.write(`|popup|Someone else is already using your name. Reverting to your previous name (or Anonymous)`)
                     return;
                 }
                 client.name = name;
                 client.access = AccessLevel.Named;
+                break;
             }
             case 'noreply': {
                 this.interpret_cmd(client, body.trim());
@@ -364,6 +360,7 @@ class AltChat {
                     break;
                 }
                 target.mark = mark[0];
+                break;
             }
             case 'help': {
                 let msg = ``;
@@ -388,6 +385,7 @@ pick and roll can be broadcasted with ! instead of /
 `;
                 }
                 room.send_to_client(client, msg);
+                break;
             }
             case 'pick': {
                 const choices = body.split(',').map(e => e.trim());
@@ -401,6 +399,7 @@ pick and roll can be broadcasted with ! instead of /
                 } else {
                     room.send_to_client(client, '/text /pick [option], [option], ... - Randomly selects an item from a list containing 2 or more elements.')
                 }
+                break;
             }
             case 'roll': {
                 const matches = body.match(/^(\d+)(d\d+)?$/);
@@ -419,6 +418,7 @@ pick and roll can be broadcasted with ! instead of /
                 } else {
                     room.send_to_client(client, '/text /roll [max] or /roll [x]d[max]')
                 }
+                break;
             }
         }
     }
