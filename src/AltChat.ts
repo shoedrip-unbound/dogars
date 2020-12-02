@@ -209,12 +209,12 @@ class AltChat {
                     const [room, msg] = m.split('|');
                     // global
                     if (room == '') {
-                        if (msg[0] == '/' && msg[1] != '/')
+                        if ((msg[0] == '/' && msg[1] != '/') || msg[0] == '!')
                             this.interpret_cmd(cli, msg);
                         // ignore global messages
                     } else {
                         const id = room.trim();
-                        if (msg[0] == '/' && msg[1] != '/')
+                        if ((msg[0] == '/' && msg[1] != '/') || msg[0] == '!')
                             this.interpret_room_cmd(cli, this.rooms[id], msg);
                         else // regular message in room
                             this.rooms[room].broadcast(cli, msg);
@@ -233,7 +233,6 @@ class AltChat {
     get_client_by_id(id: string) {
         return Object.values(this.clients).find(c => toId(c.name) == id);
     }
-
 
     leaveRoom(client: Client, room: Room) {
         delete room.clients[client.connection.id];
