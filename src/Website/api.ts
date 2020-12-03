@@ -230,7 +230,7 @@ api.post("/action", async (req, res) => {
         method: 'POST',
         uri: 'https://play.pokemonshowdown.com/~~showdown/action.php',
         resolveWithFullResponse: true,
-        form: req.body,
+        form: {...req.body, ...req.query},
     };
     if (req.cookies['sid'])
         options.headers = {
