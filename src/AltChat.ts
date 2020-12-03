@@ -96,18 +96,18 @@ class Room {
     constructor(public id: string) {
     }
 
-    broadcast(cli: Client, msg: string) {
+    broadcast(cli: Client, msg: string, bypass = false) {
         const lines = msg.trim().split('\n');
         if (cli.access < AccessLevel.Janny)
             msg = lines.slice(0, 5).map(e => e.substr(0, 350)).join('\n');
         else
             msg = lines.join('\n');
         const entry = `|c|${cli.mark}${cli.name}|${msg}`;
-        this.low_broadcast(cli, entry);
+        this.low_broadcast(cli, entry, bypass);
     }
 
-    low_broadcast(origin: Client, msg: string) {
-        if (origin.access < AccessLevel.Janny)
+    low_broadcast(origin: Client, msg: string, bypass = false) {
+        if (origin.access < AccessLevel.Janny && !bypass)
             try {
                 this.chat_timeout.pass(origin.connection.id);
             } catch (e) {
@@ -168,7 +168,6 @@ class Room {
 
     send_to_client(cli: Client, msg: string, add_to_log = false) {
         cli.connection.write(`>${this.id}\n${msg}`);
-
     }
     // log will be in order relative to itself, but not relative to battle, since dogars
     // doesn't get the full battle log (yet) and there are no mechanism to insert a message back in time
@@ -391,10 +390,9 @@ pick and roll can be broadcasted with ! instead of /
                 if (choices.length >= 2) {
                     const choice = choices[~~(Math.random() * choices.length)];
                     const b = ` <div class="infobox"><em>We randomly picked:</em> ${choice}</div>`
-                    if (t == Target.Self)
-                        room.send_to_client(client, `/raw ${b}`);
-                    else
-                        room.broadcast(client, `/raw ${b}`);
+                    const send = Target.Self ? room.send_to_client : room.broadcast;
+                    send.call(room, client, msg);
+                    send.call(room, client, `/raw ${b}`);
                 } else {
                     room.send_to_client(client, '/text /pick [option], [option], ... - Randomly selects an item from a list containing 2 or more elements.')
                 }
@@ -410,10 +408,9 @@ pick and roll can be broadcasted with ! instead of /
                     }
                     const rolls = [...new Array(n)].map((e, i) => 1 + ~~(Math.random() * (m! + 1)));
                     const val = `<div class="infobox">${n} rolls (1 to ${m}): ${rolls.join(', ')}<br />Sum: ${rolls.reduce((a, b) => a + b)}</div>`
-                    if (t == Target.Self)
-                        room.send_to_client(client, `/raw ${val}`);
-                    else
-                        room.broadcast(client, `/raw ${val}`);
+                    const send = Target.Self ? room.send_to_client : room.broadcast;
+                    send.call(room, client, msg);
+                    send.call(room, client, `/raw ${val}`);
                 } else {
                     room.send_to_client(client, '/text /roll [max] or /roll [x]d[max]')
                 }
