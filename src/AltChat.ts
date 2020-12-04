@@ -162,7 +162,8 @@ class Room {
         if (nsfw)
             entry = `${prefix} <details ontoggle="this.children[1].src = '${surl}';"><summary>Image (NSFW)</summary><img style="max-width: 400px; max-height: 400px;"/></details>`;
         else
-            entry = `${prefix} <details open><summary>Image (Worksafe)</summary><img src="${surl}" style="max-width: 400px; max-height: 400px;"/></details>`;
+            entry = `${prefix} <details ontoggle="this.children[1].src = '${surl}';"><summary>Image (Worksafe)</summary><img style="max-width: 400px; max-height: 400px;"/></details>`;
+        //  entry = `${prefix} <details open><summary>Image (Worksafe)</summary><img src="${surl}" style="max-width: 400px; max-height: 400px;"/></details>`;
         this.low_broadcast(cli, entry);
     }
 
@@ -274,7 +275,7 @@ class AltChat {
                 const name = body.split(',')[0].substr(0, 42);
                 const idn = toId(name);
                 // someone already has that name
-                if (client.access < AccessLevel.Admin && 
+                if (client.access < AccessLevel.Admin &&
                     Object.values(this.clients).some(c => toId(c.name) == idn && c.connection.remoteAddress != client.connection.remoteAddress)) {
                     client.connection.write(`|popup|Someone else is already using your name. Reverting to your previous name (or Anonymous)`)
                     return;
