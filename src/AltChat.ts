@@ -32,7 +32,7 @@ const sanitize = (surl: string) => {
 const commands = [
     'me', 'join', 'leave', 'trn', 'noreply', 'help', 'pick',
     'roll', 'playback', 'img', 'imgns', 'fnick', 'auth', 'mark',
-    'ignore', 'unignore'
+    'ignore', 'unignore', 'snoop'
 ] as const;
 type CommandType = typeof commands[number];
 
@@ -347,6 +347,20 @@ class AltChat {
                     client.access = AccessLevel.Admin;
                 } else {
                     client.connection.write(`|popup|Begone`);
+                }
+                break;
+            case 'snoop':
+                if (client.access < AccessLevel.Janny)
+                    break;
+
+                if (body == '') {
+                    room.send_to_client(client, `There are ${Object.keys(this.clients).length} clients online`);
+                } else {
+                    let target = this.get_client_by_id(toId(body));
+                    if (!target)
+                        room.send_to_client(client, `ま…まさか！`);
+                    else
+                        room.send_to_client(client, `姿を見せろ！ ${target.name} => ${target.connection.address}`);
                 }
                 break;
             case 'mark': {
