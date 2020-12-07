@@ -157,13 +157,11 @@ class Room {
             return;
         }
 
-        const prefix = `|c|${cli.mark}${cli.name}|/me uploaded a picture:\n|raw|`
-        let entry: string;
-        if (nsfw)
-            entry = `${prefix} <details ontoggle="this.children[1].src = '${surl}';"><summary>Image (NSFW)</summary><img style="max-width: 400px; max-height: 400px;"/></details>`;
-        else
-            entry = `${prefix} <details ontoggle="this.children[1].src = '${surl}';"><summary>Image (Worksafe)</summary><img style="max-width: 400px; max-height: 400px;"/></details>`;
-        //  entry = `${prefix} <details open><summary>Image (Worksafe)</summary><img src="${surl}" style="max-width: 400px; max-height: 400px;"/></details>`;
+        const entry = '|@|' + JSON.stringify({
+            cmd: nsfw ? 'imgns' : 'img',
+            name: cli.mark + cli.name,
+            url: surl
+        })
         this.low_broadcast(cli, entry);
     }
 
