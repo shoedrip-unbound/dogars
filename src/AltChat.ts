@@ -241,6 +241,23 @@ class AltChat {
         }
     }
 
+    rename(client: Client, body: string) {
+        const name = body.split(',')[0].substr(0, 42);
+        const idn = toId(name);
+        if (idn.length < 1) {
+            client.connection.write(`|popup|Name must have at least one character`)
+            return;
+        }
+        // someone already has that name
+        if (client.access < AccessLevel.Admin &&
+            Object.values(this.clients).some(c => toId(c.name) == idn && c.connection.remoteAddress != client.connection.remoteAddress)) {
+            client.connection.write(`|popup|Someone else is already using your name. Reverting to your previous name (or Anonymous)`)
+            return;
+        }
+        client.name = name;
+        client.access = AccessLevel.Named;
+    }
+
     interpret_cmd(client: Client, msg: string) {
         const [t, cmd, body] = extract_cmd(msg);
         switch (cmd) {
@@ -270,16 +287,7 @@ class AltChat {
                 break;
             }
             case 'trn': {
-                const name = body.split(',')[0].substr(0, 42);
-                const idn = toId(name);
-                // someone already has that name
-                if (client.access < AccessLevel.Admin &&
-                    Object.values(this.clients).some(c => toId(c.name) == idn && c.connection.remoteAddress != client.connection.remoteAddress)) {
-                    client.connection.write(`|popup|Someone else is already using your name. Reverting to your previous name (or Anonymous)`)
-                    return;
-                }
-                client.name = name;
-                client.access = AccessLevel.Named;
+                this.rename(client, body);
                 break;
             }
             case 'noreply': {
@@ -303,13 +311,7 @@ class AltChat {
                     room.playback(client);
                 break;
             case 'fnick':
-                const name = body.split(',')[0].substr(0, 42);
-                // someone already has that name
-                if (client.access < AccessLevel.Admin && Object.values(this.clients).some(c => c.name == name)) {
-                    client.connection.write(`|popup|Someone else is already using your name. Reverting to your previous name (or Anonymous)`)
-                    return;
-                }
-                client.name = name;
+                this.rename(client, body);
                 break;
             case 'ignore': {
                 let target = this.get_client_by_id(toId(body));
