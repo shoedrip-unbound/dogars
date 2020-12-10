@@ -142,13 +142,13 @@ class Room {
                     },
                     responseType: 'arraybuffer',
                     timeout: 5000,
-                    maxContentLength: 1024 * 1024
+                    maxContentLength: 8 * 1024 * 1024
                 });
             } catch (e) {
                 throw "Prefetch failed, maybe due to hotlinking not allowed, timeout, or file too big";
             }
-            if ((buf.data as ArrayBuffer).byteLength > 1024 * 1024) // isn't that redundant?
-                throw "Image too big (Over 1MB)";
+            if ((buf.data as ArrayBuffer).byteLength > 8 * 1024 * 1024) // isn't that redundant?
+                throw "Image too big (Over 8 embies (cuute and valid ;3))";
             const meta = await sharp(buf.data).metadata(); // i think it should throw if image cannot be decoded
             if (!['jpeg', 'png', 'gif', 'webp', 'svg'].includes(meta.format || ''))
                 throw "Unsupported format";
