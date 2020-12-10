@@ -407,7 +407,7 @@ pick and roll can be broadcasted with ! instead of /
                     const b = ` <div class="infobox"><em>We randomly picked:</em> ${choice}</div>`
                     const send = Target.Self ? room.send_to_client : room.broadcast;
                     send.call(room, client, msg);
-                    send.call(room, client, `/raw ${b}`);
+                    send.call(room, client, `/raw ${b}`, true);
                 } else {
                     room.send_to_client(client, '/text /pick [option], [option], ... - Randomly selects an item from a list containing 2 or more elements.')
                 }
@@ -425,7 +425,7 @@ pick and roll can be broadcasted with ! instead of /
                     const val = `<div class="infobox">${n} rolls (1 to ${m}): ${rolls.join(', ')}<br />Sum: ${rolls.reduce((a, b) => a + b)}</div>`
                     const send = Target.Self ? room.send_to_client : room.broadcast;
                     send.call(room, client, msg);
-                    send.call(room, client, `/raw ${val}`);
+                    send.call(room, client, `/raw ${val}`, true);
                 } else {
                     room.send_to_client(client, '/text /roll [max] or /roll [x]d[max]')
                 }
