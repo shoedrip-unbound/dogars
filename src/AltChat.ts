@@ -452,7 +452,7 @@ pick and roll can be broadcasted with ! instead of /
                 break;
             }
             case 'yt': {
-                const matches = body.match(/^https:\/\/www.youtube.com\/watch?v=(<?videoId>[A-Za-z0-9_\-]+)$/);
+                const matches = body.match(/^https:\/\/www.youtube.com\/watch\?v=(?<videoId>[A-Za-z0-9_\-]+)$/);
 
                 if (matches) {
                     const videoId = matches.groups?.['videoId'];
