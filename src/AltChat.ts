@@ -7,6 +7,7 @@ import axios from 'axios';
 import { AxiosResponse } from 'axios';
 import { toId } from "./Website/utils";
 import { settings } from "./Backend/settings";
+import { ManyToMany } from "typeorm";
 
 /*
     Idea is to combine both the showdown socket and dogars socket as a single message stream so that
@@ -47,6 +48,8 @@ enum AccessLevel {
     Janny,
     Admin
 }
+
+const unix_now = () => Math.floor(+new Date() / 1000);
 
 const extract_cmd = (str: string): [Target, CommandType, string] => {
     const matches = str.match(/(!|\/)([a-z]+)(.*)/);
@@ -102,7 +105,7 @@ class Room {
             msg = lines.slice(0, 5).map(e => e.substr(0, 350)).join('\n');
         else
             msg = lines.join('\n');
-        const entry = `|c:|${Math.floor(+new Date() / 1000)}|${cli.mark}${cli.name}|${msg}`;
+        const entry = `|c:|${unix_now()}|${cli.mark}${cli.name}|${msg}`;
         this.low_broadcast(cli, entry, bypass);
     }
 
@@ -157,7 +160,7 @@ class Room {
             return;
         }
 
-        const entry = '|@|' + JSON.stringify({
+        const entry = `|@:|${unix_now()}|` + JSON.stringify({
             cmd: nsfw ? 'imgns' : 'img',
             name: cli.mark + cli.name,
             url: surl
@@ -175,7 +178,7 @@ class Room {
             }
         }
 
-        const entry = '|@|' + JSON.stringify({
+        const entry = `|@:|${unix_now()}|` + JSON.stringify({
             cmd: 'yt',
             name: cli.mark + cli.name,
             youtubeId,
