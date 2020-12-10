@@ -32,7 +32,7 @@ const sanitize = (surl: string) => {
 const commands = [
     'me', 'join', 'leave', 'trn', 'noreply', 'help', 'pick',
     'roll', 'playback', 'img', 'imgns', 'fnick', 'auth', 'mark',
-    'ignore', 'unignore', 'snoop'
+    'ignore', 'unignore', 'snoop', 'yt',
 ] as const;
 type CommandType = typeof commands[number];
 
@@ -161,6 +161,24 @@ class Room {
             cmd: nsfw ? 'imgns' : 'img',
             name: cli.mark + cli.name,
             url: surl
+        })
+        this.low_broadcast(cli, entry);
+    }
+
+    async broadcastYoutube(cli: Client, youtubeId: string) {
+        if (cli.access < AccessLevel.Janny) {
+            try {
+                this.image_timeout.pass(cli.connection.id);
+            } catch (e) {
+                cli.connection.write(`>${this.id}\n|error|${e}`);
+                return;
+            }
+        }
+
+        const entry = '|@|' + JSON.stringify({
+            cmd: 'yt',
+            name: cli.mark + cli.name,
+            youtubeId,
         })
         this.low_broadcast(cli, entry);
     }
@@ -429,6 +447,21 @@ pick and roll can be broadcasted with ! instead of /
                 } else {
                     room.send_to_client(client, '/text /roll [max] or /roll [x]d[max]')
                 }
+                break;
+            }
+            case 'yt': {
+                const matches = body.match(/^https:\/\/www.youtube.com\/watch?v=(<?videoId>[A-Za-z0-9_\-]+)$/);
+
+                if (matches) {
+                    const videoId = matches.groups?.['videoId'];
+
+                    if (videoId) {
+                        room.broadcastYoutube(client, videoId);
+                        break;
+                    }
+                }
+
+                room.send_to_client(client, `|error|${body} is not a valid YouTube URL`);
                 break;
             }
         }
