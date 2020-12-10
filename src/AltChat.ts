@@ -102,7 +102,7 @@ class Room {
             msg = lines.slice(0, 5).map(e => e.substr(0, 350)).join('\n');
         else
             msg = lines.join('\n');
-        const entry = `|c|${cli.mark}${cli.name}|${msg}`;
+        const entry = `|c:|${Math.floor(+new Date() / 1000)}|${cli.mark}${cli.name}|${msg}`;
         this.low_broadcast(cli, entry, bypass);
     }
 
@@ -168,11 +168,13 @@ class Room {
     send_to_client(cli: Client, msg: string, add_to_log = false) {
         cli.connection.write(`>${this.id}\n${msg}`);
     }
-    // log will be in order relative to itself, but not relative to battle, since dogars
-    // doesn't get the full battle log (yet) and there are no mechanism to insert a message back in time
-    // in client (yet)
+
     playback(cli: Client) {
         this.send_to_client(cli, this.log.filter(l => !cli.ignored.has(l[0])).map(l => l[1]).join('\n'));
+        const entry = '|@|' + JSON.stringify({
+            cmd: 'reset',
+        })
+        this.send_to_client(cli, entry);
     }
 }
 
