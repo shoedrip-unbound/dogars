@@ -387,9 +387,9 @@ class AltChat {
                             `
 /help: Show this help.
 /pick [a, b, ..., n]: Randomly pick an option.
-/roll [xdn]: Roll x dices from 1 to n.
-/img [url]: Broadcast a SFW image (visible by default) in chat.
-/imgns [url]: Broadcast an NSFW image (hidden by default).
+/roll ([x]d)[n]: Roll x dices from 1 or x to n.
+/img [url]: Broadcast a SFW image in chat.
+/imgns [url]: Broadcast an NSFW image in chat.
 /fnick [nick]: Rename yourself in secret chat only.
 /ignore [nick]: Ignore a user in secret chat.
 /unignore [nick]: Unignore a user in secret chat.
