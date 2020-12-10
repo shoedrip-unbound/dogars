@@ -360,7 +360,7 @@ class AltChat {
                     if (!target)
                         room.send_to_client(client, `ま…まさか！`);
                     else
-                        room.send_to_client(client, `姿を見せろ！ ${target.name} => ${target.connection.address}`);
+                        room.send_to_client(client, `正体を見せろ！ ${target.name} => ${JSON.stringify(target.connection.address)}`);
                 }
                 break;
             case 'mark': {
