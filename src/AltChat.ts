@@ -227,7 +227,8 @@ class AltChat {
                 try {
                     if (m.length > 4096)
                         return;
-                    const [room, msg] = m.split('|');
+                    const [room, ...rest] = m.split('|');
+                    const msg = rest.join('|');
                     // global
                     if (room == '') {
                         if ((msg[0] == '/' && msg[1] != '/') || msg[0] == '!')
