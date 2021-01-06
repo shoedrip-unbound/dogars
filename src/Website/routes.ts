@@ -11,6 +11,7 @@ import { api } from './api';
 import cors = require('cors');
 
 api.use(cors());
+router.set('trust proxy', true);
 router.use(cors());
 
 router.set('env', 'production');
