@@ -23,8 +23,10 @@
 	"include": [
 		"./src/**/*",
 			"./pokemon-showdown/sim/**/*.ts",
-        "./pokemon-showdown/server/**/*.ts",
-        "./pokemon-showdown/lib/**/*.ts"
+			"./pokemon-showdown/server/**/*.ts",
+			"./pokemon-showdown/config/**/*.ts",
+			"./pokemon-showdown/data/**/*.ts",
+			"./pokemon-showdown/lib/**/*.ts"
 
 	]
 }

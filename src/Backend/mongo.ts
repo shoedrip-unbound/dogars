@@ -248,8 +248,8 @@ export const createNewSet = async (sdata: {
     nset.format = "gen8ou";
     if (availableFormats.some(x => x.id == sdata.format))
         nset.format = sdata.format;
-    nset.creator = sdata.creat.substr(0, 23);
-    nset.description = sdata.desc.substr(0, 650);
+    nset.creator = sdata.creat.slice(0, 23);
+    nset.description = sdata.desc.slice(0, 650);
     let pok = pokeUtils.parseSet(sdata.set) as Sets;
     pok.format = nset.format;
     let errors = pokeUtils.checkSet(pok);
