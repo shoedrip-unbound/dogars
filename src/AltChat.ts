@@ -7,7 +7,6 @@ import axios from 'axios';
 import { AxiosResponse } from 'axios';
 import { toId } from "./Website/utils";
 import { settings } from "./Backend/settings";
-import { ManyToMany } from "typeorm";
 
 /*
     Idea is to combine both the showdown socket and dogars socket as a single message stream so that

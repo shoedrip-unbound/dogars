@@ -1,6 +1,5 @@
 import fs = require('fs');
 import path = require('path');
-import { ConnectionOptions } from 'typeorm';
 
 let curdir = __dirname;
 let file = '/settings.json';
@@ -12,7 +11,6 @@ while (!fs.existsSync(path.join(curdir, file))) {
 
 export let settings: {
     db: {
-        type?: ConnectionOptions["type"],
         port?: number,
         host: string,
         user: string,

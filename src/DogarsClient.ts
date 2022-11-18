@@ -55,7 +55,7 @@ export class DogarsIPCClient implements DogarsClient {
         })();
         
         console.log("Attempting to connect to IPC server 2...");
-        return new Promise((r) => {
+        return new Promise<void>((r) => {
             this.s.onopen = () => {
                 console.log("Connected!");
                 r();

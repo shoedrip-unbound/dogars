@@ -1,5 +1,6 @@
 {
 	"compilerOptions": {
+		"skipLibCheck": true,
 		"outDir": "./dist",
 		"incremental": true,
 		"allowJs": true,
@@ -10,6 +11,9 @@
 		"strict": true,
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,
+		"jsx": "react",
+		"jsxFactory": "Chat.h",
+        "jsxFragmentFactory": "Chat.Fragment",
 		"lib": [
 			"es7", 
 			"dom",
