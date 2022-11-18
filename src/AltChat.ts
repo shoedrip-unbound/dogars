@@ -33,7 +33,7 @@ const sanitize = (surl: string) => {
 const commands = [
     'me', 'join', 'leave', 'trn', 'noreply', 'help', 'pick',
     'roll', 'playback', 'img', 'imgns', 'fnick', 'auth', 'mark',
-    'ignore', 'unignore', 'snoop', 'yt',
+    'ignore', 'unignore', 'snoop', 'yt', 'preserve'
 ] as const;
 type CommandType = typeof commands[number];
 
@@ -90,7 +90,7 @@ class TimeoutManager {
 
 class Room {
     clients: { [k in string]: Client } = {};
-
+    preserve_data: boolean = false;
     chat_timeout = new TimeoutManager(125);
     image_timeout = new TimeoutManager(20000);
 
@@ -261,7 +261,8 @@ class AltChat {
         delete client.subbed_rooms[room.id];
         if (Object.keys(room.clients).length == 0) {
             // todo: deinit?
-            delete this.rooms[room.id];
+            if (!this.rooms[room.id].preserve_data)
+                delete this.rooms[room.id];
         }
     }
 
@@ -386,6 +387,11 @@ class AltChat {
                     else
                         room.send_to_client(client, `正体を見せろ！ ${target.name} => ${JSON.stringify(target.connection.address)}`);
                 }
+                break;
+            case 'preserve':
+                if (client.access < AccessLevel.Janny)
+                    break;
+                room.preserve_data = !room.preserve_data;
                 break;
             case 'mark': {
                 if (client.access < AccessLevel.Janny)
