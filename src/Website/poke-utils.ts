@@ -9,6 +9,7 @@ import { Sets } from '../Backend/Models/Sets';
 import { BattleURL } from '../Backend/CringeCompilation';
 import { RoomID } from '../Showdown/PSRoom';
 import { TeamValidator } from '../../pokemon-showdown/sim/team-validator'
+import { Teams } from '../../pokemon-showdown/sim/teams'
 
 // Shamelessly stolen and adapted from showdown-client
 let BattleStatIDs: { [idx: string]: ('hp' | 'atk' | 'def' | 'spa' | 'spd' | 'spe') } = {
@@ -33,100 +34,9 @@ let BattleStatIDs: { [idx: string]: ('hp' | 'atk' | 'def' | 'spa' | 'spd' | 'spe
 
 
 export module pokeUtils {
-    // I'm never touching this.
     export let parseSet = (text: string) => {
-        let stext = text.split("\n");
-        let team: PokemonSet[] = [];
-        let curSet: PokemonSet = {} as PokemonSet;
-        let moves = [];
-        let first = false;
-        for (var i = 0; i < stext.length; i++) {
-            var line = stext[i].trim();
-            if (!first) {
-                first = true;
-                curSet.ivs = { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 };
-                curSet.evs = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
-
-                team.push(curSet);
-                var atIndex = line.lastIndexOf(' @ ');
-                if (atIndex !== -1) {
-                    curSet.item = line.substr(atIndex + 3);
-                    line = line.substr(0, atIndex);
-                }
-                if (line.substr(line.length - 4) === ' (M)') {
-                    curSet.gender = 'M';
-                    line = line.substr(0, line.length - 4);
-                }
-                if (line.substr(line.length - 4) === ' (F)') {
-                    curSet.gender = 'F';
-                    line = line.substr(0, line.length - 4);
-                }
-                var parenIndex = line.lastIndexOf(' (');
-                if (line.substr(line.length - 1) === ')' && parenIndex !== -1) {
-                    line = line.substr(0, line.length - 1);
-                    curSet.species = line.substr(parenIndex + 2);
-                    line = line.substr(0, parenIndex);
-                    curSet.name = line;
-                } else {
-                    curSet.species = line.trim();
-                    curSet.name = '';
-                }
-            } else if (line.substr(0, 9) === 'Ability: ') {
-                line = line.substr(9);
-                curSet.ability = line.substr(0, 20);
-            } else if (line === 'Shiny: Yes') {
-                curSet.shiny = true;
-            } else if (line.substr(0, 7) === 'Level: ') {
-                line = line.substr(7);
-                curSet.level = clamp(1, +line, 100);
-            } else if (line.substr(0, 11) === 'Happiness: ') {
-                line = line.substr(11);
-                curSet.happiness = clamp(0, +line, 256);
-            } else if (line.substr(0, 5) === 'EVs: ') {
-                line = line.substr(5);
-                var evLines = line.split('/');
-
-                curSet.evs = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
-
-                for (var j = 0; j < evLines.length; j++) {
-                    var evLine = evLines[j].trim();
-                    var spaceIndex = evLine.indexOf(' ');
-                    if (spaceIndex === -1) continue;
-                    let statid = BattleStatIDs[evLine.substr(spaceIndex + 1)];
-                    var statval = parseInt(evLine.substr(0, spaceIndex), 10);
-                    if (!statid) continue;
-                    curSet.evs[statid] = clamp(0, statval, 252);
-                }
-            } else if (line.substr(0, 5) === 'IVs: ') {
-                line = line.substr(5);
-                var ivLines = line.split(' / ');
-                curSet.ivs = { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 };
-                for (var j = 0; j < ivLines.length; j++) {
-                    var ivLine = ivLines[j];
-                    var spaceIndex = ivLine.indexOf(' ');
-                    if (spaceIndex === -1) continue;
-                    let statid = BattleStatIDs[ivLine.substr(spaceIndex + 1)];
-                    var statval = parseInt(ivLine.substr(0, spaceIndex), 10);
-                    if (!statid) continue;
-                    if (isNaN(statval)) statval = 31;
-                    curSet.ivs[statid] = clamp(0, statval, 31);
-                }
-            } else if (line.match(/^[A-Za-z]+ (N|n)ature/)) {
-                var natureIndex = line.indexOf(' Nature');
-                if (natureIndex === -1) natureIndex = line.indexOf(' nature');
-                if (natureIndex === -1) continue;
-                line = line.substr(0, natureIndex);
-                if (line !== 'undefined') curSet.nature = line.substr(0, 15);
-            } else if (line.substr(0, 1) === '-' || line.substr(0, 1) === '~') {
-                line = line.substr(1);
-                if (line.substr(0, 1) === ' ') line = line.substr(1);
-                moves.push(line);
-            }
-        }
-        curSet.moves = moves;
-        curSet.name = curSet.name!.substr(0, 30);
-        curSet.species = curSet.species!.substr(0, 30);
-        return curSet;
+        const curSet = Teams.import(text) as any as Sets[]
+        return curSet[0];
     }
 
     let headers = {

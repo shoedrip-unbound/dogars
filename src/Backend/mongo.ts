@@ -245,7 +245,7 @@ export const createNewSet = async (sdata: {
 }) => {
     let nset: Sets = {} as Sets;
     nset.hash = tripcode(sdata.trip);
-    nset.format = "gen8ou";
+    nset.format = "gen9ou";
     if (availableFormats.some(x => x.id == sdata.format))
         nset.format = sdata.format;
     nset.creator = sdata.creat.slice(0, 23);
