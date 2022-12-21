@@ -323,7 +323,7 @@ class AltChat {
             client.connection.write(`|popup|Someone else is already using your name. Reverting to your previous name (or Anonymous)`)
             return;
         }
-
+        client.mark = "▲";
         if (token) {
             try {
                 const isVerified = await verify(idn, token);
