@@ -53,7 +53,7 @@ const verify = async (idn: string, token: string): Promise<boolean> => {
     const [data, signature] = token.split(';');
     const [, userId] = data.split(',');
 
-    if (idn !== userId) return false;
+    if (toId(idn) !== toId(userId)) return false;
 
     const verifier = crypto.createVerify(algorithm);
     verifier.update(data);
@@ -309,7 +309,8 @@ class AltChat {
     }
 
     async rename(client: Client, body: string) {
-        let [name,,token] = body.split(',');
+        let [name,, ...tokens] = body.split(',');
+        let token = tokens.join(',');
         name = name.substring(0, 24);
         const idn = toId(name);
         if (idn.length < 1) {
