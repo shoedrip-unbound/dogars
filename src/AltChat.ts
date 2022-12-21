@@ -7,6 +7,7 @@ import axios from 'axios';
 import { AxiosResponse } from 'axios';
 import { toId } from "./Website/utils";
 import { settings } from "./Backend/settings";
+import * as crypto from 'crypto';
 
 /*
     Idea is to combine both the showdown socket and dogars socket as a single message stream so that
@@ -21,6 +22,48 @@ import { settings } from "./Backend/settings";
     This may allow in the future features like auto-following champ, automatically sending invites to everyone connected through dogars
     if an opponent turns modjoin on.
 */
+
+/* Showdown's public key */
+const algorithm = 'RSA-SHA1';
+const publicKey = `-----BEGIN PUBLIC KEY-----
+MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAzfWKQXg2k8c92aiTyN37
+dl76iW0aeAighgzeesdar4xZT1A9yzLpj2DgR8F8rh4R32/EVOPmX7DCf0bYWeh3
+QttP0HVKKKfsncJZ9DdNtKj1vWdUTklH8oeoIZKs54dwWgnEFKzb9gxqu+z+FJoQ
+vPnvfjCRUPA84O4kqKSuZT2qiWMFMWNQPXl87v+8Atb+br/WXvZRyiLqIFSG+ySn
+Nwx6V1C8CA1lYqcPcTfmQs+2b4SzUa8Qwkr9c1tZnXlWIWj8dVvdYtlo0sZZBfAm
+X71Rsp2vwEleSFKV69jj+IzAfNHRRw+SADe3z6xONtrJOrp+uC/qnLNuuCfuOAgL
+dnUVFLX2aGH0Wb7ZkriVvarRd+3otV33A8ilNPIoPb8XyFylImYEnoviIQuv+0VW
+RMmQlQ6RMZNr6sf9pYMDhh2UjU11++8aUxBaso8zeSXC9hhp7mAa7OTxts1t3X57
+72LqtHHEzxoyLj/QDJAsIfDmUNAq0hpkiRaXb96wTh3IyfI/Lqh+XmyJuo+S5GSs
+RhlSYTL4lXnj/eOa23yaqxRihS2MT9EZ7jNd3WVWlWgExIS2kVyZhL48VA6rXDqr
+Ko0LaPAMhcfETxlFQFutoWBRcH415A/EMXJa4FqYa9oeXWABNtKkUW0zrQ194btg
+Y929lRybWEiKUr+4Yw2O1W0CAwEAAQ==
+-----END PUBLIC KEY-----
+`;
+
+/*
+    Uses Showdown's own verification to determine if a user is really who they say they are.
+    This isn't foolproof as any valid token from any period in time for a particular user
+    would pass this test. Making it would foolproof require Dogars to snoop for the user's
+    challenge string sent from challstr. This is entirely doable, but perhaps a bit excessive
+    since the only way a user would be actually compromised is if they were a moron or if the
+    Dogars dev went rogue.
+*/
+const verify = async (idn: string, token: string): Promise<boolean> => {
+    const [data, signature] = token.split(';');
+    const [, userId] = data.split(',');
+
+    if (idn !== userId) return false;
+
+    const verifier = crypto.createVerify(algorithm);
+    verifier.update(data);
+
+    try {
+        return verifier.verify(publicKey, signature, 'hex');
+    } catch {
+        return false;
+    }
+};
 
 const sanitize = (surl: string) => {
     const parsed = url.parse(surl);
@@ -265,8 +308,9 @@ class AltChat {
         }
     }
 
-    rename(client: Client, body: string) {
-        const name = body.split(',')[0].substr(0, 42);
+    async rename(client: Client, body: string) {
+        let [name,,token] = body.split(',');
+        name = name.substring(0, 24);
         const idn = toId(name);
         if (idn.length < 1) {
             client.connection.write(`|popup|Name must have at least one character`)
@@ -278,6 +322,16 @@ class AltChat {
             client.connection.write(`|popup|Someone else is already using your name. Reverting to your previous name (or Anonymous)`)
             return;
         }
+
+        if (token) {
+            try {
+                const isVerified = await verify(idn, token);
+                if (isVerified) {
+                    client.mark = '✓';
+                }
+            } catch(e) {}
+        }
+
         client.name = name;
         client.access = AccessLevel.Named;
     }
