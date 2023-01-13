@@ -5,7 +5,7 @@ import path = require('path');
 import sharp = require('sharp');
 import axios from 'axios';
 import { AxiosResponse } from 'axios';
-import { toId } from "./Website/utils";
+import { toId, nameFilter } from "./Website/utils";
 import { settings } from "./Backend/settings";
 import * as crypto from 'crypto';
 
@@ -313,7 +313,7 @@ class AltChat {
 
     async rename(client: Client, body: string) {
         let [name,,token] = body.split(',');
-        name = name.substring(0, 24);
+        name = nameFilter(name);
         const idn = toId(name);
         if (idn.length < 1) {
             client.connection.write(`|popup|Name must have at least one character`)
