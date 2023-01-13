@@ -37,6 +37,15 @@ export const getSetOfTheDay = async () => {
     ranset = (await db.getRandomSet(seed))[0];
     return ranset;
 }
+
+async function facet<T>(coll: Collection<T>, obj: Record<string, object[]>) {
+    let ret = {} as Record<string, any>;
+    await Promise.all(Object.entries(obj).map(async ([k, v]) => {
+        ret[k] = await coll.aggregate(v, {}).toArray();
+    }));
+    return ret;
+}
+
 async function paginate<T>(coll: Collection<T>, prop: db.AggregationPipelineStage<T>[], pspp: number, ppage: number): Promise<[number, T[]]> {
     if (ppage <= 0)
         ppage = 1;
@@ -46,16 +55,11 @@ async function paginate<T>(coll: Collection<T>, prop: db.AggregationPipelineStag
     spp > 100 && (spp = 100);
     let page = ppage || 1;
 
-    let resc = await coll.aggregate([{
-        '$facet': {
-            metadata: [...prop, { $count: "total" }],
-            data: [...prop, { $skip: (page - 1) * spp }, { $limit: spp }]
-        }
-    }]);
-    let res = await resc.next() as (T & {
-        metadata: [{ total: number }],
-        data: T[]
+    let res = await facet(coll, {
+        metadata: [...(prop as object[]), { $count: "total" }],
+        data: [...(prop as object[]), { $skip: (page - 1) * spp }, { $limit: spp }]
     });
+    if (!res.metadata) return [0, []];
     return [res.metadata.length ? res.metadata[0].total : 0, res.data];
 }
 
@@ -240,7 +244,7 @@ api.post("/action", async (req, res) => {
     const sidcookie = d.headers['set-cookie']?.filter(e => e.startsWith('sid='))[0];
     if (sidcookie) {
         res.cookie('sid', sidcookie.match(/sid=(.*?);/)![1], {
-            domain: 'play.dogars.ga',
+            domain: 'play.dogars.org',
             httpOnly: false,
             secure: true,
             sameSite: 'None'

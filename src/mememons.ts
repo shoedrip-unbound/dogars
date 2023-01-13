@@ -19,7 +19,9 @@ import { AltChatServer } from './AltChat';
 
 setInterval(async () => {
     let backup = `${settings.ressources}/public/backup.tar.gz`;
-    cp.spawnSync('mongodump', ['--db', settings.db.database, '--gzip', '-o', `${settings.ressources}/public`]);
+    cp.spawnSync('mongodump', [
+        '--uri', `mongodb://${settings.db.user}:${settings.db.password}@${settings.db.host}:${settings.db.port || 27017}`,
+        '--gzip', '-o', `${settings.ressources}/public`]);
     cp.spawnSync('tar', ['-czf', backup, `${settings.ressources}/public/${settings.db.database}`]);
 }, 3600 * 1000);
 

@@ -75,7 +75,7 @@ const sanitize = (surl: string) => {
 const commands = [
     'me', 'join', 'leave', 'trn', 'noreply', 'help', 'pick',
     'roll', 'playback', 'img', 'imgns', 'fnick', 'auth', 'mark',
-    'ignore', 'unignore', 'snoop', 'yt', 'preserve'
+    'ignore', 'unignore', 'snoop', 'yt', 'preserve', 'unshit', 'fuckoff'
 ] as const;
 type CommandType = typeof commands[number];
 
@@ -142,19 +142,21 @@ class Room {
     }
 
     broadcast(cli: Client, msg: string, bypass = false) {
-        const lines = msg.trim().split('\n');
+        let lines = msg.trim().split('\n');
         if (cli.access < AccessLevel.Janny)
-            msg = lines.slice(0, 5).map(e => e.substr(0, 350)).join('\n');
-        else
-            msg = lines.join('\n');
-        const entry = `|c:|${unix_now()}|${cli.mark}${cli.name}|${msg}`;
-        this.low_broadcast(cli, entry, bypass);
+            lines = lines.slice(0, 5).map(e => e.substring(0, 350));
+        lines = lines.map((line) => `|c:|${unix_now()}|${cli.mark}${cli.name}|${line}`);
+        this.low_broadcast(cli, lines.join('\n'), bypass);
     }
 
     low_broadcast(origin: Client, msg: string, bypass = false) {
         if (origin.access < AccessLevel.Janny && !bypass)
             try {
                 this.chat_timeout.pass(origin.connection.id);
+                if (origin.shadowBanned) {
+                    this.send_to_client(origin, msg, false);
+                    return;
+                }
             } catch (e) {
                 origin.connection.write(`>${this.id}\n|error|${e}`);
                 return;
@@ -183,7 +185,7 @@ class Room {
             try {
                 buf = await axios.get(surl, {
                     headers: {
-                        Referer: 'https://play.dogars.ga' // will throw if hotlinking not allowed
+                        Referer: 'https://play.dogars.org' // will throw if hotlinking not allowed
                     },
                     responseType: 'arraybuffer',
                     timeout: 5000,
@@ -245,6 +247,7 @@ class Client {
     subbed_rooms: { [k in string]: Room } = {};
     name = "Anonymous";
     mark = "▲";
+    shadowBanned = false;
     access: AccessLevel = AccessLevel.Guest;
     ignored = new Set<string>();
 
@@ -458,6 +461,34 @@ class AltChat {
                 target.mark = mark[0];
                 break;
             }
+            case 'fuckoff': {
+                if (client.access < AccessLevel.Janny)
+                    break;
+                let targetid = toId(body);
+                let target = this.get_client_by_id(targetid);
+                if (!target) {
+                    room.send_to_client(client, '|error|No such user.');
+                    break;
+                }
+                target.shadowBanned = !target.shadowBanned;
+                break;
+            }
+            case 'unshit': {
+                if (client.access < AccessLevel.Janny)
+                    break;
+                let [target, lines] = body.split(',').map(e => e.trim());
+                if (!target) {
+                    room.send_to_client(client, '|error|Please specify a user.');
+                    break;
+                }
+                const numLines = +lines;
+                if (Number.isNaN(numLines)) {
+                    room.send_to_client(client, '|error|Please specify a valid number of lines.');
+                    break;
+                }
+                room.low_broadcast(client, `|hidelines|delete|${toId(target)}|${numLines}`);
+                break;
+            }
             case 'help': {
                 let msg = ``;
                 switch (client.access) {
@@ -504,6 +535,7 @@ pick and roll can be broadcasted with ! instead of /
                         m = n;
                         n = 1;
                     }
+                    if (n && n > 20) n = 20;
                     const rolls = [...new Array(n)].map((e, i) => 1 + ~~(Math.random() * (m! + 1)));
                     const val = `<div class="infobox">${n} rolls (1 to ${m}): ${rolls.join(', ')}<br />Sum: ${rolls.reduce((a, b) => a + b)}</div>`
                     const send = Target.Self ? room.send_to_client : room.broadcast;
