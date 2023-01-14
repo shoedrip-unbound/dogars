@@ -28,7 +28,7 @@ export class DogarsIPCClient implements DogarsClient {
 
     connect() {
         console.log("Attempting to connect to IPC server...");
-        this.s = new SockJS('https://dogars.ga/ipc');
+        this.s = new SockJS('https://dogars.org/ipc');
         let stream = asyncify(async (cb: (v: MessageEvent) => void) => {
             this.s.onmessage = message => cb(message)
         });

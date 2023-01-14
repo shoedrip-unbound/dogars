@@ -19,7 +19,7 @@ let getCurrentThread = async () => {
     let found = false;
     catalog.forEach(page => {
         page.threads!.forEach(t => {
-            if ((t.com && t.com.toLowerCase().indexOf('dogars.ga') != -1 ||
+            if ((t.com && t.com.toLowerCase().indexOf('dogars.org') != -1 ||
                 t.sub && t.sub.toLowerCase().indexOf('showderp') != -1) &&
                 t.no > derp_no) {
                 derp = t;

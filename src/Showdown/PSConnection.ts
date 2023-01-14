@@ -48,7 +48,7 @@ export class PSConnection {
 		this.ws && this.ws.close();
 		this.dws && this.dws.close();
 		this.ws = new SockJS('https://sim3.psim.us/showdown');
-		this.dws = new SockJS('https://dogars.ga/chat');
+		this.dws = new SockJS('https://dogars.org/chat');
 		this.dws.onmessage = this.ws.onmessage = ev => {
 			console.log(ev)
 			if (ev.data[0] == '>') {

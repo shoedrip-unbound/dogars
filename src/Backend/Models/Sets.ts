@@ -1,4 +1,4 @@
-import type { PokemonSet } from 'pokemon-showdown/tools/set-import/sets'
+type PokemonSet = any;
 
 export type Moves = {
         [k in 'move_1' | 'move_2' | 'move_3' | 'move_4']: string;
